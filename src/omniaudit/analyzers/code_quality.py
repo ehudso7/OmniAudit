@@ -70,11 +70,19 @@ class CodeQualityAnalyzer(BaseAnalyzer):
             "metrics": {}
         }
 
-        if "python" in languages:
-            results["metrics"]["python"] = self._analyze_python(project_path)
+        # Map languages to analysis methods
+        language_methods = {
+            "python": self._analyze_python,
+            "javascript": self._analyze_javascript,
+            "go": self._analyze_go,
+            "java": self._analyze_java,
+            "ruby": self._analyze_ruby,
+            "php": self._analyze_php
+        }
 
-        if "javascript" in languages:
-            results["metrics"]["javascript"] = self._analyze_javascript(project_path)
+        for lang in languages:
+            if lang in language_methods:
+                results["metrics"][lang] = language_methods[lang](project_path)
 
         # Calculate overall score
         results["overall_score"] = self._calculate_score(results["metrics"])
@@ -295,3 +303,27 @@ class CodeQualityAnalyzer(BaseAnalyzer):
                 scores.append(js["coverage"])
 
         return round(sum(scores) / len(scores), 2) if scores else 0.0
+
+    def _analyze_go(self, path: Path) -> Dict[str, Any]:
+        """Analyze Go code quality."""
+        from .language_support import GoAnalyzer
+        analyzer = GoAnalyzer(path)
+        return analyzer.analyze()
+
+    def _analyze_java(self, path: Path) -> Dict[str, Any]:
+        """Analyze Java code quality."""
+        from .language_support import JavaAnalyzer
+        analyzer = JavaAnalyzer(path)
+        return analyzer.analyze()
+
+    def _analyze_ruby(self, path: Path) -> Dict[str, Any]:
+        """Analyze Ruby code quality."""
+        from .language_support import RubyAnalyzer
+        analyzer = RubyAnalyzer(path)
+        return analyzer.analyze()
+
+    def _analyze_php(self, path: Path) -> Dict[str, Any]:
+        """Analyze PHP code quality."""
+        from .language_support import PHPAnalyzer
+        analyzer = PHPAnalyzer(path)
+        return analyzer.analyze()
