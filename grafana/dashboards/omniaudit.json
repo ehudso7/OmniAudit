@@ -1,0 +1,50 @@
+{
+  "dashboard": {
+    "title": "OmniAudit Monitoring",
+    "uid": "omniaudit-dashboard",
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(omniaudit_requests_total[5m])"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Request Duration (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(omniaudit_request_duration_seconds_bucket[5m]))"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Audit Success Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "rate(omniaudit_audits_total{status=\"success\"}[5m]) / rate(omniaudit_audits_total[5m])"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Database Connection Pool",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "omniaudit_db_connections"
+          }
+        ]
+      }
+    ]
+  }
+}
