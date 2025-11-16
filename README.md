@@ -89,8 +89,11 @@ omniaudit audit --repo-path .
 
 ## 📖 Documentation
 
-- [Production Deployment Guide](docs/deployment/production-guide.md)
-- [API Documentation](http://localhost:8000/docs)
+- [CI/CD Guide](docs/guides/ci-cd-guide.md) - Continuous Integration setup and troubleshooting
+- [Production Deployment Guide](docs/deployment/production-guide.md) - Docker and Kubernetes deployment
+- [Configuration Guide](docs/guides/configuration.md) - Configuration options and examples
+- [API Documentation](http://localhost:8000/docs) - Interactive API docs (Swagger UI)
+- [Architecture Decision Records](docs/adr/) - Key architectural decisions
 - [Architecture Overview](#-architecture)
 
 ## 🎯 Use Cases
@@ -236,13 +239,23 @@ curl http://localhost:8000/metrics
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our contributing guidelines.
+We welcome contributions! Please follow these guidelines:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. **Fork** the repository
+2. **Create** your feature branch (`git checkout -b feature/amazing-feature`)
+3. **Install** dependencies: `pip install -e .[dev,test]`
+4. **Test** your changes: `pytest tests/ -v`
+5. **Lint** your code: `ruff check src/ tests/`
+6. **Commit** your changes (`git commit -m 'feat: add amazing feature'`)
+7. **Push** to the branch (`git push origin feature/amazing-feature`)
+8. **Open** a Pull Request
+
+**Before submitting:**
+- Ensure all tests pass locally
+- Add tests for new features
+- Update documentation as needed
+- Follow conventional commit messages
+- See [CI/CD Guide](docs/guides/ci-cd-guide.md) for testing locally
 
 ## 📄 License
 

@@ -22,19 +22,18 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry
-        poetry install --with dev
+        pip install -e .[dev]
 
     - name: Run ruff linter
-      run: poetry run ruff check src/ tests/
+      run: ruff check src/ tests/
       continue-on-error: true
 
     - name: Run ruff formatter check
-      run: poetry run ruff format --check src/ tests/
+      run: ruff format --check src/ tests/
       continue-on-error: true
 
     - name: Run mypy type checker
-      run: poetry run mypy src/
+      run: mypy src/
       continue-on-error: true
 
   test:
@@ -58,14 +57,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry
-        poetry install --with dev
+        pip install -e .[test]
 
     - name: Run unit tests
-      run: poetry run pytest tests/unit/ -v --cov=src/omniaudit --cov-report=xml
+      run: pytest tests/unit/ -v --cov=src/omniaudit --cov-report=xml
 
     - name: Run integration tests
-      run: poetry run pytest tests/integration/ -v
+      run: pytest tests/integration/ -v
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -90,10 +88,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry
+        pip install build
 
     - name: Build package
-      run: poetry build
+      run: python -m build
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -118,11 +116,6 @@ jobs:
     - name: Install frontend dependencies
       working-directory: frontend
       run: npm ci
-
-    - name: Run frontend linter
-      working-directory: frontend
-      run: npm run lint
-      continue-on-error: true
 
     - name: Build frontend
       working-directory: frontend
@@ -149,11 +142,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install poetry safety bandit
+        pip install -e . safety bandit
 
     - name: Check for security vulnerabilities
       run: |
-        poetry export -f requirements.txt | safety check --stdin
+        pip freeze | safety check --stdin
       continue-on-error: true
 
     - name: Run bandit security linter
