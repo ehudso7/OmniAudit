@@ -1,0 +1,26 @@
+# Git Collector Configuration Example
+# Copy to git.yaml and customize for your repository
+
+collector: git_collector
+version: 0.1.0
+
+# Repository path (required)
+# Can be absolute or relative path to a local Git repository
+repo_path: /path/to/your/repository
+
+# Branch to analyze (optional)
+# If not specified, uses the current active branch
+branch: main
+
+# Collect commits since this date (optional)
+# Format: ISO 8601 (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+# since: 2024-01-01
+
+# Maximum number of commits to collect (optional)
+# Default: 1000
+max_commits: 1000
+
+# Output options
+output:
+  format: json  # json, yaml
+  file: audit_results.json
