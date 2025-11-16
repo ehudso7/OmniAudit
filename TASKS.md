@@ -119,29 +119,29 @@ This document tracks the implementation roadmap for OmniAudit, with a focus on A
 > **Note:** This phase leverages Anthropic's Structured Outputs for guaranteed type-safe AI responses.
 > See [ADR-004](docs/adr/004-anthropic-structured-outputs.md) for architectural decisions.
 
-### Phase 4.0: AI Foundation (Current)
+### Phase 4.0: AI Foundation ✅
 
 #### Infrastructure
 - ✅ Add `anthropic>=0.39.0` to dependencies (pyproject.toml)
 - ✅ Create Pydantic models for all AI features (src/omniaudit/models/ai_models.py)
-- ⏳ Create AI service abstraction layer (src/omniaudit/services/ai_service.py)
-- ⏳ Implement schema caching and warm-up logic
-- ⏳ Add AI feature flags in configuration
+- ✅ Create AIInsightsAnalyzer with Anthropic API integration
+- ✅ Implement schema caching and warm-up logic
+- ✅ Add AI feature flags in configuration (AI_FEATURES_ENABLED)
 - ⏳ Create AI cost tracking and budget limits
 
 #### Testing & Validation
-- ⏳ Unit tests for all Pydantic AI models
+- ✅ Unit tests for all Pydantic AI models (27 tests)
 - ⏳ Mock AI responses for integration tests
 - ⏳ End-to-end tests with actual Claude API (dev environment only)
-- ⏳ Schema validation tests
+- ✅ Schema validation tests (via Pydantic validators)
 
 #### Documentation
 - ✅ Architecture Decision Record (ADR-004)
 - ⏳ AI features user guide
-- ⏳ API documentation for AI endpoints
+- ✅ API documentation for AI endpoints (OpenAPI auto-generated)
 - ⏳ Cost estimation and optimization guide
 
-### Phase 4.1: Basic AI Features ⏳
+### Phase 4.1: Basic AI Features 🚧
 
 #### Report Summarization
 - ⏳ Implement ExecutiveSummary generation
@@ -163,15 +163,16 @@ This document tracks the implementation roadmap for OmniAudit, with a focus on A
 - ⏳ Identify significant changes automatically
 - ⏳ Dashboard integration for trend insights
 
-### Phase 4.2: Advanced Analysis ⏳
+### Phase 4.2: Advanced Analysis 🚧
 
 #### AI Insights Analyzer
-- ⏳ Create AIInsightsAnalyzer class (src/omniaudit/analyzers/ai_insights.py)
-- ⏳ Implement code smell detection with CodeSmell model
-- ⏳ Calculate technical debt score
-- ⏳ Generate maintainability index
-- ⏳ Architecture quality assessment
-- ⏳ API endpoint: POST /api/v1/ai/insights
+- ✅ Create AIInsightsAnalyzer class (src/omniaudit/analyzers/ai_insights.py)
+- ✅ Implement code smell detection with CodeSmell model
+- ✅ Calculate technical debt score
+- ✅ Generate maintainability index
+- ✅ Architecture quality assessment
+- ✅ API endpoint: POST /api/v1/ai/insights
+- ✅ Additional endpoints: GET /status, DELETE /cache, GET /cache/stats
 - ⏳ Integration with existing audit workflow
 
 #### Anomaly Detection
@@ -340,8 +341,8 @@ This document tracks the implementation roadmap for OmniAudit, with a focus on A
 | Phase 2 | P1 | High | Medium | ✅ Complete |
 | Phase 3 | P1 | High | High | ✅ Complete |
 | Phase 4.0 | P1 | High | Low | ✅ Complete |
-| Phase 4.1 | P2 | Medium | Medium | ⏳ Planned |
-| Phase 4.2 | P2 | High | High | ⏳ Planned |
+| Phase 4.1 | P2 | Medium | Medium | 🚧 In Progress |
+| Phase 4.2 | P2 | High | High | 🚧 In Progress (AI Insights complete) |
 | Phase 4.3 | P3 | Medium | High | ⏳ Planned |
 | Phase 4.4 | P2 | Medium | Medium | ⏳ Planned |
 | Phase 4.5 | P1 | High | Medium | ⏳ Planned |
