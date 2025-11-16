@@ -18,6 +18,7 @@ Each ADR follows this structure:
 - [ADR-001: Plugin Architecture](001-plugin-architecture.md)
 - [ADR-002: Data Storage Strategy](002-data-storage-strategy.md)
 - [ADR-003: Language-Agnostic Design](003-language-agnostic-design.md)
+- [ADR-004: Anthropic Structured Outputs](004-anthropic-structured-outputs.md)
 
 ## References
 
