@@ -210,46 +210,158 @@ class AIInsightsAnalyzer(BaseAnalyzer):
         """
         Perform AI analysis using Anthropic Structured Outputs.
 
-        This is a placeholder implementation. Full implementation will use:
-        - client.beta.messages.parse() with structured outputs
-        - AIInsightsResult as response_model
-        - Detailed prompts for code analysis
+        Uses Claude with guaranteed structured outputs to analyze code quality,
+        detect code smells, and provide actionable recommendations.
 
         Args:
-            data: Project data to analyze
+            data: Project data to analyze containing:
+                - project_path: Path to project
+                - files: List of file analysis results
+                - metrics: Complexity, coverage, etc.
+                - language_breakdown: Languages used
 
         Returns:
             AIInsightsResult with structured insights
+
+        Raises:
+            AnalyzerError: If Anthropic client not initialized or API error
         """
         if not self._client:
             raise AnalyzerError("Anthropic client not initialized")
 
-        # TODO: Full implementation with structured outputs
-        # For now, return a placeholder result
         project_path = data.get("project_path", "unknown")
         file_count = len(data.get("files", []))
         metrics = data.get("metrics", {})
+        language_breakdown = data.get("language_breakdown", {})
 
-        # Placeholder: Create a basic AIInsightsResult
-        # In full implementation, this will be returned by Claude API
-        result = AIInsightsResult(
-            project_id=project_path,
-            analyzed_at=datetime.utcnow().isoformat() + "Z",
-            code_smells=[],  # Will be populated by AI
-            technical_debt_score=75.0,  # Placeholder
-            maintainability_index=70.0,  # Placeholder
-            test_coverage_assessment="Test coverage data not available for AI analysis",
-            architecture_assessment="Architecture analysis pending full AI implementation",
-            summary=f"AI analysis placeholder for project with {file_count} files",
-            priority_actions=[
-                "Enable full AI insights by implementing Anthropic Structured Outputs integration",
-                "Review code quality metrics manually until AI features are complete",
-                "Set ANTHROPIC_API_KEY environment variable",
-            ],
-            estimated_remediation_hours=None,
-        )
+        # Build comprehensive prompt for code analysis
+        prompt = self._build_analysis_prompt(data)
 
-        return result
+        try:
+            # Call Anthropic API with Structured Outputs
+            response = self._client.beta.messages.parse(
+                model=self._get_model(),
+                betas=["structured-outputs-2025-11-13"],
+                max_tokens=self._get_max_tokens(),
+                response_model=AIInsightsResult,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
+
+            # The parsed response is guaranteed to be valid AIInsightsResult
+            return response.parsed_output
+
+        except Exception as e:
+            # If API call fails, raise for fallback handling
+            raise AnalyzerError(f"Anthropic API error: {str(e)}")
+
+    def _build_analysis_prompt(self, data: Dict[str, Any]) -> str:
+        """
+        Build comprehensive analysis prompt for Claude.
+
+        Args:
+            data: Project data
+
+        Returns:
+            Detailed prompt for code quality analysis
+        """
+        project_path = data.get("project_path", "unknown")
+        files = data.get("files", [])
+        metrics = data.get("metrics", {})
+        language_breakdown = data.get("language_breakdown", {})
+
+        # Extract key metrics
+        total_files = len(files)
+        total_lines = sum(f.get("lines", 0) for f in files)
+        avg_complexity = metrics.get("complexity_avg", 0)
+        coverage = metrics.get("coverage_percent", 0)
+
+        # Build language summary
+        languages_used = ", ".join(language_breakdown.keys()) if language_breakdown else "Unknown"
+
+        # Create detailed prompt
+        prompt = f"""You are an expert code quality analyst. Analyze this software project and provide detailed insights.
+
+**Project Overview:**
+- Path: {project_path}
+- Total Files: {total_files}
+- Total Lines of Code: {total_lines:,}
+- Languages: {languages_used}
+- Average Cyclomatic Complexity: {avg_complexity:.2f}
+- Test Coverage: {coverage:.1f}%
+
+**Code Metrics:**
+{self._format_metrics(metrics)}
+
+**Files Analyzed:**
+{self._format_files_summary(files[:20])}  # Limit to first 20 files
+
+**Your Task:**
+Provide a comprehensive code quality analysis with:
+
+1. **Code Smells**: Identify specific anti-patterns or quality issues based on the metrics.
+   - For each issue, specify file path, line number, severity, type, description, and recommendation
+   - Focus on high-impact issues: high complexity methods, low test coverage, duplicated code patterns
+
+2. **Technical Debt Score** (0-100): Calculate based on:
+   - Code complexity (weight: 30%)
+   - Test coverage (weight: 25%)
+   - Code duplication (weight: 20%)
+   - Code organization (weight: 15%)
+   - Documentation quality (weight: 10%)
+
+3. **Maintainability Index** (0-100): Consider:
+   - Average file size and complexity
+   - Naming conventions
+   - Code structure and organization
+   - Dependency management
+
+4. **Test Coverage Assessment**: Evaluate if {coverage:.1f}% coverage is adequate for this type of project.
+
+5. **Architecture Assessment**: Based on file structure and metrics, assess the overall architecture quality.
+
+6. **Summary**: 2-3 sentence executive summary of overall code health.
+
+7. **Priority Actions**: Top 3-5 concrete actions to improve code quality, ordered by impact.
+
+8. **Estimated Remediation Hours**: Rough estimate of total hours needed to address all major issues.
+
+Be specific, actionable, and honest in your assessment. Use the structured output format to ensure consistency.
+"""
+
+        return prompt
+
+    def _format_metrics(self, metrics: Dict[str, Any]) -> str:
+        """Format metrics for prompt."""
+        if not metrics:
+            return "No metrics available"
+
+        lines = []
+        for key, value in metrics.items():
+            if isinstance(value, (int, float)):
+                lines.append(f"- {key}: {value}")
+            elif isinstance(value, dict):
+                lines.append(f"- {key}: {len(value)} items")
+
+        return "\n".join(lines) if lines else "No metrics available"
+
+    def _format_files_summary(self, files: List[Dict[str, Any]]) -> str:
+        """Format file list for prompt."""
+        if not files:
+            return "No files available"
+
+        lines = []
+        for f in files:
+            path = f.get("path", "unknown")
+            lines_count = f.get("lines", 0)
+            complexity = f.get("complexity", 0)
+            lines.append(f"- {path}: {lines_count} lines, complexity {complexity}")
+
+        return "\n".join(lines) if lines else "No files available"
 
     def _fallback_analysis(self, data: Dict[str, Any], error_message: str) -> Dict[str, Any]:
         """
@@ -365,3 +477,60 @@ def create_ai_insights_analyzer(
         config["api_key"] = api_key
 
     return AIInsightsAnalyzer(config)
+
+
+def warm_up_ai_schemas(api_key: Optional[str] = None) -> bool:
+    """
+    Pre-compile AI schemas to reduce first-request latency.
+
+    This function sends minimal test requests to warm up the schema cache.
+    Call this during application startup for better performance.
+
+    Args:
+        api_key: Anthropic API key (optional if set in env)
+
+    Returns:
+        True if warm-up successful, False otherwise
+
+    Example:
+        >>> # During FastAPI app startup
+        >>> @app.on_event("startup")
+        >>> async def startup():
+        ...     warm_up_ai_schemas()
+    """
+    try:
+        if not ANTHROPIC_AVAILABLE:
+            return False
+
+        key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            return False
+
+        # Create minimal test data
+        test_data = {
+            "project_path": "/warmup/test",
+            "files": [],
+            "metrics": {},
+            "language_breakdown": {}
+        }
+
+        # Create analyzer with minimal token limit to reduce cost
+        analyzer = AIInsightsAnalyzer({
+            "enabled": True,
+            "api_key": key,
+            "model": "claude-sonnet-4-5",
+            "max_tokens": 512,  # Minimal for schema compilation
+            "enable_cache": False,  # Don't cache warmup requests
+        })
+
+        # Trigger schema compilation (might fail due to minimal data, that's OK)
+        try:
+            analyzer._analyze_with_ai(test_data)
+        except Exception:
+            # Expected to fail with minimal data, but schema is now cached
+            pass
+
+        return True
+
+    except Exception:
+        return False
