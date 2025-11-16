@@ -95,9 +95,12 @@ class GitCollector(BaseCollector):
             branches = self._collect_branches(repo)
             contributors = self._collect_contributors(commits)
 
+            # Handle detached HEAD state
+            current_branch = self._get_current_branch(repo)
+
             data = {
                 "repository_path": str(self.config["repo_path"]),
-                "current_branch": str(repo.active_branch),
+                "current_branch": current_branch,
                 "commits_count": len(commits),
                 "commits": commits,
                 "branches_count": len(branches),
@@ -120,6 +123,22 @@ class GitCollector(BaseCollector):
             raise DataCollectionError(f"Git operation failed: {e}")
         except Exception as e:
             raise DataCollectionError(f"Unexpected error: {e}")
+
+    def _get_current_branch(self, repo: "Repo") -> str:
+        """
+        Get current branch name, handling detached HEAD state.
+
+        Args:
+            repo: GitPython Repo object
+
+        Returns:
+            Branch name or "detached HEAD" with commit SHA
+        """
+        try:
+            return str(repo.active_branch)
+        except TypeError:
+            # HEAD is detached
+            return f"detached HEAD ({repo.head.commit.hexsha[:7]})"
 
     def _parse_since_date(self, since: Optional[str]) -> Optional[datetime]:
         """Parse since date string to datetime."""
@@ -145,7 +164,14 @@ class GitCollector(BaseCollector):
             List of commit dictionaries
         """
         commits = []
-        rev = branch if branch else repo.active_branch.name
+        if branch:
+            rev = branch
+        else:
+            # Handle detached HEAD state by using HEAD
+            try:
+                rev = repo.active_branch.name
+            except TypeError:
+                rev = "HEAD"
 
         for commit in repo.iter_commits(rev, max_count=max_commits):
             commit_date = datetime.fromtimestamp(commit.committed_date)
@@ -181,11 +207,17 @@ class GitCollector(BaseCollector):
         """
         branches = []
 
+        # Get current branch, handling detached HEAD
+        try:
+            active_branch = repo.active_branch
+        except TypeError:
+            active_branch = None
+
         for branch in repo.branches:
             branches.append({
                 "name": branch.name,
                 "commit_sha": branch.commit.hexsha,
-                "is_current": branch == repo.active_branch
+                "is_current": branch == active_branch if active_branch else False
             })
 
         return branches
