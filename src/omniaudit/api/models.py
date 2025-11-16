@@ -55,3 +55,34 @@ class AuditResponse(BaseModel):
     success: bool
     audit_id: str
     results: Dict[str, Any]
+
+
+# AI Feature Models
+
+
+class AIInsightsRequest(BaseModel):
+    """Request model for AI insights analysis."""
+    project_path: str = Field(description="Path to project")
+    files: List[Dict[str, Any]] = Field(
+        default=[],
+        description="File analysis results"
+    )
+    metrics: Dict[str, Any] = Field(
+        default={},
+        description="Code metrics"
+    )
+    language_breakdown: Dict[str, Any] = Field(
+        default={},
+        description="Languages used in project"
+    )
+    enable_cache: bool = Field(
+        default=True,
+        description="Use cached results if available"
+    )
+
+
+class AIInsightsResponse(BaseModel):
+    """Response model for AI insights."""
+    success: bool
+    data: Dict[str, Any]
+    metadata: Dict[str, Any]

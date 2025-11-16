@@ -25,11 +25,13 @@ from .models import (
     AuditRequest,
     AuditResponse
 )
+from .ai_routes import router as ai_router
 from ..core.plugin_manager import PluginManager
 from ..core.config_loader import ConfigLoader
 from ..collectors.git_collector import GitCollector
 from ..collectors.github_collector import GitHubCollector
 from ..analyzers.code_quality import CodeQualityAnalyzer
+from ..analyzers import warm_up_ai_schemas
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -38,7 +40,7 @@ logger = get_logger(__name__)
 app = FastAPI(
     title="OmniAudit API",
     description="Universal Project Auditing & Monitoring Platform",
-    version="0.1.0",
+    version="0.3.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -51,6 +53,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include AI routes
+app.include_router(ai_router)
 
 # Initialize plugin manager
 plugin_manager = PluginManager()
@@ -65,6 +70,14 @@ async def startup_event():
     """Initialize application on startup."""
     logger.info("OmniAudit API starting up...")
 
+    # Warm up AI schemas to reduce first-request latency
+    logger.info("Warming up AI schemas...")
+    warmed_up = warm_up_ai_schemas()
+    if warmed_up:
+        logger.info("AI schemas warmed up successfully")
+    else:
+        logger.info("AI schemas warm-up skipped (disabled or no API key)")
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -77,14 +90,19 @@ async def root():
     """API root endpoint."""
     return {
         "name": "OmniAudit API",
-        "version": "0.1.0",
+        "version": "0.3.0",
         "status": "operational",
         "endpoints": {
             "docs": "/docs",
             "health": "/health",
             "collectors": "/api/v1/collectors",
             "analyzers": "/api/v1/analyzers",
-            "audit": "/api/v1/audit"
+            "audit": "/api/v1/audit",
+            "ai": {
+                "status": "/api/v1/ai/status",
+                "insights": "/api/v1/ai/insights",
+                "cache": "/api/v1/ai/cache"
+            }
         }
     }
 
