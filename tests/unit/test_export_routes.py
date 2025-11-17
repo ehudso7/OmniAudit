@@ -3,7 +3,7 @@ Unit tests for export routes.
 """
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 from omniaudit.api.main import app
 
@@ -45,7 +45,7 @@ class TestExportRoutes:
 
     async def test_export_formats_list(self):
         """Test listing export formats."""
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/export/formats")
 
         assert response.status_code == 200
@@ -60,7 +60,7 @@ class TestExportRoutes:
 
     async def test_export_csv(self, sample_audit_data):
         """Test CSV export."""
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/export/csv",
                 json={"data": sample_audit_data}
@@ -77,7 +77,7 @@ class TestExportRoutes:
 
     async def test_export_markdown(self, sample_audit_data):
         """Test Markdown export."""
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/export/markdown",
                 json={"data": sample_audit_data}
@@ -94,7 +94,7 @@ class TestExportRoutes:
 
     async def test_export_json(self, sample_audit_data):
         """Test JSON export."""
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/export/json",
                 json={"data": sample_audit_data}
@@ -113,7 +113,7 @@ class TestExportRoutes:
         """Test export with empty data."""
         empty_data = {"collectors": {}, "analyzers": {}}
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/export/csv",
                 json={"data": empty_data}

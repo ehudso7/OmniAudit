@@ -73,17 +73,17 @@ class BatchAuditRequest(BaseModel):
     repositories: List[Dict[str, Any]] = Field(
         ...,
         description="List of repository configurations to audit",
-        max_items=50  # Limit to prevent DoS
+        max_length=50  # Limit to prevent DoS
     )
     collectors: List[str] = Field(
         default=["git_collector"],
         description="Collectors to run on each repository",
-        max_items=10
+        max_length=10
     )
     analyzers: List[str] = Field(
         default=[],
         description="Analyzers to run on each repository",
-        max_items=10
+        max_length=10
     )
 
 
