@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Any
 from datetime import datetime
 import uuid
+import os
 
 try:
     import uvicorn
@@ -48,13 +49,33 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware
+# CORS middleware - Secure configuration
+# In production, ALWAYS set CORS_ORIGINS environment variable with allowed origins
+allowed_origins_str = os.environ.get("CORS_ORIGINS", "")
+if allowed_origins_str:
+    # Use explicit origins from environment (recommended for production)
+    allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+else:
+    # Default for local development only
+    # IMPORTANT: Do not use wildcards - CORS doesn't support pattern matching
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",  # Vite default port
+        "http://localhost:8000"
+    ]
+    # Log warning if not configured
+    logger.warning(
+        "CORS_ORIGINS not configured. Using localhost defaults. "
+        "Set CORS_ORIGINS environment variable for production."
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
+    max_age=600,  # Cache preflight requests for 10 minutes
 )
 
 # Include routers

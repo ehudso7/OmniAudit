@@ -6,6 +6,7 @@ Endpoints for receiving webhooks from external services like GitHub.
 
 import hmac
 import hashlib
+import time
 from fastapi import APIRouter, HTTPException, Header, Request, BackgroundTasks, status
 from typing import Dict, Any, Optional
 import os
@@ -25,18 +26,27 @@ router = APIRouter(
 
 
 def verify_github_signature(payload_body: bytes, signature_header: str, secret: str) -> bool:
-    """Verify GitHub webhook signature."""
-    if not signature_header:
+    """
+    Verify GitHub webhook signature using constant-time comparison.
+
+    Prevents timing attacks by using hmac.compare_digest.
+    """
+    if not signature_header or not secret:
         return False
 
-    hash_object = hmac.new(
-        secret.encode('utf-8'),
-        msg=payload_body,
-        digestmod=hashlib.sha256
-    )
-    expected_signature = "sha256=" + hash_object.hexdigest()
+    try:
+        hash_object = hmac.new(
+            secret.encode('utf-8'),
+            msg=payload_body,
+            digestmod=hashlib.sha256
+        )
+        expected_signature = "sha256=" + hash_object.hexdigest()
 
-    return hmac.compare_digest(expected_signature, signature_header)
+        # Use constant-time comparison to prevent timing attacks
+        return hmac.compare_digest(expected_signature, signature_header)
+    except Exception as e:
+        logger.error(f"Signature verification failed: {e}")
+        return False
 
 
 async def process_github_webhook(event: str, payload: Dict[str, Any]):
@@ -88,17 +98,24 @@ async def github_webhook(
     # Get webhook secret from environment
     secret = os.environ.get("GITHUB_WEBHOOK_SECRET", "")
 
+    # Require secret in production
+    if not secret:
+        logger.error("GITHUB_WEBHOOK_SECRET not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Webhook endpoint not properly configured. Set GITHUB_WEBHOOK_SECRET."
+        )
+
     # Read request body
     payload_body = await request.body()
 
-    # Verify signature if secret is configured
-    if secret:
-        if not verify_github_signature(payload_body, x_hub_signature_256, secret):
-            logger.warning("Invalid GitHub webhook signature")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid signature"
-            )
+    # Verify signature (required for security)
+    if not verify_github_signature(payload_body, x_hub_signature_256, secret):
+        logger.warning("Invalid GitHub webhook signature")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid signature"
+        )
 
     # Parse JSON payload
     payload = await request.json()
@@ -113,13 +130,89 @@ async def github_webhook(
     }
 
 
+def verify_slack_signature(payload_body: bytes, timestamp: str, signature: str, signing_secret: str) -> bool:
+    """
+    Verify Slack request signature using HMAC-SHA256.
+
+    Follows Slack's recommended security practices:
+    - Uses signing secret (not deprecated verification token)
+    - Includes timestamp to prevent replay attacks
+    - Uses constant-time comparison
+
+    https://api.slack.com/authentication/verifying-requests-from-slack
+    """
+    if not timestamp or not signature or not signing_secret:
+        return False
+
+    try:
+        # Check timestamp is recent (within 5 minutes) to prevent replay attacks
+        current_time = int(time.time())
+        request_time = int(timestamp)
+        if abs(current_time - request_time) > 60 * 5:
+            logger.warning(f"Slack request timestamp too old: {abs(current_time - request_time)}s")
+            return False
+
+        # Create signature base string: v0:timestamp:body
+        sig_basestring = f"v0:{timestamp}:{payload_body.decode('utf-8')}"
+
+        # Compute HMAC-SHA256
+        hash_object = hmac.new(
+            signing_secret.encode('utf-8'),
+            msg=sig_basestring.encode('utf-8'),
+            digestmod=hashlib.sha256
+        )
+        expected_signature = "v0=" + hash_object.hexdigest()
+
+        # Use constant-time comparison to prevent timing attacks
+        return hmac.compare_digest(expected_signature, signature)
+    except (ValueError, AttributeError) as e:
+        logger.error(f"Slack signature verification failed: {e}")
+        return False
+
+
 @router.post("/slack")
-async def slack_webhook(payload: Dict[str, Any]):
+async def slack_webhook(
+    request: Request,
+    x_slack_request_timestamp: Optional[str] = Header(None),
+    x_slack_signature: Optional[str] = Header(None)
+):
     """
     Receive Slack slash commands or interactive messages.
 
     Example slash command: /omniaudit status
+
+    Configure SLACK_SIGNING_SECRET environment variable for security.
+    Uses Slack's recommended signature verification (not deprecated tokens).
+
+    https://api.slack.com/authentication/verifying-requests-from-slack
     """
+    # Get signing secret from environment
+    signing_secret = os.environ.get("SLACK_SIGNING_SECRET", "")
+
+    # Require signing secret in production
+    if not signing_secret:
+        logger.error("SLACK_SIGNING_SECRET not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Slack webhook endpoint not properly configured. Set SLACK_SIGNING_SECRET."
+        )
+
+    # Read request body
+    payload_body = await request.body()
+
+    # Verify signature (required for security)
+    if not verify_slack_signature(payload_body, x_slack_request_timestamp, x_slack_signature, signing_secret):
+        logger.warning("Invalid Slack request signature")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid signature"
+        )
+
+    # Parse payload (Slack sends form-encoded data, not JSON)
+    # For slash commands, parse the form data
+    form_data = await request.form()
+    payload = dict(form_data)
+
     # Handle Slack slash commands
     command = payload.get("command")
     text = payload.get("text", "")
@@ -151,6 +244,7 @@ async def webhook_status():
     """Get webhook configuration status."""
     return {
         "github_webhook_configured": bool(os.environ.get("GITHUB_WEBHOOK_SECRET")),
+        "slack_webhook_configured": bool(os.environ.get("SLACK_SIGNING_SECRET")),
         "supported_events": ["push", "pull_request", "release"],
         "endpoints": {
             "github": "/api/v1/webhooks/github",
