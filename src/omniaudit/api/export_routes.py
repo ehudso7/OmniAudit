@@ -6,7 +6,7 @@ Endpoints for exporting audit results in various formats.
 
 from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Dict, Any
 import csv
 import io
