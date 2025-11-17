@@ -7,6 +7,7 @@ import hmac
 import hashlib
 import time
 import os
+import json
 from unittest.mock import patch
 from httpx import AsyncClient, ASGITransport
 
@@ -58,7 +59,7 @@ class TestWebhookRoutes:
         }
 
         # Compute valid signature
-        payload_bytes = b'{"repository":{"full_name":"user/repo"},"commits":[{"id":"abc123"}]}'
+        payload_bytes = json.dumps(payload, separators=(",", ":")).encode("utf-8")
         signature = "sha256=" + hmac.new(
             secret.encode('utf-8'),
             payload_bytes,
