@@ -81,7 +81,7 @@ class TestFullAuditWorkflow:
 
         # Verify report was created
         assert output_path.exists()
-        content = output_path.read_text()
+        content = output_path.read_text(encoding='utf-8')
 
         # Verify report structure
         assert "# 🔍 OmniAudit Report" in content
@@ -119,7 +119,7 @@ class TestFullAuditWorkflow:
         assert output_path.exists()
 
         # Parse and verify JSON structure
-        with open(output_path, 'r') as f:
+        with open(output_path, 'r', encoding='utf-8') as f:
             report = json.load(f)
 
         assert "metadata" in report
