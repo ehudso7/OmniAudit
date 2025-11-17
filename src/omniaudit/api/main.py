@@ -26,6 +26,9 @@ from .models import (
     AuditResponse
 )
 from .ai_routes import router as ai_router
+from .webhook_routes import router as webhook_router
+from .batch_routes import router as batch_router
+from .export_routes import router as export_router
 from ..core.plugin_manager import PluginManager
 from ..core.config_loader import ConfigLoader
 from ..collectors.git_collector import GitCollector
@@ -54,8 +57,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include AI routes
+# Include routers
 app.include_router(ai_router)
+app.include_router(webhook_router)
+app.include_router(batch_router)
+app.include_router(export_router)
 
 # Initialize plugin manager
 plugin_manager = PluginManager()
@@ -102,6 +108,21 @@ async def root():
                 "status": "/api/v1/ai/status",
                 "insights": "/api/v1/ai/insights",
                 "cache": "/api/v1/ai/cache"
+            },
+            "webhooks": {
+                "github": "/api/v1/webhooks/github",
+                "slack": "/api/v1/webhooks/slack",
+                "status": "/api/v1/webhooks/status"
+            },
+            "batch": {
+                "audit": "/api/v1/batch/audit",
+                "list": "/api/v1/batch/audit"
+            },
+            "export": {
+                "csv": "/api/v1/export/csv",
+                "markdown": "/api/v1/export/markdown",
+                "json": "/api/v1/export/json",
+                "formats": "/api/v1/export/formats"
             }
         }
     }
