@@ -26,7 +26,7 @@ class TestWebhookRoutes:
         assert "pull_request" in data["supported_events"]
 
     async def test_github_webhook_without_secret(self):
-        """Test GitHub webhook without signature verification."""
+        """Test GitHub webhook returns 503 when secret not configured."""
         payload = {
             "repository": {"full_name": "user/repo"},
             "commits": [{"id": "abc123"}]
@@ -39,14 +39,13 @@ class TestWebhookRoutes:
                 headers={"X-GitHub-Event": "push"}
             )
 
-        # Should accept without secret if not configured
-        assert response.status_code == 200
+        # Should return 503 when secret not configured (secure behavior)
+        assert response.status_code == 503
         data = response.json()
-        assert data["status"] == "accepted"
-        assert data["event"] == "push"
+        assert "GITHUB_WEBHOOK_SECRET" in data["detail"]
 
     async def test_slack_webhook_status_command(self):
-        """Test Slack webhook status command."""
+        """Test Slack webhook returns 503 when signing secret not configured."""
         payload = {
             "command": "/omniaudit",
             "text": "status"
@@ -58,12 +57,13 @@ class TestWebhookRoutes:
                 json=payload
             )
 
-        assert response.status_code == 200
+        # Should return 503 when signing secret not configured (secure behavior)
+        assert response.status_code == 503
         data = response.json()
-        assert "OmniAudit is operational" in data["text"]
+        assert "SLACK_SIGNING_SECRET" in data["detail"]
 
     async def test_slack_webhook_help_command(self):
-        """Test Slack webhook help command."""
+        """Test Slack webhook returns 503 when signing secret not configured."""
         payload = {
             "command": "/omniaudit",
             "text": "help"
@@ -75,13 +75,13 @@ class TestWebhookRoutes:
                 json=payload
             )
 
-        assert response.status_code == 200
+        # Should return 503 when signing secret not configured (secure behavior)
+        assert response.status_code == 503
         data = response.json()
-        assert "Available commands" in data["text"]
-        assert "response_type" in data
+        assert "SLACK_SIGNING_SECRET" in data["detail"]
 
     async def test_slack_webhook_unknown_command(self):
-        """Test Slack webhook with unknown command."""
+        """Test Slack webhook returns 503 when signing secret not configured."""
         payload = {
             "command": "/omniaudit",
             "text": "unknown"
@@ -93,6 +93,7 @@ class TestWebhookRoutes:
                 json=payload
             )
 
-        assert response.status_code == 200
+        # Should return 503 when signing secret not configured (secure behavior)
+        assert response.status_code == 503
         data = response.json()
-        assert "Unknown command" in data["text"]
+        assert "SLACK_SIGNING_SECRET" in data["detail"]
