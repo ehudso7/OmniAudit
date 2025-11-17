@@ -24,8 +24,15 @@ router = APIRouter(
 
 class ExportRequest(BaseModel):
     """Request model for export."""
-    data: Dict[str, Any]
-    format: str = "csv"  # csv, json, markdown
+    data: Dict[str, Any] = Field(
+        ...,
+        description="Audit data to export"
+    )
+    format: str = Field(
+        default="csv",
+        description="Export format",
+        pattern="^(csv|json|markdown)$"  # Only allow these formats
+    )
 
 
 def generate_csv(data: Dict[str, Any]) -> str:
@@ -132,19 +139,39 @@ async def export_csv(request: ExportRequest):
     Returns a downloadable CSV file.
     """
     try:
+        # Validate data exists
+        if not request.data:
+            raise HTTPException(
+                status_code=400,
+                detail="No data provided for export"
+            )
+
         csv_content = generate_csv(request.data)
+
+        # Check size limit (prevent DoS)
+        if len(csv_content) > 10_000_000:  # 10MB limit
+            raise HTTPException(
+                status_code=413,
+                detail="Export data too large. Please reduce the amount of data."
+            )
 
         return Response(
             content=csv_content,
-            media_type="text/csv",
+            media_type="text/csv; charset=utf-8",
             headers={
-                "Content-Disposition": "attachment; filename=audit_report.csv"
+                "Content-Disposition": "attachment; filename=audit_report.csv",
+                "Content-Length": str(len(csv_content))
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"CSV export failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"CSV export failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Export generation failed. Please check your data format."
+        )
 
 
 @router.post("/markdown")
@@ -155,19 +182,37 @@ async def export_markdown(request: ExportRequest):
     Returns a downloadable Markdown file.
     """
     try:
+        if not request.data:
+            raise HTTPException(
+                status_code=400,
+                detail="No data provided for export"
+            )
+
         md_content = generate_markdown_report(request.data)
+
+        if len(md_content) > 10_000_000:  # 10MB limit
+            raise HTTPException(
+                status_code=413,
+                detail="Export data too large"
+            )
 
         return Response(
             content=md_content,
-            media_type="text/markdown",
+            media_type="text/markdown; charset=utf-8",
             headers={
-                "Content-Disposition": "attachment; filename=audit_report.md"
+                "Content-Disposition": "attachment; filename=audit_report.md",
+                "Content-Length": str(len(md_content))
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Markdown export failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Markdown export failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Export generation failed"
+        )
 
 
 @router.post("/json")
@@ -178,19 +223,37 @@ async def export_json(request: ExportRequest):
     Returns a downloadable JSON file.
     """
     try:
+        if not request.data:
+            raise HTTPException(
+                status_code=400,
+                detail="No data provided for export"
+            )
+
         json_content = json.dumps(request.data, indent=2, ensure_ascii=False)
+
+        if len(json_content) > 10_000_000:  # 10MB limit
+            raise HTTPException(
+                status_code=413,
+                detail="Export data too large"
+            )
 
         return Response(
             content=json_content,
-            media_type="application/json",
+            media_type="application/json; charset=utf-8",
             headers={
-                "Content-Disposition": "attachment; filename=audit_report.json"
+                "Content-Disposition": "attachment; filename=audit_report.json",
+                "Content-Length": str(len(json_content))
             }
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"JSON export failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"JSON export failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Export generation failed"
+        )
 
 
 @router.get("/formats")

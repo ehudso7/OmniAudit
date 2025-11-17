@@ -19,22 +19,34 @@ router = APIRouter(
     tags=["Batch Operations"]
 )
 
-# In-memory storage for batch jobs (use Redis/DB in production)
+# WARNING: In-memory storage for batch jobs
+# This is NOT secure for production use as:
+# - Data is lost on server restart
+# - Not shared across multiple server instances
+# - Vulnerable to memory exhaustion attacks
+# For production, use Redis, PostgreSQL, or another persistent store
 batch_jobs: Dict[str, Dict[str, Any]] = {}
+
+# Maximum number of batch jobs to store
+MAX_BATCH_JOBS = 100
 
 
 class BatchAuditRequest(BaseModel):
     """Request model for batch audit."""
     repositories: List[Dict[str, Any]] = Field(
-        description="List of repository configurations to audit"
+        ...,
+        description="List of repository configurations to audit",
+        max_length=50  # Limit to prevent DoS
     )
     collectors: List[str] = Field(
         default=["git_collector"],
-        description="Collectors to run on each repository"
+        description="Collectors to run on each repository",
+        max_length=10
     )
     analyzers: List[str] = Field(
         default=[],
-        description="Analyzers to run on each repository"
+        description="Analyzers to run on each repository",
+        max_length=10
     )
 
 
@@ -95,7 +107,26 @@ async def create_batch_audit(
     Create a batch audit job for multiple repositories.
 
     Returns a job ID that can be used to check status.
+
+    Limits:
+    - Maximum 50 repositories per batch
+    - Maximum 10 collectors
+    - Maximum 10 analyzers
     """
+    # Check if we've hit the job limit
+    if len(batch_jobs) >= MAX_BATCH_JOBS:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Maximum batch job limit reached ({MAX_BATCH_JOBS}). Please try again later."
+        )
+
+    # Validate input
+    if not request.repositories:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one repository is required"
+        )
+
     job_id = str(uuid.uuid4())
 
     # Create job record
