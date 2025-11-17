@@ -1,6 +1,7 @@
 {
   "name": "omniaudit-dashboard",
   "version": "0.1.0",
+  "description": "OmniAudit Dashboard - Comprehensive security audit platform",
   "private": true,
   "type": "module",
   "scripts": {
