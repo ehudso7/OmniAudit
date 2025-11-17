@@ -109,6 +109,14 @@ async def github_webhook(
     # Read request body
     payload_body = await request.body()
 
+    # Verify required headers
+    if not x_hub_signature_256 or not x_github_event:
+        logger.warning("Missing required GitHub webhook headers")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing required headers (X-Hub-Signature-256 and X-GitHub-Event)"
+        )
+
     # Verify signature (required for security)
     if not verify_github_signature(payload_body, x_hub_signature_256, secret):
         logger.warning("Invalid GitHub webhook signature")
@@ -199,6 +207,14 @@ async def slack_webhook(
 
     # Read request body
     payload_body = await request.body()
+
+    # Verify required headers
+    if not x_slack_request_timestamp or not x_slack_signature:
+        logger.warning("Missing required Slack webhook headers")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing required headers (X-Slack-Request-Timestamp and X-Slack-Signature)"
+        )
 
     # Verify signature (required for security)
     if not verify_slack_signature(payload_body, x_slack_request_timestamp, x_slack_signature, signing_secret):
