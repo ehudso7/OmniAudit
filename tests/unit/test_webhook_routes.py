@@ -3,7 +3,7 @@ Unit tests for webhook routes.
 """
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 from omniaudit.api.main import app
 
@@ -14,7 +14,7 @@ class TestWebhookRoutes:
 
     async def test_webhook_status(self):
         """Test webhook status endpoint."""
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/webhooks/status")
 
         assert response.status_code == 200
@@ -32,7 +32,7 @@ class TestWebhookRoutes:
             "commits": [{"id": "abc123"}]
         }
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/webhooks/github",
                 json=payload,
@@ -52,7 +52,7 @@ class TestWebhookRoutes:
             "text": "status"
         }
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/webhooks/slack",
                 json=payload
@@ -69,7 +69,7 @@ class TestWebhookRoutes:
             "text": "help"
         }
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/webhooks/slack",
                 json=payload
@@ -87,7 +87,7 @@ class TestWebhookRoutes:
             "text": "unknown"
         }
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/webhooks/slack",
                 json=payload
