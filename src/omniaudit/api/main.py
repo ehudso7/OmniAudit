@@ -50,17 +50,24 @@ app = FastAPI(
 )
 
 # CORS middleware - Secure configuration
-# In production, set CORS_ORIGINS environment variable with allowed origins
+# In production, ALWAYS set CORS_ORIGINS environment variable with allowed origins
 allowed_origins_str = os.environ.get("CORS_ORIGINS", "")
 if allowed_origins_str:
+    # Use explicit origins from environment (recommended for production)
     allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
 else:
-    # Default for development - restrict in production
+    # Default for local development only
+    # IMPORTANT: Do not use wildcards - CORS doesn't support pattern matching
     allowed_origins = [
         "http://localhost:3000",
-        "http://localhost:8000",
-        "https://*.vercel.app"
+        "http://localhost:5173",  # Vite default port
+        "http://localhost:8000"
     ]
+    # Log warning if not configured
+    logger.warning(
+        "CORS_ORIGINS not configured. Using localhost defaults. "
+        "Set CORS_ORIGINS environment variable for production."
+    )
 
 app.add_middleware(
     CORSMiddleware,

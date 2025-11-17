@@ -4,11 +4,11 @@ Batch Operations API Routes
 Endpoints for batch processing multiple repositories or audits.
 """
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from ..utils.logger import get_logger
 
@@ -29,6 +29,43 @@ batch_jobs: Dict[str, Dict[str, Any]] = {}
 
 # Maximum number of batch jobs to store
 MAX_BATCH_JOBS = 100
+
+# Maximum age for completed jobs (in hours)
+MAX_JOB_AGE_HOURS = 24
+
+
+def cleanup_old_jobs():
+    """
+    Remove completed jobs older than MAX_JOB_AGE_HOURS to prevent memory exhaustion.
+
+    This is a basic cleanup mechanism. For production, use a proper
+    job queue system with TTL support (Redis, Celery, etc.)
+    """
+    current_time = datetime.now()
+    jobs_to_delete = []
+
+    for job_id, job in batch_jobs.items():
+        # Only cleanup completed or failed jobs
+        if job["status"] in ("completed", "failed"):
+            completed_at = job.get("completed_at")
+            if completed_at:
+                try:
+                    completed_time = datetime.fromisoformat(completed_at)
+                    age = current_time - completed_time
+
+                    if age > timedelta(hours=MAX_JOB_AGE_HOURS):
+                        jobs_to_delete.append(job_id)
+                except (ValueError, TypeError):
+                    # Invalid timestamp, mark for deletion
+                    jobs_to_delete.append(job_id)
+
+    # Delete old jobs
+    for job_id in jobs_to_delete:
+        logger.info(f"Cleaning up old batch job: {job_id}")
+        del batch_jobs[job_id]
+
+    if jobs_to_delete:
+        logger.info(f"Cleaned up {len(jobs_to_delete)} old batch jobs")
 
 
 class BatchAuditRequest(BaseModel):
@@ -113,6 +150,9 @@ async def create_batch_audit(
     - Maximum 10 collectors
     - Maximum 10 analyzers
     """
+    # Cleanup old jobs before checking limit
+    cleanup_old_jobs()
+
     # Check if we've hit the job limit
     if len(batch_jobs) >= MAX_BATCH_JOBS:
         raise HTTPException(
@@ -162,12 +202,42 @@ async def get_batch_audit_status(job_id: str):
     return batch_jobs[job_id]
 
 
-@router.get("/audit", response_model=List[Dict[str, Any]])
-async def list_batch_audits():
+@router.get("/audit")
+async def list_batch_audits(
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum number of jobs to return"),
+    offset: int = Query(default=0, ge=0, description="Number of jobs to skip"),
+    status: Optional[str] = Query(default=None, description="Filter by status (pending, running, completed, failed)")
+):
     """
-    List all batch audit jobs.
+    List batch audit jobs with pagination.
+
+    Supports filtering by status and pagination to prevent DoS via large responses.
+
+    Query Parameters:
+    - limit: Maximum number of jobs to return (1-100, default: 20)
+    - offset: Number of jobs to skip for pagination (default: 0)
+    - status: Optional filter by job status
     """
-    return list(batch_jobs.values())
+    # Get all jobs
+    all_jobs = list(batch_jobs.values())
+
+    # Filter by status if provided
+    if status:
+        all_jobs = [job for job in all_jobs if job.get("status") == status]
+
+    # Sort by started_at descending (most recent first)
+    all_jobs.sort(key=lambda x: x.get("started_at", ""), reverse=True)
+
+    # Apply pagination
+    total_count = len(all_jobs)
+    paginated_jobs = all_jobs[offset:offset + limit]
+
+    return {
+        "total": total_count,
+        "limit": limit,
+        "offset": offset,
+        "jobs": paginated_jobs
+    }
 
 
 @router.delete("/audit/{job_id}")
