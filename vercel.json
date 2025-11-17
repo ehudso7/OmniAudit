@@ -1,8 +1,12 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "api/main.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
     }
   ],
   "routes": [
@@ -12,6 +16,12 @@
     }
   ],
   "env": {
-    "PYTHONPATH": "."
+    "PYTHONPATH": "/var/task/src:/var/task"
+  },
+  "functions": {
+    "api/main.py": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
   }
 }
