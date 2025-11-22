@@ -1,42 +1,17 @@
-# Test files and directories
-tests/
-*.test.py
-test_*.py
-pytest.ini
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Development files
-.git/
-.github/
-*.md
-docs/
-examples/
-
-# Python cache
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.mypy_cache/
-.ruff_cache/
-
-# Virtual environments
-venv/
-env/
-ENV/
-.venv/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
+node_modules
+.git
+.env
+.env.local
+.DS_Store
+*.log
+coverage
+.next
+dist
+out
+build
+vscode-extension
+scripts
+docs
+tests
+*.test.ts
+*.spec.ts

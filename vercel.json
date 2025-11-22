@@ -1,4 +1,14 @@
 {
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": null,
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.21",
+      "includeFiles": "src/**"
+    }
   "buildCommand": "pip install -e .",
   "env": {
     "PYTHONPATH": "/var/task/src:/var/task"
