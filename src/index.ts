@@ -3,6 +3,8 @@
  * Powered by Claude Sonnet 4.5
  */
 
+import { OmniAuditSkillsEngine as Engine } from './core/skills-engine';
+
 export { OmniAuditSkillsEngine } from './core/skills-engine';
 export { db, DatabaseClient } from './db/client';
 
@@ -80,7 +82,7 @@ export async function createEngine(config: {
 
 // Default export
 export default {
-  OmniAuditSkillsEngine,
+  OmniAuditSkillsEngine: Engine,
   createEngine,
   VERSION,
 };

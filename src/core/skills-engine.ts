@@ -524,7 +524,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
         name: 'analyze_complexity',
         description: 'Calculate cyclomatic complexity of code segments',
         input_schema: {
-          type: 'object',
+          type: 'object' as const,
           properties: {
             function_name: { type: 'string', description: 'Name of the function to analyze' },
           },
@@ -535,7 +535,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
         name: 'suggest_refactoring',
         description: 'Generate refactoring suggestions for code patterns',
         input_schema: {
-          type: 'object',
+          type: 'object' as const,
           properties: {
             pattern: { type: 'string', description: 'The code pattern to refactor' },
             reason: { type: 'string', description: 'Reason for refactoring' },
@@ -547,7 +547,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
         name: 'estimate_performance_impact',
         description: 'Estimate the performance impact of a change',
         input_schema: {
-          type: 'object',
+          type: 'object' as const,
           properties: {
             change_description: { type: 'string' },
             metric: {
@@ -563,7 +563,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
 
   // ==================== Helper Methods ====================
 
-  private async validateDependencies(definition: SkillDefinition): Promise<void> {
+  private async validateDependencies(_definition: SkillDefinition): Promise<void> {
     // TODO: Implement dependency validation
     // Check if required packages are available
     // Check if other skills are registered

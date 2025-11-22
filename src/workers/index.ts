@@ -6,7 +6,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { jwt } from 'hono/jwt';
 import { OmniAuditSkillsEngine } from '../core/skills-engine';
 import { getBuiltinSkill } from '../skills/index';
 import type { CodeInput, SkillExecutionResult } from '../types/index';
@@ -320,7 +319,7 @@ export default {
   },
 
   // Scheduled cleanup of cache
-  async scheduled(event: ScheduledEvent, env: Bindings, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_event: ScheduledEvent, _env: Bindings, _ctx: ExecutionContext): Promise<void> {
     console.log('Running scheduled cache cleanup...');
     // Implement cache cleanup logic
   },
@@ -329,11 +328,9 @@ export default {
 // ==================== RATE LIMITER DURABLE OBJECT ====================
 
 export class RateLimiter {
-  private state: DurableObjectState;
   private requests: Map<string, number[]>;
 
-  constructor(state: DurableObjectState) {
-    this.state = state;
+  constructor(_state: DurableObjectState) {
     this.requests = new Map();
   }
 

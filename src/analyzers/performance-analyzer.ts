@@ -170,6 +170,27 @@ export class PerformanceAnalyzer implements Analyzer {
               }
             }
           }
+
+          // Check for useEffect with missing dependencies
+          if (
+            t.isIdentifier(path.node.callee, { name: 'useEffect' }) ||
+            t.isIdentifier(path.node.callee, { name: 'useCallback' }) ||
+            t.isIdentifier(path.node.callee, { name: 'useMemo' })
+          ) {
+            const hookName = (path.node.callee as t.Identifier).name;
+
+            if (path.node.arguments.length < 2) {
+              issues.push({
+                type: 'missing-dependency-array',
+                severity: 'warning',
+                message: `${hookName} is missing dependency array`,
+                description: 'Add dependency array to prevent stale closures',
+                line: path.node.loc?.start.line || 0,
+                column: path.node.loc?.start.column,
+                confidence: 1.0,
+              });
+            }
+          }
         },
 
         // Check for large imports
@@ -242,29 +263,6 @@ export class PerformanceAnalyzer implements Analyzer {
             });
           }
         },
-
-        // Check for useEffect with missing dependencies
-        CallExpression: (path: NodePath<t.CallExpression>) => {
-          if (
-            t.isIdentifier(path.node.callee, { name: 'useEffect' }) ||
-            t.isIdentifier(path.node.callee, { name: 'useCallback' }) ||
-            t.isIdentifier(path.node.callee, { name: 'useMemo' })
-          ) {
-            const hookName = (path.node.callee as t.Identifier).name;
-
-            if (path.node.arguments.length < 2) {
-              issues.push({
-                type: 'missing-dependency-array',
-                severity: 'warning',
-                message: `${hookName} is missing dependency array`,
-                description: 'Add dependency array to prevent stale closures',
-                line: path.node.loc?.start.line || 0,
-                column: path.node.loc?.start.column,
-                confidence: 1.0,
-              });
-            }
-          }
-        },
       });
 
       return {
@@ -297,7 +295,11 @@ export class PerformanceAnalyzer implements Analyzer {
   }
 
   private getComponentName(path: NodePath<t.Function>): string | null {
-    if (path.node.id && t.isIdentifier(path.node.id)) {
+    if (
+      (t.isFunctionDeclaration(path.node) || t.isFunctionExpression(path.node)) &&
+      path.node.id &&
+      t.isIdentifier(path.node.id)
+    ) {
       return path.node.id.name;
     }
 
@@ -359,7 +361,7 @@ export class PerformanceAnalyzer implements Analyzer {
     return false;
   }
 
-  private generateLoopLengthCacheFix(path: NodePath<t.ForStatement>): string {
+  private generateLoopLengthCacheFix(_path: NodePath<t.ForStatement>): string {
     // Generate a fix suggestion for caching array length
     return 'const len = array.length; for (let i = 0; i < len; i++) { ... }';
   }
@@ -368,7 +370,12 @@ export class PerformanceAnalyzer implements Analyzer {
     let count = 0;
     traverse(ast, {
       Function(path: NodePath<t.Function>) {
-        if (path.node.id && /^[A-Z]/.test(path.node.id.name)) {
+        if (
+          (t.isFunctionDeclaration(path.node) || t.isFunctionExpression(path.node)) &&
+          path.node.id &&
+          t.isIdentifier(path.node.id) &&
+          /^[A-Z]/.test(path.node.id.name)
+        ) {
           count++;
         }
       },
