@@ -15,3 +15,11 @@ docs
 tests
 *.test.ts
 *.spec.ts
+
+# Ignore Python files (main repo uses Python, but this deployment is Node.js only)
+pyproject.toml
+requirements.txt
+*.py
+__pycache__
+venv
+.pytest_cache
