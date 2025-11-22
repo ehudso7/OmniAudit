@@ -20,6 +20,7 @@ tests
 pyproject.toml
 requirements.txt
 *.py
+api/*.py
 __pycache__
 venv
 .pytest_cache
