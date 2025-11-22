@@ -1,6 +1,6 @@
 # Production dependencies for OmniAudit
 gitpython>=3.1.40
-requests>=2.31.0
+requests>=2.32.4
 pyyaml>=6.0.1
 fastapi>=0.104.1
 pydantic>=2.5.0
@@ -12,4 +12,4 @@ alembic>=1.12.0
 psycopg2-binary>=2.9.0
 prometheus-client>=0.19.0
 anthropic>=0.39.0
-python-multipart>=0.0.6
+python-multipart>=0.0.18
