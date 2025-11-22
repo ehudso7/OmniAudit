@@ -52,7 +52,6 @@ Focus on:
 
     optimization_priorities: [
       'maintainability',
-      'architecture',
       'readability',
       'testability',
     ],

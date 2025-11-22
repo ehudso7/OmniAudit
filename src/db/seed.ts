@@ -27,7 +27,7 @@ async function seed() {
     // Register pre-built skills
     console.log('Registering pre-built skills...');
 
-    const performanceSkill = await db.createSkill({
+    await db.createSkill({
       skill_id: PerformanceOptimizerSkill.skill_id,
       version: PerformanceOptimizerSkill.version,
       user_id: systemUser.id as string,
@@ -36,7 +36,7 @@ async function seed() {
     });
     console.log('✓ Performance Optimizer skill registered');
 
-    const securitySkill = await db.createSkill({
+    await db.createSkill({
       skill_id: SecurityAuditorSkill.skill_id,
       version: SecurityAuditorSkill.version,
       user_id: systemUser.id as string,

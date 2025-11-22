@@ -4,7 +4,6 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
 import * as dotenv from 'dotenv';
 import { OmniAuditSkillsEngine } from '../core/skills-engine';
 import { getAllBuiltinSkills, getBuiltinSkill } from '../skills/index';
@@ -276,7 +275,7 @@ program
   .argument('<execution-id>', 'Execution ID to generate report for')
   .option('-f, --format <format>', 'Report format (html|pdf|markdown)', 'markdown')
   .option('-o, --output <file>', 'Output file')
-  .action(async (executionId, options) => {
+  .action(async (_executionId, _options) => {
     console.log(chalk.yellow('Report generation not yet implemented'));
   });
 
@@ -429,7 +428,7 @@ function formatAsMarkdown(results: SkillExecutionResult[]): string {
   return markdown;
 }
 
-function generateConfigFile(template: string): string {
+function generateConfigFile(_template: string): string {
   return `import { OmniAuditConfig } from 'omniaudit';
 
 export default {

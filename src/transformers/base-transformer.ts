@@ -49,12 +49,10 @@ export class ReactMemoTransformer extends BaseTransformer {
 
     // Add import if not present
     let hasImport = false;
-    let importIndex = -1;
 
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].includes('import') && lines[i].includes('react')) {
         hasImport = true;
-        importIndex = i;
 
         // Add memo to existing import
         if (!lines[i].includes('memo')) {

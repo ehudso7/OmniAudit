@@ -22,13 +22,14 @@ export class SecurityAnalyzer implements Analyzer {
     'execScript',
   ];
 
-  private readonly DANGEROUS_PROPERTIES = [
-    'innerHTML',
-    'outerHTML',
-    'insertAdjacentHTML',
-    'document.write',
-    'document.writeln',
-  ];
+  // Properties that could be dangerous if misused
+  // private readonly DANGEROUS_PROPERTIES = [
+  //   'innerHTML',
+  //   'outerHTML',
+  //   'insertAdjacentHTML',
+  //   'document.write',
+  //   'document.writeln',
+  // ];
 
   private readonly SECRET_PATTERNS = [
     /api[_-]?key/i,
@@ -72,7 +73,7 @@ export class SecurityAnalyzer implements Analyzer {
       });
 
       traverse(ast, {
-        // Check for dangerous function usage
+        // Check for dangerous function usage and various security issues
         CallExpression: (path: NodePath<t.CallExpression>) => {
           // Check for eval and similar
           if (t.isIdentifier(path.node.callee)) {
@@ -153,6 +154,33 @@ export class SecurityAnalyzer implements Analyzer {
                   });
                 }
               }
+
+              // Check for POST/PUT/DELETE routes without CSRF
+              if (['post', 'put', 'delete', 'patch'].includes(methodName)) {
+                // Simple heuristic: check if there's no mention of csrf in the route handler
+                let hasCsrfCheck = false;
+
+                path.traverse({
+                  Identifier(idPath) {
+                    if (idPath.node.name.toLowerCase().includes('csrf')) {
+                      hasCsrfCheck = true;
+                    }
+                  },
+                });
+
+                if (!hasCsrfCheck) {
+                  issues.push({
+                    type: 'missing-csrf',
+                    severity: 'warning',
+                    message: `${methodName.toUpperCase()} route may lack CSRF protection`,
+                    description:
+                      'Consider adding CSRF token validation for state-changing operations',
+                    line: path.node.loc?.start.line || 0,
+                    column: path.node.loc?.start.column,
+                    confidence: 0.5,
+                  });
+                }
+              }
             }
           }
 
@@ -173,6 +201,84 @@ export class SecurityAnalyzer implements Analyzer {
               column: path.node.loc?.start.column,
               confidence: 0.8,
             });
+          }
+
+          // Check for insecure JWT verification
+          if (
+            this.config.checkAuth &&
+            t.isMemberExpression(path.node.callee) &&
+            t.isIdentifier(path.node.callee.property, { name: 'verify' })
+          ) {
+            // Check if jwt.verify is called without secret
+            if (path.node.arguments.length < 2) {
+              issues.push({
+                type: 'jwt-no-secret',
+                severity: 'error',
+                message: 'JWT verification without secret',
+                description: 'Always verify JWT tokens with a secret or public key',
+                line: path.node.loc?.start.line || 0,
+                column: path.node.loc?.start.column,
+                confidence: 0.9,
+              });
+            }
+
+            // Check for algorithm 'none'
+            const options = path.node.arguments[2];
+            if (t.isObjectExpression(options)) {
+              const algorithmProp = options.properties.find(
+                (prop) =>
+                  t.isObjectProperty(prop) &&
+                  t.isIdentifier(prop.key, { name: 'algorithms' }),
+              );
+
+              if (
+                algorithmProp &&
+                t.isObjectProperty(algorithmProp) &&
+                t.isArrayExpression(algorithmProp.value)
+              ) {
+                const hasNone = algorithmProp.value.elements.some(
+                  (el) => t.isStringLiteral(el) && el.value === 'none',
+                );
+
+                if (hasNone) {
+                  issues.push({
+                    type: 'jwt-algorithm-none',
+                    severity: 'error',
+                    message: 'JWT accepting "none" algorithm',
+                    description:
+                      'Never accept "none" algorithm for JWT verification',
+                    line: path.node.loc?.start.line || 0,
+                    column: path.node.loc?.start.column,
+                    confidence: 1.0,
+                  });
+                }
+              }
+            }
+          }
+
+          // Check for insecure deserialization
+          if (
+            t.isMemberExpression(path.node.callee) &&
+            t.isIdentifier(path.node.callee.object, { name: 'JSON' }) &&
+            t.isIdentifier(path.node.callee.property, { name: 'parse' })
+          ) {
+            // Check if parsing untrusted input
+            const firstArg = path.node.arguments[0];
+
+            if (
+              t.isMemberExpression(firstArg) &&
+              t.isIdentifier(firstArg.property, { name: 'body' })
+            ) {
+              issues.push({
+                type: 'unsafe-deserialization',
+                severity: 'info',
+                message: 'Parsing JSON from request body',
+                description: 'Validate and sanitize JSON input before processing',
+                line: path.node.loc?.start.line || 0,
+                column: path.node.loc?.start.column,
+                confidence: 0.6,
+              });
+            }
           }
         },
 
@@ -244,125 +350,6 @@ export class SecurityAnalyzer implements Analyzer {
                   confidence: 1.0,
                 });
               }
-            }
-          }
-        },
-
-        // Check for insecure JWT verification
-        CallExpression: (path: NodePath<t.CallExpression>) => {
-          if (
-            this.config.checkAuth &&
-            t.isMemberExpression(path.node.callee) &&
-            t.isIdentifier(path.node.callee.property, { name: 'verify' })
-          ) {
-            // Check if jwt.verify is called without secret
-            if (path.node.arguments.length < 2) {
-              issues.push({
-                type: 'jwt-no-secret',
-                severity: 'error',
-                message: 'JWT verification without secret',
-                description: 'Always verify JWT tokens with a secret or public key',
-                line: path.node.loc?.start.line || 0,
-                column: path.node.loc?.start.column,
-                confidence: 0.9,
-              });
-            }
-
-            // Check for algorithm 'none'
-            const options = path.node.arguments[2];
-            if (t.isObjectExpression(options)) {
-              const algorithmProp = options.properties.find(
-                (prop) =>
-                  t.isObjectProperty(prop) &&
-                  t.isIdentifier(prop.key, { name: 'algorithms' }),
-              );
-
-              if (
-                algorithmProp &&
-                t.isObjectProperty(algorithmProp) &&
-                t.isArrayExpression(algorithmProp.value)
-              ) {
-                const hasNone = algorithmProp.value.elements.some(
-                  (el) => t.isStringLiteral(el) && el.value === 'none',
-                );
-
-                if (hasNone) {
-                  issues.push({
-                    type: 'jwt-algorithm-none',
-                    severity: 'error',
-                    message: 'JWT accepting "none" algorithm',
-                    description:
-                      'Never accept "none" algorithm for JWT verification',
-                    line: path.node.loc?.start.line || 0,
-                    column: path.node.loc?.start.column,
-                    confidence: 1.0,
-                  });
-                }
-              }
-            }
-          }
-        },
-
-        // Check for missing CSRF protection
-        CallExpression: (path: NodePath<t.CallExpression>) => {
-          if (
-            t.isMemberExpression(path.node.callee) &&
-            t.isIdentifier(path.node.callee.property)
-          ) {
-            const methodName = path.node.callee.property.name;
-
-            // Check for POST/PUT/DELETE routes without CSRF
-            if (['post', 'put', 'delete', 'patch'].includes(methodName)) {
-              // Simple heuristic: check if there's no mention of csrf in the route handler
-              let hasCsrfCheck = false;
-
-              path.traverse({
-                Identifier(idPath) {
-                  if (idPath.node.name.toLowerCase().includes('csrf')) {
-                    hasCsrfCheck = true;
-                  }
-                },
-              });
-
-              if (!hasCsrfCheck) {
-                issues.push({
-                  type: 'missing-csrf',
-                  severity: 'warning',
-                  message: `${methodName.toUpperCase()} route may lack CSRF protection`,
-                  description:
-                    'Consider adding CSRF token validation for state-changing operations',
-                  line: path.node.loc?.start.line || 0,
-                  column: path.node.loc?.start.column,
-                  confidence: 0.5,
-                });
-              }
-            }
-          }
-        },
-
-        // Check for insecure deserialization
-        CallExpression: (path: NodePath<t.CallExpression>) => {
-          if (
-            t.isMemberExpression(path.node.callee) &&
-            t.isIdentifier(path.node.callee.object, { name: 'JSON' }) &&
-            t.isIdentifier(path.node.callee.property, { name: 'parse' })
-          ) {
-            // Check if parsing untrusted input
-            const firstArg = path.node.arguments[0];
-
-            if (
-              t.isMemberExpression(firstArg) &&
-              t.isIdentifier(firstArg.property, { name: 'body' })
-            ) {
-              issues.push({
-                type: 'unsafe-deserialization',
-                severity: 'info',
-                message: 'Parsing JSON from request body',
-                description: 'Validate and sanitize JSON input before processing',
-                line: path.node.loc?.start.line || 0,
-                column: path.node.loc?.start.column,
-                confidence: 0.6,
-              });
             }
           }
         },

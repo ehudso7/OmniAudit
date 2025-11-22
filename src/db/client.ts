@@ -1,4 +1,4 @@
-import { createClient, type Client } from '@libsql/client';
+import { createClient, type Client, type InValue } from '@libsql/client';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -114,7 +114,7 @@ export class DatabaseClient {
     offset?: number;
   }) {
     const conditions: string[] = [];
-    const args: unknown[] = [];
+    const args: InValue[] = [];
 
     if (filters?.is_public !== undefined) {
       conditions.push('is_public = ?');
