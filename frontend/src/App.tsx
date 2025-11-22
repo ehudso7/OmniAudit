@@ -105,7 +105,7 @@ function App() {
     .slice(-14); // Last 14 days
 
   return (
-    <div className="App">
+    <div className="app">
       <header>
         <h1>🔍 OmniAudit Dashboard</h1>
         <p>Universal Project Auditing & Monitoring</p>

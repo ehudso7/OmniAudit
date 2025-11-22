@@ -59,22 +59,13 @@
   color: #4ade80;
   border-color: rgba(74, 222, 128, 0.3);
   box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .status-unknown {
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
   color: #fbbf24;
   border-color: rgba(251, 191, 36, 0.3);
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(74, 222, 128, 0.4);
-  }
 }
 
 /* ==================== Navigation Tabs ==================== */
@@ -212,7 +203,7 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  transition: all var(--transition-base);
+  transition: transform var(--transition-base), border-color var(--transition-base);
   position: relative;
   overflow: hidden;
 }
@@ -231,7 +222,6 @@
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
   border-color: var(--primary);
 }
 
@@ -288,13 +278,12 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  transition: transform var(--transition-base), border-color var(--transition-base);
   cursor: pointer;
 }
 
 .collector-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
@@ -429,17 +418,16 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 0;
-  height: 0;
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.6s cubic-bezier(0.2, 1, 0.2, 1);
 }
 
 .btn:hover::before {
-  width: 300px;
-  height: 300px;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .btn-primary {
@@ -450,7 +438,6 @@
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg), var(--glow-primary);
 }
 
 .btn-primary:active {
@@ -475,7 +462,6 @@
   background: var(--bg-glass-hover);
   border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 .error-message {
@@ -572,13 +558,12 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  transition: transform var(--transition-base), border-color var(--transition-base);
   text-align: center;
 }
 
 .format-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
   border-color: var(--primary);
 }
 
@@ -666,6 +651,21 @@
   color: var(--text-secondary);
   max-width: 500px;
   text-align: center;
+}
+
+/* ==================== Browser Compatibility ==================== */
+@supports not (backdrop-filter: blur(10px)) {
+  .app-header,
+  .status-badge,
+  .app-footer,
+  .stat-card,
+  .collector-card,
+  .audit-summary,
+  .form,
+  .btn-secondary,
+  .export-options {
+    background: var(--bg-secondary);
+  }
 }
 
 /* ==================== Responsive Design ==================== */
