@@ -1,0 +1,100 @@
+name = "omniaudit-api"
+main = "src/workers/index.ts"
+compatibility_date = "2025-01-21"
+compatibility_flags = ["nodejs_compat"]
+
+# Account details
+account_id = "${CLOUDFLARE_ACCOUNT_ID}"
+workers_dev = true
+
+# Routes (for production)
+# routes = [
+#   { pattern = "api.omniaudit.dev/*", zone_name = "omniaudit.dev" }
+# ]
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "info"
+
+# Secrets (set with: wrangler secret put <NAME>)
+# ANTHROPIC_API_KEY
+# TURSO_URL
+# TURSO_TOKEN
+# UPSTASH_URL
+# UPSTASH_TOKEN
+# PINECONE_API_KEY
+# SENTRY_DSN
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "CACHE"
+id = "${KV_NAMESPACE_ID}"
+preview_id = "${KV_NAMESPACE_PREVIEW_ID}"
+
+# D1 Database (alternative to Turso)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "omniaudit"
+# database_id = "${D1_DATABASE_ID}"
+
+# R2 Buckets (for storing large analysis results)
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "omniaudit-results"
+preview_bucket_name = "omniaudit-results-preview"
+
+# Queues (for background analysis jobs)
+[[queues.producers]]
+queue = "analysis-queue"
+binding = "ANALYSIS_QUEUE"
+
+[[queues.consumers]]
+queue = "analysis-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "analysis-dlq"
+
+# Analytics Engine
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+script_name = "omniaudit-api"
+
+# Build configuration
+[build]
+command = "bun run build"
+
+[build.upload]
+format = "service-worker"
+
+# Triggers
+[triggers]
+crons = ["0 */6 * * *"] # Run cache cleanup every 6 hours
+
+# Limits
+[limits]
+cpu_ms = 50000 # 50 seconds for analysis
+
+# Development
+[dev]
+ip = "0.0.0.0"
+port = 8787
+local_protocol = "http"
+
+# Environments
+[env.staging]
+name = "omniaudit-api-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.production]
+name = "omniaudit-api-production"
+vars = { ENVIRONMENT = "production" }
+routes = [
+  { pattern = "api.omniaudit.dev/*", zone_name = "omniaudit.dev" }
+]

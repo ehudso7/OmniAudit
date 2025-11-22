@@ -1,271 +1,252 @@
-# OmniAudit 🔍
+# OmniAudit: Universal AI Coding Optimization Framework
 
-[![CI](https://github.com/yourusername/omniaudit/workflows/CI/badge.svg)](https://github.com/yourusername/omniaudit/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/yourusername/omniaudit)
+**Production-Ready Implementation with Advanced Skills System**
 
-> **Universal Project Auditing & Monitoring Platform**
+Powered by Claude Sonnet 4.5 and built with the latest 2025 technologies.
 
-Comprehensive, language-agnostic platform for auditing code quality, performance, business metrics, and project health.
-
-## ✨ Features
-
-### 🔌 Data Collection
-- **Git Analysis** - Commits, branches, contributors, history
-- **GitHub/GitLab** - PRs, issues, workflows, pipelines
-- **CI/CD** - Jenkins, CircleCI, GitLab CI integration
-- **Business Metrics** - Custom SQL queries for KPIs
-- **Custom Collectors** - Extensible plugin architecture
-
-### 📊 Code Analysis
-- **Multi-Language** - Python, JavaScript, Go, Java, Ruby, PHP
-- **Quality Metrics** - Test coverage, complexity, linting
-- **Performance** - Log parsing, response time metrics
-- **Dependencies** - Security scanning, version tracking
-- **Historical Trends** - Time-series tracking with TimescaleDB
-
-### 🎯 Insights & Reporting
-- **Interactive Dashboard** - React-based real-time visualizations
-- **Time-Series Tracking** - Historical metrics and trends
-- **Alerts** - Email, Slack, webhook notifications
-- **Reports** - Markdown, JSON export formats
-- **REST API** - Full programmatic access
-
-### 🚀 Production Ready
-- **Docker** - Multi-stage optimized builds
-- **Kubernetes** - Complete deployment manifests
-- **Monitoring** - Prometheus metrics, Grafana dashboards
-- **Security** - Rate limiting, authentication, HTTPS
-- **Scalable** - Horizontal scaling, load balancing
-- **Highly Available** - Health checks, auto-recovery
-
-## 🚀 Quick Start
-
-### Using Docker
-
-```bash
-# Clone repository
-git clone https://github.com/yourusername/omniaudit.git
-cd omniaudit
-
-# Configure environment
-cp .env.example .env.prod
-# Edit .env.prod with your settings
-
-# Start services
-docker-compose -f docker-compose.prod.yml up -d
-
-# Initialize database
-docker-compose -f docker-compose.prod.yml run --rm api python scripts/init_db.py
-
-# Access dashboard
-open http://localhost
-```
-
-### Local Development
-
-```bash
-# Install dependencies
-pip install -e .
-
-# Start databases (requires Docker)
-docker-compose up -d db redis
-
-# Initialize database
-python scripts/init_db.py
-
-# Run API
-uvicorn src.omniaudit.api.main:app --reload
-
-# Run frontend (in another terminal)
-cd frontend
-npm install
-npm run dev
-
-# Run CLI
-omniaudit audit --repo-path .
-```
-
-## 📖 Documentation
-
-- [CI/CD Guide](docs/guides/ci-cd-guide.md) - Continuous Integration setup and troubleshooting
-- [Production Deployment Guide](docs/deployment/production-guide.md) - Docker and Kubernetes deployment
-- [Configuration Guide](docs/guides/configuration.md) - Configuration options and examples
-- [API Documentation](http://localhost:8000/docs) - Interactive API docs (Swagger UI)
-- [Architecture Decision Records](docs/adr/) - Key architectural decisions
-- [Architecture Overview](#-architecture)
-
-## 🎯 Use Cases
-
-### For Developers
-- Track code quality over time
-- Identify technical debt hotspots
-- Monitor test coverage trends
-- Analyze commit patterns
-
-### For Engineering Managers
-- Team productivity metrics
-- Sprint health tracking
-- Resource allocation insights
-- Release readiness assessment
-
-### For Executives
-- Engineering efficiency KPIs
-- Business metrics correlation
-- ROI on development investment
-- Strategic planning data
-
-## 📊 Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   Frontend (React)                   │
-│  Dashboard • Charts • Reports • Configuration       │
-└────────────────────┬────────────────────────────────┘
-                     │
-┌────────────────────┴────────────────────────────────┐
-│                REST API (FastAPI)                    │
-│  Endpoints • Validation • Auth • Rate Limiting      │
-└────┬───────────────────────────────────────────┬────┘
-     │                                           │
-┌────┴──────────┐                    ┌──────────┴─────┐
-│  Collectors   │                    │   Analyzers    │
-│  Git, GitHub  │                    │  Code Quality  │
-│  CI/CD, APM   │                    │  Performance   │
-└────┬──────────┘                    └──────────┬─────┘
-     │                                           │
-┌────┴───────────────────────────────────────────┴────┐
-│              Database Layer                          │
-│  PostgreSQL + TimescaleDB + Redis                   │
-└─────────────────────────────────────────────────────┘
-```
-
-## 🛠️ Technology Stack
-
-- **Backend:** Python 3.11+, FastAPI, SQLAlchemy, Alembic
-- **Frontend:** React 18, TypeScript, Vite, Recharts
-- **Database:** PostgreSQL 15, TimescaleDB, Redis
-- **Deployment:** Docker, Kubernetes, nginx
-- **Monitoring:** Prometheus, Grafana
-- **CI/CD:** GitHub Actions
-
-## 📈 Project Status
-
-**Phase 3 Complete** ✅
-- ✅ Multi-language code analysis (6 languages)
-- ✅ CI/CD platform integrations (GitLab, Jenkins, CircleCI)
-- ✅ Database persistence with TimescaleDB
-- ✅ Production Docker & Kubernetes configs
-- ✅ Monitoring & observability (Prometheus/Grafana)
-- ✅ Security hardening (rate limiting, auth)
-- ✅ Performance optimization
-- ✅ Complete documentation
-
-## 🔧 CLI Usage
-
-```bash
-# Run full audit
-omniaudit audit --repo-path .
-
-# Collect Git data
-omniaudit collect-git --repo-path . --max-commits 1000
-
-# Analyze code quality
-omniaudit analyze-quality --project-path . --languages python javascript
-
-# Get help
-omniaudit --help
-```
-
-## 🐳 Docker Deployment
-
-### Production
-
-```bash
-# Build images
-docker-compose -f docker-compose.prod.yml build
-
-# Start all services
-docker-compose -f docker-compose.prod.yml up -d
-
-# View logs
-docker-compose -f docker-compose.prod.yml logs -f
-
-# Stop services
-docker-compose -f docker-compose.prod.yml down
-```
-
-## ☸️ Kubernetes Deployment
-
-```bash
-# Create secrets
-kubectl create secret generic omniaudit-secrets \
-  --from-literal=database-url=postgresql://... \
-  --from-literal=redis-url=redis://... \
-  --from-literal=secret-key=...
-
-# Deploy
-kubectl apply -f kubernetes/deployment.yaml
-
-# Check status
-kubectl get pods -l app=omniaudit
-kubectl logs -f deployment/omniaudit-api
-```
-
-## 📊 Monitoring
-
-### Metrics Endpoint
-
-```bash
-curl http://localhost:8000/metrics
-```
-
-### Key Metrics
-- `omniaudit_requests_total` - Request count by endpoint
-- `omniaudit_request_duration_seconds` - Request latency
-- `omniaudit_audits_total` - Total audits executed
-- `omniaudit_collector_success_total` - Collector success count
-- `omniaudit_db_connections` - Database connection pool size
-
-## 🔒 Security
-
-- **Authentication:** JWT token-based (configurable)
-- **Rate Limiting:** Per-IP request limits
-- **HTTPS:** SSL/TLS support with Let's Encrypt
-- **Secrets Management:** Environment-based configuration
-- **SQL Injection:** Protected via SQLAlchemy ORM
-- **XSS Protection:** Security headers configured
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-1. **Fork** the repository
-2. **Create** your feature branch (`git checkout -b feature/amazing-feature`)
-3. **Install** dependencies: `pip install -e .[dev,test]`
-4. **Test** your changes: `pytest tests/ -v`
-5. **Lint** your code: `ruff check src/ tests/`
-6. **Commit** your changes (`git commit -m 'feat: add amazing feature'`)
-7. **Push** to the branch (`git push origin feature/amazing-feature`)
-8. **Open** a Pull Request
-
-**Before submitting:**
-- Ensure all tests pass locally
-- Add tests for new features
-- Update documentation as needed
-- Follow conventional commit messages
-- See [CI/CD Guide](docs/guides/ci-cd-guide.md) for testing locally
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## 🙏 Acknowledgments
-
-Built with inspiration from SonarQube, New Relic, Grafana, and Lighthouse.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.1+-black)](https://bun.sh/)
 
 ---
 
-**Built with ❤️ for developers, by developers**
+## 🚀 Features
 
+- **🤖 AI-Powered Analysis**: Leverages Claude Sonnet 4.5 for deep code understanding
+- **🔌 Extensible Skills System**: Plug-and-play skills for different optimization goals
+- **⚡ Multiple Analyzers**: AST, performance, security, and custom analyzers
+- **🔧 Auto-Fix Capabilities**: Automatically apply safe code transformations
+- **📊 Real-time Analytics**: Track analysis metrics and performance
+- **🌍 Edge Deployment**: Deploy to Cloudflare Workers for global low-latency
+- **💾 Smart Caching**: Redis-backed caching for faster repeated analysis
+- **🎨 VS Code Extension**: Seamless IDE integration with inline diagnostics
+- **📦 CLI Tool**: Powerful command-line interface for CI/CD integration
+
+---
+
+## 📦 Installation
+
+### Using Bun (Recommended)
+
+```bash
+bun add omniaudit
+```
+
+### Using npm
+
+```bash
+npm install omniaudit
+```
+
+### Global CLI Installation
+
+```bash
+bun add -g omniaudit
+```
+
+---
+
+## 🏃 Quick Start
+
+### 1. Initialize OmniAudit
+
+```bash
+omniaudit init
+```
+
+This creates `omniaudit.config.ts`, optional pre-commit hooks, and CI configuration.
+
+### 2. Configure API Key
+
+Create a `.env` file:
+
+```bash
+ANTHROPIC_API_KEY=your_api_key_here
+TURSO_URL=your_turso_database_url
+TURSO_TOKEN=your_turso_token
+UPSTASH_URL=your_upstash_redis_url
+UPSTASH_TOKEN=your_upstash_token
+```
+
+### 3. Analyze Code
+
+```bash
+# Analyze a single file
+omniaudit analyze src/index.ts
+
+# With specific skills
+omniaudit analyze src/ --skills performance-optimizer-pro security-auditor-enterprise
+
+# Auto-fix issues
+omniaudit analyze src/ --auto-fix
+
+# Save results
+omniaudit analyze src/ --output report.json --format json
+```
+
+---
+
+## 🎯 Built-in Skills
+
+### 1. Performance Optimizer Pro
+Detects React re-render issues, expensive computations, and memory leaks.
+
+### 2. Security Auditor Enterprise
+OWASP Top 10 vulnerability detection, SQL injection, and XSS scanning.
+
+### 3. React Best Practices
+Hooks rules enforcement and component composition patterns.
+
+### 4. TypeScript Expert
+Advanced type checking and generic optimization.
+
+### 5. Architecture Advisor
+SOLID principles validation and design pattern suggestions.
+
+---
+
+## 💻 Programmatic Usage
+
+```typescript
+import { createEngine } from 'omniaudit';
+
+const engine = await createEngine({
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY!,
+});
+
+await engine.activateSkill('performance-optimizer-pro');
+
+const result = await engine.executeSkill(
+  'performance-optimizer-pro',
+  {
+    code: 'export default function MyComponent({ data }) { ... }',
+    language: 'typescript',
+    framework: 'react',
+  }
+);
+
+console.log(result.optimizations);
+```
+
+---
+
+## 🔧 VS Code Extension
+
+### Installation
+
+1. Open VS Code Extensions (Ctrl+Shift+X)
+2. Search for "OmniAudit"
+3. Click Install
+
+### Usage
+
+- **Analyze Current File**: `Ctrl+Shift+P` → "OmniAudit: Analyze Current File"
+- **Auto-fix**: Click diagnostic → "Quick Fix" → "Apply OmniAudit fix"
+
+---
+
+## 🌐 API Deployment
+
+### Deploy to Cloudflare Workers
+
+```bash
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+```
+
+### API Endpoints
+
+```bash
+# Analyze code
+curl -X POST https://api.omniaudit.dev/api/v1/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "const x = 1;",
+    "language": "javascript",
+    "skills": ["performance-optimizer-pro"]
+  }'
+
+# List skills
+curl https://api.omniaudit.dev/api/v1/skills
+```
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        OmniAudit Core                            │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌────────────────┐  ┌────────────────┐  ┌─────────────────┐  │
+│  │ Skills Engine  │  │ Analysis Core  │  │  Optimization   │  │
+│  │  - Registry    │  │  - AST Parser  │  │    Engine       │  │
+│  │  - Loader      │  │  - Static      │  │  - Refactor     │  │
+│  │  - Executor    │  │  - Runtime     │  │  - Transform    │  │
+│  └────────────────┘  └────────────────┘  └─────────────────┘  │
+│           │                   │                      │           │
+│           └───────────────────┴──────────────────────┘           │
+│                              │                                   │
+│                   ┌──────────▼──────────┐                       │
+│                   │   AI Orchestrator   │                       │
+│                   │  - Claude Sonnet 4.5│                       │
+│                   └─────────────────────┘                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Technology Stack
+
+- **Runtime**: Bun 1.1+ / Node.js 22+
+- **Language**: TypeScript 5.7+
+- **AI**: Claude Sonnet 4.5
+- **Database**: Turso (LibSQL)
+- **Cache**: Upstash Redis
+- **Edge**: Cloudflare Workers
+- **Analysis**: Babel, ESLint
+- **Monitoring**: Sentry
+
+---
+
+## 🔄 CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: OmniAudit
+
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Install OmniAudit
+        run: bun add -g omniaudit
+      - name: Run Analysis
+        run: omniaudit analyze src/ --format json
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+---
+
+## 📄 License
+
+MIT © OmniAudit Team
+
+---
+
+## 🙏 Credits
+
+- Powered by [Anthropic Claude](https://www.anthropic.com/)
+- Built with [Bun](https://bun.sh/)
+- Deployed on [Cloudflare Workers](https://workers.cloudflare.com/)
+
+---
+
+**Made with ❤️ by the OmniAudit Team**

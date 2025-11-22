@@ -1,0 +1,230 @@
+{
+  "name": "omniaudit-vscode",
+  "displayName": "OmniAudit",
+  "description": "Universal AI Coding Optimization - Powered by Claude Sonnet 4.5",
+  "version": "1.0.0",
+  "publisher": "omniaudit",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/omniaudit"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "optimization",
+    "performance",
+    "security",
+    "ai",
+    "claude",
+    "code-analysis"
+  ],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact",
+    "onCommand:omniaudit.analyzeFile",
+    "onCommand:omniaudit.analyzeWorkspace"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "omniaudit.analyzeFile",
+        "title": "OmniAudit: Analyze Current File",
+        "icon": "$(search)"
+      },
+      {
+        "command": "omniaudit.analyzeSelection",
+        "title": "OmniAudit: Analyze Selection"
+      },
+      {
+        "command": "omniaudit.analyzeWorkspace",
+        "title": "OmniAudit: Analyze Workspace"
+      },
+      {
+        "command": "omniaudit.fixIssue",
+        "title": "OmniAudit: Fix Issue"
+      },
+      {
+        "command": "omniaudit.showSkills",
+        "title": "OmniAudit: Show Available Skills"
+      },
+      {
+        "command": "omniaudit.configureSkills",
+        "title": "OmniAudit: Configure Skills"
+      },
+      {
+        "command": "omniaudit.clearCache",
+        "title": "OmniAudit: Clear Cache"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "omniaudit.analyzeFile",
+          "group": "omniaudit@1",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "omniaudit.analyzeSelection",
+          "group": "omniaudit@2",
+          "when": "editorHasSelection"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "omniaudit.analyzeFile",
+          "group": "navigation",
+          "when": "resourceLangId == typescript || resourceLangId == javascript || resourceLangId == typescriptreact || resourceLangId == javascriptreact"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "OmniAudit",
+      "properties": {
+        "omniaudit.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API Key for Claude",
+          "order": 1
+        },
+        "omniaudit.enabledSkills": {
+          "type": "array",
+          "default": [
+            "performance-optimizer-pro",
+            "security-auditor-enterprise"
+          ],
+          "description": "List of enabled skills",
+          "order": 2
+        },
+        "omniaudit.analyzeOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically analyze files on save",
+          "order": 3
+        },
+        "omniaudit.analyzeOnType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Analyze code as you type (with debounce)",
+          "order": 4
+        },
+        "omniaudit.autoFix": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically apply fixes when possible",
+          "order": 5
+        },
+        "omniaudit.maxIssues": {
+          "type": "number",
+          "default": 50,
+          "description": "Maximum number of issues to display",
+          "order": 6
+        },
+        "omniaudit.severityFilter": {
+          "type": "array",
+          "default": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "description": "Severity levels to display",
+          "items": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ]
+          },
+          "order": 7
+        },
+        "omniaudit.useCache": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cache analysis results",
+          "order": 8
+        },
+        "omniaudit.endpoint": {
+          "type": "string",
+          "default": "https://api.omniaudit.dev",
+          "description": "API endpoint (for self-hosted installations)",
+          "order": 9
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "omniaudit",
+          "title": "OmniAudit",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "omniaudit": [
+        {
+          "id": "omniaudit.issues",
+          "name": "Issues"
+        },
+        {
+          "id": "omniaudit.skills",
+          "name": "Skills"
+        },
+        {
+          "id": "omniaudit.analytics",
+          "name": "Analytics"
+        }
+      ]
+    },
+    "colors": [
+      {
+        "id": "omniaudit.errorHighlight",
+        "description": "Color for error highlights",
+        "defaults": {
+          "dark": "#ff5555",
+          "light": "#ff0000"
+        }
+      },
+      {
+        "id": "omniaudit.warningHighlight",
+        "description": "Color for warning highlights",
+        "defaults": {
+          "dark": "#ffaa00",
+          "light": "#ff8800"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "test": "node ./out/test/runTest.js",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "eslint": "^8.56.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "axios": "^1.6.5"
+  }
+}
