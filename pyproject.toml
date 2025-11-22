@@ -71,6 +71,7 @@ Issues = "https://github.com/yourusername/omniaudit/issues"
 
 [project.scripts]
 omniaudit = "omniaudit.cli:main"
+app = "omniaudit.api.main:app"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
