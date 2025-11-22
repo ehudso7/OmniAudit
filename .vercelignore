@@ -18,7 +18,9 @@ tests
 
 # Ignore Python files (main repo uses Python, but this deployment is Node.js only)
 pyproject.toml
+pyproject.toml.disabled
 requirements.txt
+requirements.txt.disabled
 *.py
 api/*.py
 __pycache__
