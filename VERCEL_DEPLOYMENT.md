@@ -1,34 +1,61 @@
 # Vercel Deployment Configuration
 
-## Python Files Renamed
+## Repository Structure for Vercel Deployment
 
-The following files have been renamed to prevent Vercel from detecting this as a Python/FastAPI project:
+This repository contains both Python and TypeScript code, but **only the TypeScript serverless functions are deployed to Vercel**.
 
+### Python Code Relocated
+
+All Python application code has been moved to the `python-app/` directory:
+
+- `python-app/omniaudit/` - Python FastAPI application
+- `python-app/tests/` - Python test files
+- `python-app/scripts/` - Python utility scripts
+- `python-app/migrations/` - Database migrations
+- `python-app/examples/` - Python usage examples
+
+Additionally, Python configuration files at the root have been renamed:
 - `pyproject.toml` → `pyproject.toml.disabled`
 - `requirements.txt` → `requirements.txt.disabled`
 
-### Why?
+### Why This Structure?
 
-Vercel's framework detection scans for project files BEFORE applying `.vercelignore`. When it finds `pyproject.toml` at the root, it assumes this is a Python project and tries to find a FastAPI entrypoint, which causes deployment failures.
+**Vercel's framework detection runs BEFORE applying `.vercelignore`**. Even with Python files added to `.vercelignore`, Vercel's initial repository scan detects them and assumes this is a Python/FastAPI project, causing deployment failures with:
+
+```
+Error: No fastapi entrypoint found. Define a valid application entrypoint in one of the following locations: app.py, src/app.py, app/app.py, api/app.py...
+```
+
+By moving all Python code to a separate directory (`python-app/`) and excluding it from deployment, Vercel only sees:
+- `package.json` (Node.js detection)
+- `api/**/*.ts` (TypeScript serverless functions)
+- `src/**` (TypeScript library code)
 
 ### Impact
 
-- **Vercel deployment**: ✅ Works - Only detects Node.js/TypeScript
-- **Local Python development**: ❌ Requires renaming files back
-- **Main repo Python app**: Not affected (uses different deployment method)
+- **Vercel deployment**: ✅ Works - Only detects Node.js/TypeScript serverless functions
+- **Python application**: Located in `python-app/` for separate deployment (Docker, Cloud Run, etc.)
+- **TypeScript library**: Compiled from `src/` for use in serverless functions and CLI
 
 ### For Local Development
 
-To work with the Python application locally:
+The Python application is still fully functional in the `python-app/` directory:
 
 ```bash
-# Rename back to enable Python tools
+# Work with Python application
+cd python-app
+python -m venv venv
+source venv/bin/activate
+pip install -e .
+
+# Run Python application
+cd ..
+python -m omniaudit.cli
+
+# Or use renamed config files
 mv pyproject.toml.disabled pyproject.toml
 mv requirements.txt.disabled requirements.txt
-
-# When done, rename again before committing
-mv pyproject.toml pyproject.toml.disabled  
-mv requirements.txt requirements.txt.disabled
+pip install -e .
 ```
 
 ### TypeScript Serverless Functions
