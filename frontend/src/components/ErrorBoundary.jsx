@@ -11,7 +11,20 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
+    // Log to monitoring service in production
+    console.error('Error caught by boundary:', {
+      error: error.message,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString()
+    })
+
+    // In production, send to error tracking service
+    if (process.env.NODE_ENV === 'production' && window.gtag) {
+      window.gtag('event', 'exception', {
+        description: error.message,
+        fatal: false
+      })
+    }
   }
 
   render() {
@@ -27,18 +40,21 @@ class ErrorBoundary extends Component {
         }}>
           <h2>⚠️ Something went wrong</h2>
           <p>We apologize for the inconvenience. Please refresh the page to try again.</p>
-          <details style={{ marginTop: '1rem', textAlign: 'left' }}>
-            <summary>Error Details</summary>
-            <pre style={{
-              marginTop: '0.5rem',
-              padding: '1rem',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '4px',
-              overflow: 'auto'
-            }}>
-              {this.state.error?.toString()}
-            </pre>
-          </details>
+          {process.env.NODE_ENV === 'development' && (
+            <details style={{ marginTop: '1rem', textAlign: 'left' }}>
+              <summary>Error Details (Development Only)</summary>
+              <pre style={{
+                marginTop: '0.5rem',
+                padding: '1rem',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px',
+                overflow: 'auto',
+                fontSize: '0.85rem'
+              }}>
+                {this.state.error?.message || 'Unknown error'}
+              </pre>
+            </details>
+          )}
           <button
             onClick={() => window.location.reload()}
             style={{
