@@ -6,7 +6,8 @@ export const ArchitectureAdvisorSkill: SkillDefinition = {
 
   metadata: {
     name: 'Architecture Advisor',
-    description: 'Software architecture patterns, SOLID principles, and system design best practices',
+    description:
+      'Software architecture patterns, SOLID principles, and system design best practices',
     author: 'OmniAudit Team',
     category: 'architecture',
     tags: ['architecture', 'design-patterns', 'solid', 'clean-code', 'refactoring'],
@@ -50,11 +51,7 @@ Focus on:
       'Follow the principle of least surprise',
     ],
 
-    optimization_priorities: [
-      'maintainability',
-      'readability',
-      'testability',
-    ],
+    optimization_priorities: ['maintainability', 'readability', 'testability'],
 
     output_format: 'json',
 

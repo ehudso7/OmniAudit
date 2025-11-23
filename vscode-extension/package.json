@@ -12,19 +12,8 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": [
-    "Linters",
-    "Programming Languages",
-    "Other"
-  ],
-  "keywords": [
-    "optimization",
-    "performance",
-    "security",
-    "ai",
-    "claude",
-    "code-analysis"
-  ],
+  "categories": ["Linters", "Programming Languages", "Other"],
+  "keywords": ["optimization", "performance", "security", "ai", "claude", "code-analysis"],
   "activationEvents": [
     "onLanguage:typescript",
     "onLanguage:javascript",
@@ -98,10 +87,7 @@
         },
         "omniaudit.enabledSkills": {
           "type": "array",
-          "default": [
-            "performance-optimizer-pro",
-            "security-auditor-enterprise"
-          ],
+          "default": ["performance-optimizer-pro", "security-auditor-enterprise"],
           "description": "List of enabled skills",
           "order": 2
         },
@@ -131,19 +117,11 @@
         },
         "omniaudit.severityFilter": {
           "type": "array",
-          "default": [
-            "error",
-            "warning",
-            "info"
-          ],
+          "default": ["error", "warning", "info"],
           "description": "Severity levels to display",
           "items": {
             "type": "string",
-            "enum": [
-              "error",
-              "warning",
-              "info"
-            ]
+            "enum": ["error", "warning", "info"]
           },
           "order": 7
         },

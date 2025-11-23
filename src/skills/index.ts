@@ -4,12 +4,12 @@ export { ReactBestPracticesSkill } from './react-best-practices';
 export { TypeScriptExpertSkill } from './typescript-expert';
 export { ArchitectureAdvisorSkill } from './architecture-advisor';
 
-import { PerformanceOptimizerSkill } from './performance-optimizer';
-import { SecurityAuditorSkill } from './security-auditor';
-import { ReactBestPracticesSkill } from './react-best-practices';
-import { TypeScriptExpertSkill } from './typescript-expert';
-import { ArchitectureAdvisorSkill } from './architecture-advisor';
 import type { SkillDefinition } from '../types/index';
+import { ArchitectureAdvisorSkill } from './architecture-advisor';
+import { PerformanceOptimizerSkill } from './performance-optimizer';
+import { ReactBestPracticesSkill } from './react-best-practices';
+import { SecurityAuditorSkill } from './security-auditor';
+import { TypeScriptExpertSkill } from './typescript-expert';
 
 export const BUILTIN_SKILLS: Record<string, SkillDefinition> = {
   [PerformanceOptimizerSkill.skill_id]: PerformanceOptimizerSkill,

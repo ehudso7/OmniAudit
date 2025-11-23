@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAllBuiltinSkills, getBuiltinSkill } from '../src/skills/index';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -31,13 +31,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!skill) {
         return res.status(404).json({
           success: false,
-          error: 'Skill not found'
+          error: 'Skill not found',
         });
       }
 
       return res.status(200).json({
         success: true,
-        skill
+        skill,
       });
     }
 

@@ -1,5 +1,16 @@
-import { useState, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useEffect, useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import './App.css';
 
 interface DashboardData {
@@ -33,12 +44,12 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           collectors: {
-            git_collector: { repo_path: '.', max_commits: 100 }
+            git_collector: { repo_path: '.', max_commits: 100 },
           },
           analyzers: {
-            code_quality: { project_path: '.', languages: ['python'] }
-          }
-        })
+            code_quality: { project_path: '.', languages: ['python'] },
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -59,8 +70,8 @@ function App() {
           totalCommits: gitData.commits_count || 0,
           totalContributors: gitData.contributors_count || 0,
           qualityScore: qualityData.overall_score || 0,
-          coverage: qualityData.metrics?.python?.coverage || 0
-        }
+          coverage: qualityData.metrics?.python?.coverage || 0,
+        },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -71,8 +82,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="spinner"></div>
+      <div className='loading'>
+        <div className='spinner'></div>
         <p>Loading dashboard...</p>
       </div>
     );
@@ -80,7 +91,7 @@ function App() {
 
   if (error) {
     return (
-      <div className="error">
+      <div className='error'>
         <h2>Error Loading Dashboard</h2>
         <p>{error}</p>
         <button onClick={fetchDashboardData}>Retry</button>
@@ -94,7 +105,7 @@ function App() {
   const commitTimeline = data.commits
     .reduce((acc: any[], commit) => {
       const date = new Date(commit.date).toLocaleDateString();
-      const existing = acc.find(item => item.date === date);
+      const existing = acc.find((item) => item.date === date);
       if (existing) {
         existing.commits += 1;
       } else {
@@ -105,37 +116,37 @@ function App() {
     .slice(-14); // Last 14 days
 
   return (
-    <div className="app">
+    <div className='app'>
       <header>
         <h1>🔍 OmniAudit Dashboard</h1>
         <p>Universal Project Auditing & Monitoring</p>
       </header>
 
       {/* Summary Cards */}
-      <div className="summary-cards">
-        <div className="card">
-          <div className="card-icon">📊</div>
+      <div className='summary-cards'>
+        <div className='card'>
+          <div className='card-icon'>📊</div>
           <div>
             <h3>{data.summary.totalCommits}</h3>
             <p>Total Commits</p>
           </div>
         </div>
-        <div className="card">
-          <div className="card-icon">👥</div>
+        <div className='card'>
+          <div className='card-icon'>👥</div>
           <div>
             <h3>{data.summary.totalContributors}</h3>
             <p>Contributors</p>
           </div>
         </div>
-        <div className="card">
-          <div className="card-icon">⭐</div>
+        <div className='card'>
+          <div className='card-icon'>⭐</div>
           <div>
             <h3>{data.summary.qualityScore.toFixed(1)}</h3>
             <p>Quality Score</p>
           </div>
         </div>
-        <div className="card">
-          <div className="card-icon">✅</div>
+        <div className='card'>
+          <div className='card-icon'>✅</div>
           <div>
             <h3>{data.summary.coverage > 0 ? data.summary.coverage.toFixed(1) + '%' : 'N/A'}</h3>
             <p>Test Coverage</p>
@@ -144,38 +155,38 @@ function App() {
       </div>
 
       {/* Charts */}
-      <div className="charts">
-        <div className="chart-container">
+      <div className='charts'>
+        <div className='chart-container'>
           <h2>Commit Activity (Last 14 Days)</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width='100%' height={300}>
             <LineChart data={commitTimeline}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <CartesianGrid strokeDasharray='3 3' />
+              <XAxis dataKey='date' />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="commits" stroke="#8884d8" strokeWidth={2} />
+              <Line type='monotone' dataKey='commits' stroke='#8884d8' strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="chart-container">
+        <div className='chart-container'>
           <h2>Top Contributors</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width='100%' height={300}>
             <BarChart data={data.contributors.slice(0, 10)}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <CartesianGrid strokeDasharray='3 3' />
+              <XAxis dataKey='name' />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="commits" fill="#82ca9d" />
+              <Bar dataKey='commits' fill='#82ca9d' />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Contributors Table */}
-      <div className="table-container">
+      <div className='table-container'>
         <h2>Contributors</h2>
         <table>
           <thead>
@@ -192,8 +203,8 @@ function App() {
               <tr key={idx}>
                 <td>{contributor.name}</td>
                 <td>{contributor.commits}</td>
-                <td className="text-success">+{contributor.insertions}</td>
-                <td className="text-danger">-{contributor.deletions}</td>
+                <td className='text-success'>+{contributor.insertions}</td>
+                <td className='text-danger'>-{contributor.deletions}</td>
                 <td>{contributor.lines_changed}</td>
               </tr>
             ))}
@@ -202,7 +213,7 @@ function App() {
       </div>
 
       <footer>
-        <button onClick={fetchDashboardData}>Refresh Data</button>
+        <button type="button" onClick={fetchDashboardData}>Refresh Data</button>
       </footer>
     </div>
   );

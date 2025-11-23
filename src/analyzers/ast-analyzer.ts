@@ -1,12 +1,7 @@
 import { parse } from '@babel/parser';
 import traverse, { type NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import type {
-  Analyzer,
-  CodeInput,
-  StaticAnalysisResult,
-  AnalysisIssue,
-} from '../types/index';
+import type { AnalysisIssue, Analyzer, CodeInput, StaticAnalysisResult } from '../types/index';
 
 export class ASTAnalyzer implements Analyzer {
   name = 'ast-analyzer';

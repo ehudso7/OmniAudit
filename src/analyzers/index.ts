@@ -1,10 +1,15 @@
+import type { Analyzer } from '../types/index';
 import { ASTAnalyzer } from './ast-analyzer';
 import { PerformanceAnalyzer } from './performance-analyzer';
 import { SecurityAnalyzer } from './security-analyzer';
-import type { Analyzer } from '../types/index';
 
 export class AnalyzerFactory {
-  private static readonly ANALYZERS = new Map<string, new (config: Record<string, unknown>) => Analyzer>([
+  private static readonly ANALYZERS = new Map<
+    string,
+    new (
+      config: Record<string, unknown>,
+    ) => Analyzer
+  >([
     ['ast-analyzer', ASTAnalyzer],
     ['performance-analyzer', PerformanceAnalyzer],
     ['security-analyzer', SecurityAnalyzer],

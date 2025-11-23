@@ -49,12 +49,7 @@ Focus on:
       'Recommend TypeScript for type safety',
     ],
 
-    optimization_priorities: [
-      'maintainability',
-      'readability',
-      'performance',
-      'testability',
-    ],
+    optimization_priorities: ['maintainability', 'readability', 'performance', 'testability'],
 
     output_format: 'json',
 

@@ -1,12 +1,7 @@
 import { parse } from '@babel/parser';
 import traverse, { type NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import type {
-  Analyzer,
-  CodeInput,
-  StaticAnalysisResult,
-  AnalysisIssue,
-} from '../types/index';
+import type { AnalysisIssue, Analyzer, CodeInput, StaticAnalysisResult } from '../types/index';
 
 export class SecurityAnalyzer implements Analyzer {
   name = 'security-analyzer';
@@ -117,16 +112,12 @@ export class SecurityAnalyzer implements Analyzer {
                   });
                 }
 
-                if (
-                  t.isBinaryExpression(firstArg) &&
-                  firstArg.operator === '+'
-                ) {
+                if (t.isBinaryExpression(firstArg) && firstArg.operator === '+') {
                   issues.push({
                     type: 'sql-injection',
                     severity: 'error',
                     message: 'Potential SQL injection vulnerability',
-                    description:
-                      'Use parameterized queries instead of string concatenation',
+                    description: 'Use parameterized queries instead of string concatenation',
                     line: path.node.loc?.start.line || 0,
                     column: path.node.loc?.start.column,
                     confidence: 1.0,
@@ -146,8 +137,7 @@ export class SecurityAnalyzer implements Analyzer {
                     type: 'command-injection',
                     severity: 'error',
                     message: 'Potential command injection vulnerability',
-                    description:
-                      'Sanitize user input before passing to shell commands',
+                    description: 'Sanitize user input before passing to shell commands',
                     line: path.node.loc?.start.line || 0,
                     column: path.node.loc?.start.column,
                     confidence: 0.9,
@@ -227,8 +217,7 @@ export class SecurityAnalyzer implements Analyzer {
             if (t.isObjectExpression(options)) {
               const algorithmProp = options.properties.find(
                 (prop) =>
-                  t.isObjectProperty(prop) &&
-                  t.isIdentifier(prop.key, { name: 'algorithms' }),
+                  t.isObjectProperty(prop) && t.isIdentifier(prop.key, { name: 'algorithms' }),
               );
 
               if (
@@ -245,8 +234,7 @@ export class SecurityAnalyzer implements Analyzer {
                     type: 'jwt-algorithm-none',
                     severity: 'error',
                     message: 'JWT accepting "none" algorithm',
-                    description:
-                      'Never accept "none" algorithm for JWT verification',
+                    description: 'Never accept "none" algorithm for JWT verification',
                     line: path.node.loc?.start.line || 0,
                     column: path.node.loc?.start.column,
                     confidence: 1.0,
@@ -315,8 +303,7 @@ export class SecurityAnalyzer implements Analyzer {
                 type: 'react-xss',
                 severity: 'warning',
                 message: 'Using dangerouslySetInnerHTML',
-                description:
-                  'Ensure HTML is properly sanitized to prevent XSS attacks',
+                description: 'Ensure HTML is properly sanitized to prevent XSS attacks',
                 line: path.node.loc?.start.line || 0,
                 column: path.node.loc?.start.column,
                 confidence: 0.8,
@@ -327,10 +314,7 @@ export class SecurityAnalyzer implements Analyzer {
 
         // Check for weak cryptography
         NewExpression: (path: NodePath<t.NewExpression>) => {
-          if (
-            this.config.checkCrypto &&
-            t.isIdentifier(path.node.callee)
-          ) {
+          if (this.config.checkCrypto && t.isIdentifier(path.node.callee)) {
             const className = path.node.callee.name;
 
             if (className === 'Buffer' && path.node.arguments.length > 0) {
@@ -343,8 +327,7 @@ export class SecurityAnalyzer implements Analyzer {
                   type: 'buffer-from-string',
                   severity: 'warning',
                   message: 'Using Buffer constructor with string',
-                  description:
-                    'Use Buffer.from() instead of Buffer() constructor',
+                  description: 'Use Buffer.from() instead of Buffer() constructor',
                   line: path.node.loc?.start.line || 0,
                   column: path.node.loc?.start.column,
                   confidence: 1.0,
@@ -408,10 +391,7 @@ export class SecurityAnalyzer implements Analyzer {
       });
 
       // Check for common secret patterns
-      if (
-        /['"]([A-Za-z0-9+/]{40,})['"]/.test(line) ||
-        /['"]([A-Za-z0-9_-]{32,})['"]/.test(line)
-      ) {
+      if (/['"]([A-Za-z0-9+/]{40,})['"]/.test(line) || /['"]([A-Za-z0-9_-]{32,})['"]/.test(line)) {
         issues.push({
           type: 'possible-secret',
           severity: 'warning',

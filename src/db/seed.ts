@@ -1,6 +1,6 @@
-import { db } from './client';
 import { PerformanceOptimizerSkill } from '../skills/performance-optimizer';
 import { SecurityAuditorSkill } from '../skills/security-auditor';
+import { db } from './client';
 
 async function seed() {
   console.log('🌱 Seeding database...');

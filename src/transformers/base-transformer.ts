@@ -1,4 +1,4 @@
-import type { Transformer, Optimization } from '../types/index';
+import type { Optimization, Transformer } from '../types/index';
 
 export abstract class BaseTransformer implements Transformer {
   abstract name: string;
@@ -127,7 +127,8 @@ export class UseMemoTransformer extends BaseTransformer {
     const computation = line.trim();
 
     // Wrap in useMemo
-    lines[targetLine] = `${indentation}const memoizedValue = useMemo(() => ${computation}, [/* dependencies */]);`;
+    lines[targetLine] =
+      `${indentation}const memoizedValue = useMemo(() => ${computation}, [/* dependencies */]);`;
 
     // Add import if not present
     if (!code.includes('useMemo')) {
@@ -165,7 +166,10 @@ export class RemoveConsoleTransformer extends BaseTransformer {
 
     if (targetLine >= 0 && targetLine < lines.length) {
       // Remove or comment out the console statement
-      lines[targetLine] = lines[targetLine].replace(/console\.\w+\([^)]*\);?/, '// Removed console statement');
+      lines[targetLine] = lines[targetLine].replace(
+        /console\.\w+\([^)]*\);?/,
+        '// Removed console statement',
+      );
     }
 
     return lines.join('\n');
