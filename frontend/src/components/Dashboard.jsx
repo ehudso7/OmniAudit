@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react'
 
 function Dashboard({ apiUrl, auditResults }) {
-  const [collectors, setCollectors] = useState([])
+  const [skills, setSkills] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch available collectors
-    fetch(`${apiUrl}/api/v1/collectors`)
+    // Fetch available skills from TypeScript API
+    fetch(`${apiUrl}/api/skills`)
       .then(res => res.json())
-      .then(data => setCollectors(data.collectors || []))
-      .catch(err => console.error('Failed to fetch collectors:', err))
+      .then(data => {
+        setSkills(data.skills || [])
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to fetch skills:', err)
+        setLoading(false)
+      })
   }, [apiUrl])
 
   return (
@@ -17,68 +24,56 @@ function Dashboard({ apiUrl, auditResults }) {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon">📦</div>
+          <div className="stat-icon">🎯</div>
           <div className="stat-content">
-            <h3>Available Collectors</h3>
-            <p className="stat-value">{collectors.length}</p>
+            <h3>Available Skills</h3>
+            <p className="stat-value">{loading ? '...' : skills.length}</p>
           </div>
         </div>
 
         {auditResults && (
-          <>
-            <div className="stat-card">
-              <div className="stat-icon">✅</div>
-              <div className="stat-content">
-                <h3>Last Audit</h3>
-                <p className="stat-value">Success</p>
-              </div>
+          <div className="stat-card">
+            <div className="stat-icon">✅</div>
+            <div className="stat-content">
+              <h3>Last Analysis</h3>
+              <p className="stat-value">Success</p>
             </div>
-
-            {auditResults.results?.collectors?.git_collector && (
-              <>
-                <div className="stat-card">
-                  <div className="stat-icon">💻</div>
-                  <div className="stat-content">
-                    <h3>Total Commits</h3>
-                    <p className="stat-value">
-                      {auditResults.results.collectors.git_collector.data?.commits_count || 0}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-icon">👥</div>
-                  <div className="stat-content">
-                    <h3>Contributors</h3>
-                    <p className="stat-value">
-                      {auditResults.results.collectors.git_collector.data?.contributors_count || 0}
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
-          </>
+          </div>
         )}
-      </div>
 
-      <div className="section">
-        <h3>Available Collectors</h3>
-        <div className="collector-list">
-          {collectors.map((collector, idx) => (
-            <div key={idx} className="collector-card">
-              <div className="collector-name">{collector.name}</div>
-              <div className="collector-version">v{collector.version}</div>
-            </div>
-          ))}
+        <div className="stat-card">
+          <div className="stat-icon">🤖</div>
+          <div className="stat-content">
+            <h3>AI Engine</h3>
+            <p className="stat-value">Claude 4.5</p>
+          </div>
         </div>
       </div>
 
-      {auditResults && auditResults.results?.collectors?.git_collector && (
+      <div className="section">
+        <h3>Available Skills</h3>
+        {loading ? (
+          <p>Loading skills...</p>
+        ) : (
+          <div className="collector-list">
+            {skills.map((skill, idx) => (
+              <div key={idx} className="collector-card">
+                <div className="collector-name">{skill.name}</div>
+                <div className="collector-version">{skill.category}</div>
+                <div style={{ fontSize: '0.85em', marginTop: '0.5rem', color: '#666' }}>
+                  {skill.description}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {auditResults && (
         <div className="section">
-          <h3>Latest Audit Results</h3>
+          <h3>Latest Analysis Results</h3>
           <div className="audit-summary">
-            <h4>Git Repository Analysis</h4>
-            <pre>{JSON.stringify(auditResults.results.collectors.git_collector.data, null, 2)}</pre>
+            <pre>{JSON.stringify(auditResults, null, 2)}</pre>
           </div>
         </div>
       )}
