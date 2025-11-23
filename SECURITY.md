@@ -79,54 +79,61 @@ All user inputs are validated before processing:
 
 ### Rate Limiting
 
-API endpoints are rate-limited:
-- 60 requests per minute per IP
-- 1000 requests per hour per API key
+**Planned Implementation:**
+Rate limiting is planned for future releases:
+- Target: 60 requests per minute per IP
+- Target: 1000 requests per hour per API key
 - Automatic blocking of abusive patterns
+
+**Current Implementation:**
+Basic rate limiting in development (100 requests per hour per client).
 
 ### CORS Configuration
 
-Strict CORS policy:
+CORS is configured in serverless functions:
 ```typescript
-// Only specific origins allowed
-allowedOrigins: [
-  'https://omniaudit.dev',
-  'https://app.omniaudit.dev'
-]
+// Allow all origins in development, specific origins in production
+res.setHeader('Access-Control-Allow-Origin', '*');
+res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 ```
 
 ### Data Privacy
 
-- User code is **never stored** permanently
-- Analysis results cached for 1 hour only
-- All data encrypted in transit (TLS 1.3)
-- Database encrypted at rest
+- User code is **processed in-memory** and not persisted
+- Analysis results may be cached temporarily (configurable TTL)
+- All data encrypted in transit (TLS 1.3+)
+- No personal data is collected without consent
 
 ### Dependencies
 
-- Dependencies scanned daily with `npm audit`
-- Automated updates for security patches
-- Only use dependencies with active maintenance
-
-## Security Features
+- Dependencies scanned with `npm audit`
+- Security updates applied regularly
+- Only use actively maintained dependencies
 
 ### Built-in Security Analyzers
 
-OmniAudit includes security analysis:
+OmniAudit includes security analysis features:
 
-- SQL Injection detection
-- XSS vulnerability scanning
-- CSRF protection validation
-- Insecure randomness detection
-- Hardcoded secrets detection
-- Dangerous function usage
+- **Static Analysis**: AST-based code scanning
+- **SQL Injection detection**: Pattern matching for SQL vulnerabilities
+- **XSS vulnerability scanning**: Detection of unsafe HTML/DOM manipulation
+- **Insecure randomness detection**: Identifies weak RNG usage
+- **Hardcoded secrets detection**: Finds exposed API keys and tokens
+- **Dangerous function usage**: Flags eval(), Function(), and similar
 
-### Secure Defaults
+### Execution Safety
 
-- All skills run in sandboxed environment
-- No file system access from analyzed code
-- Network requests blocked during analysis
-- CPU and memory limits enforced
+**Current Implementation:**
+- Skills execute via static AST analysis (no code execution)
+- AI analysis performed via Anthropic Claude API
+- Network isolation for analysis processes
+
+**Planned Enhancements:**
+- Sandboxed execution environment
+- Resource limits (CPU/memory)
+- Network request blocking for analyzed code
+- File system access restrictions
 
 ## Vulnerability Disclosure History
 
