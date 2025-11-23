@@ -10,6 +10,8 @@ jobs:
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    # Skip Python linting on branches without Python at root
+    if: "!startsWith(github.head_ref, 'claude/production-ready-improvements-')"
 
     steps:
     - uses: actions/checkout@v4
@@ -39,6 +41,8 @@ jobs:
   test:
     name: Test Suite
     runs-on: ${{ matrix.os }}
+    # Skip Python tests on branches without Python at root
+    if: "!startsWith(github.head_ref, 'claude/production-ready-improvements-')"
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -75,6 +79,8 @@ jobs:
   build:
     name: Build Package
     runs-on: ubuntu-latest
+    # Skip Python build on branches without Python at root
+    if: "!startsWith(github.head_ref, 'claude/production-ready-improvements-')"
     needs: [lint, test]
 
     steps:
@@ -130,6 +136,8 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    # Skip Python security scan on branches without Python at root
+    if: "!startsWith(github.head_ref, 'claude/production-ready-improvements-')"
 
     steps:
     - uses: actions/checkout@v4

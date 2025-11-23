@@ -90,13 +90,18 @@ Basic rate limiting in development (100 requests per hour per client).
 
 ### CORS Configuration
 
-CORS is configured in serverless functions:
+**Current Implementation:**
+CORS is currently configured to allow all origins for development and testing:
 ```typescript
-// Allow all origins in development, specific origins in production
 res.setHeader('Access-Control-Allow-Origin', '*');
 res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 ```
+
+**Planned for Production:**
+- Restrict to specific origins: `https://omniaudit.dev`, `https://app.omniaudit.dev`
+- Environment-based CORS configuration
+- Credential handling with proper origin restrictions
 
 ### Data Privacy
 
@@ -127,10 +132,12 @@ OmniAudit includes security analysis features:
 **Current Implementation:**
 - Skills execute via static AST analysis (no code execution)
 - AI analysis performed via Anthropic Claude API
-- Network isolation for analysis processes
+- Analysis runs in the same process context
+- No runtime network restrictions currently enforced
 
 **Planned Enhancements:**
 - Sandboxed execution environment
+- Runtime network isolation for analysis processes
 - Resource limits (CPU/memory)
 - Network request blocking for analyzed code
 - File system access restrictions
