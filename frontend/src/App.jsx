@@ -21,43 +21,49 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
+      <header className="app-header" role="banner">
         <h1>🔍 OmniAudit Dashboard</h1>
-        <div className="api-status">
+        <div className="api-status" role="status" aria-live="polite">
           {apiStatus ? (
-            <span className="status-badge status-healthy">
+            <span className="status-badge status-healthy" aria-label="API status healthy">
               ✓ API Healthy
             </span>
           ) : (
-            <span className="status-badge status-unknown">
-              ⚠ Checking...
+            <span className="status-badge status-unknown" aria-label="Checking API status">
+              ⏳ Checking...
             </span>
           )}
         </div>
       </header>
 
-      <nav className="app-nav">
+      <nav className="app-nav" role="navigation" aria-label="Main navigation">
         <button
           className={activeTab === 'dashboard' ? 'active' : ''}
           onClick={() => setActiveTab('dashboard')}
+          aria-label="Dashboard"
+          aria-current={activeTab === 'dashboard' ? 'page' : undefined}
         >
           📊 Dashboard
         </button>
         <button
           className={activeTab === 'audit' ? 'active' : ''}
           onClick={() => setActiveTab('audit')}
+          aria-label="Run code analysis"
+          aria-current={activeTab === 'audit' ? 'page' : undefined}
         >
           🚀 Run Audit
         </button>
         <button
           className={activeTab === 'skills' ? 'active' : ''}
           onClick={() => setActiveTab('skills')}
+          aria-label="Browse skills"
+          aria-current={activeTab === 'skills' ? 'page' : undefined}
         >
           🎯 Skills
         </button>
       </nav>
 
-      <main className="app-main">
+      <main className="app-main" role="main" aria-label="Main content">
         {activeTab === 'dashboard' && (
           <Dashboard apiUrl={API_URL} auditResults={auditResults} />
         )}
@@ -65,12 +71,15 @@ function App() {
           <AuditRunner apiUrl={API_URL} onComplete={setAuditResults} />
         )}
         {activeTab === 'skills' && (
-          <ExportPanel apiUrl={API_URL} auditResults={auditResults} />
+          <ExportPanel apiUrl={API_URL} />
         )}
       </main>
 
-      <footer className="app-footer">
-        <p>OmniAudit v0.3.0 | Universal Project Auditing & Monitoring</p>
+      <footer className="app-footer" role="contentinfo">
+        <p>OmniAudit v0.3.0 | Universal AI Code Analysis & Optimization</p>
+        <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.8 }}>
+          Powered by Claude Sonnet 4.5 | <a href="https://github.com/ehudso7/OmniAudit" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>GitHub</a>
+        </p>
       </footer>
     </div>
   )
