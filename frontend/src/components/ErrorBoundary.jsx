@@ -14,12 +14,13 @@ class ErrorBoundary extends Component {
     // Log to monitoring service in production
     console.error('Error caught by boundary:', {
       error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       componentStack: errorInfo.componentStack,
       timestamp: new Date().toISOString()
     })
 
     // In production, send to error tracking service
-    if (process.env.NODE_ENV === 'production' && window.gtag) {
+    if (process.env.NODE_ENV === 'production' && typeof window.gtag === 'function') {
       window.gtag('event', 'exception', {
         description: error.message,
         fatal: false
