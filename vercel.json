@@ -1,9 +1,4 @@
 {
-  "version": 2,
-  "buildCommand": null,
-  "installCommand": null,
-  "outputDirectory": null,
-  "framework": null,
   "functions": {
     "api/**/*.ts": {
       "runtime": "@vercel/node@3.0.21",

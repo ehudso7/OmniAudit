@@ -10,15 +10,16 @@ dist
 out
 build
 vscode-extension
-scripts
 docs
-tests
 *.test.ts
 *.spec.ts
 
-# Ignore Python files (main repo uses Python, but this deployment is Node.js only)
+# Ignore Python application (main repo uses Python, but this Vercel deployment is Node.js only)
+python-app/
 pyproject.toml
+pyproject.toml.disabled
 requirements.txt
+requirements.txt.disabled
 *.py
 api/*.py
 __pycache__

@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "build": "tsc",
+    "build:local": "tsc",
+    "vercel-build": "echo 'Skipping build - Vercel compiles functions automatically'",
     "build:api": "tsc && cp -r src api/dist",
     "cli": "bun run src/cli/omniaudit.ts",
     "db:migrate": "bun run src/db/migrate.ts",

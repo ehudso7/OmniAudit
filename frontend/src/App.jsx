@@ -4,7 +4,7 @@ import Dashboard from './components/Dashboard'
 import AuditRunner from './components/AuditRunner'
 import ExportPanel from './components/ExportPanel'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://omni-audit-c1oeztkup-everton-hudsons-projects.vercel.app'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -12,8 +12,8 @@ function App() {
   const [auditResults, setAuditResults] = useState(null)
 
   useEffect(() => {
-    // Check API health
-    fetch(`${API_URL}/health`)
+    // Check API health - TypeScript serverless function endpoint
+    fetch(`${API_URL}/api/health`)
       .then(res => res.json())
       .then(data => setApiStatus(data))
       .catch(err => console.error('API health check failed:', err))
@@ -50,19 +50,11 @@ function App() {
           🚀 Run Audit
         </button>
         <button
-          className={activeTab === 'export' ? 'active' : ''}
-          onClick={() => setActiveTab('export')}
+          className={activeTab === 'skills' ? 'active' : ''}
+          onClick={() => setActiveTab('skills')}
         >
-          📥 Export
+          🎯 Skills
         </button>
-        <a
-          href={`${API_URL}/docs`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="nav-link"
-        >
-          📖 API Docs
-        </a>
       </nav>
 
       <main className="app-main">
@@ -72,7 +64,7 @@ function App() {
         {activeTab === 'audit' && (
           <AuditRunner apiUrl={API_URL} onComplete={setAuditResults} />
         )}
-        {activeTab === 'export' && (
+        {activeTab === 'skills' && (
           <ExportPanel apiUrl={API_URL} auditResults={auditResults} />
         )}
       </main>
