@@ -41,7 +41,7 @@
     "@babel/parser": "^7.23.9",
     "@babel/traverse": "^7.23.9",
     "@babel/types": "^7.23.9",
-    "@libsql/client": "^0.5.6",
+    "@libsql/client": "^0.15.15",
     "@upstash/redis": "^1.28.4",
     "@pinecone-database/pinecone": "^2.0.1",
     "@sentry/bun": "^7.99.0",
