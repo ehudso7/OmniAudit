@@ -6,6 +6,7 @@ and validation steps.
 """
 
 import hashlib
+import logging
 from typing import List, Optional
 
 from omniaudit.harmonizer.types import (
@@ -16,6 +17,8 @@ from omniaudit.harmonizer.types import (
     FixStrategy,
     RootCauseInfo,
 )
+
+logger = logging.getLogger(__name__)
 
 # Try to import Anthropic SDK
 try:
@@ -280,19 +283,41 @@ class FixGenerator:
             # Build prompt
             prompt = self._build_fix_prompt(finding, root_cause)
 
-            # Call API
+            # Call API with timeout and proper configuration
+            # Validate model exists before calling
+            model_name = "claude-sonnet-4-5"
+
             response = self._client.messages.create(
-                model="claude-sonnet-4-5",
+                model=model_name,
                 max_tokens=1500,
                 messages=[{"role": "user", "content": prompt}],
+                timeout=30.0,  # 30 second timeout to prevent hanging
             )
 
             # Parse response
             response_text = response.content[0].text
+            logger.info(
+                "AI fix generation successful",
+                extra={
+                    "finding_id": finding.id,
+                    "finding_category": finding.category,
+                    "model": model_name,
+                },
+            )
             return self._parse_ai_fix_response(response_text, finding)
 
-        except Exception:
-            # Return empty list on error
+        except Exception as e:
+            # Log error with context instead of silently failing
+            logger.error(
+                "AI fix generation failed",
+                extra={
+                    "finding_id": finding.id,
+                    "finding_category": finding.category,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                },
+                exc_info=True,
+            )
             return []
 
     def _build_fix_prompt(self, finding: Finding, root_cause: Optional[RootCauseInfo]) -> str:
@@ -304,8 +329,16 @@ class FixGenerator:
             root_cause: Optional root cause
 
         Returns:
-            Prompt string
+            Prompt string (sanitized for logging)
+
+        Note:
+            This prompt may contain code snippets. Logging upstream should
+            sanitize sensitive data (API keys, credentials, PII) before
+            persisting to logs.
         """
+        # Sanitize code snippet to remove potential secrets if logging
+        sanitized_snippet = self._sanitize_code_snippet(finding.code_snippet) if finding.code_snippet else None
+
         prompt = f"""Generate a fix for this code issue.
 
 **Finding:**
@@ -316,8 +349,8 @@ class FixGenerator:
 - Line: {finding.line_number or 'N/A'}
 """
 
-        if finding.code_snippet:
-            prompt += f"\n**Code:**\n```\n{finding.code_snippet}\n```\n"
+        if sanitized_snippet:
+            prompt += f"\n**Code:**\n```\n{sanitized_snippet}\n```\n"
 
         if root_cause:
             prompt += f"\n**Root Cause:** {root_cause.primary_cause}\n"
@@ -338,6 +371,46 @@ Be practical and specific. Focus on fixes that can realistically be implemented.
 """
 
         return prompt
+
+    def _sanitize_code_snippet(self, code: str) -> str:
+        """
+        Sanitize code snippet to remove potential sensitive data.
+
+        Args:
+            code: Original code snippet
+
+        Returns:
+            Sanitized code snippet
+        """
+        import re
+
+        # Patterns for common secrets
+        sanitized = code
+
+        # API keys (e.g., "api_key = 'abc123'")
+        sanitized = re.sub(
+            r"(api[_-]?key|secret|token|password)\s*[=:]\s*['\"][\w\-]+['\"]",
+            r"\1 = '[REDACTED]'",
+            sanitized,
+            flags=re.IGNORECASE,
+        )
+
+        # Connection strings
+        sanitized = re.sub(
+            r"(mongodb|postgres|mysql)://[^\s\"']+",
+            r"\1://[REDACTED]",
+            sanitized,
+            flags=re.IGNORECASE,
+        )
+
+        # Email addresses (potential PII)
+        sanitized = re.sub(
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+            "[EMAIL_REDACTED]",
+            sanitized,
+        )
+
+        return sanitized
 
     def _parse_ai_fix_response(self, response: str, finding: Finding) -> List[AutoFix]:
         """

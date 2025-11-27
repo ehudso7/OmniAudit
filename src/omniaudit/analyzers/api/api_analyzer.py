@@ -1,11 +1,18 @@
 """API best practices analyzer."""
 
+import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ..base import BaseAnalyzer, AnalyzerError
 from .validators import GraphQLValidator, OpenAPIValidator, RESTValidator
 from .types import APIFinding, APIMetrics, APIType, SecurityPattern
+
+logger = logging.getLogger(__name__)
+
+# Security limits for filesystem operations
+MAX_FILES_TO_SCAN = 5000  # Maximum number of files to scan
+MAX_DIRECTORY_DEPTH = 15  # Maximum directory depth to prevent traversal attacks
 
 
 class APIAnalyzer(BaseAnalyzer):
@@ -45,7 +52,7 @@ class APIAnalyzer(BaseAnalyzer):
 
     def analyze(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Analyze API implementation.
+        Analyze API implementation with comprehensive audit logging.
 
         Args:
             data: Input data (file patterns, exclusions, etc.)
@@ -53,66 +60,157 @@ class APIAnalyzer(BaseAnalyzer):
         Returns:
             Analysis results with metrics and findings
         """
-        # Detect API types
-        api_types = self._detect_api_types()
+        import time
 
-        # Validate REST APIs
-        rest_validation = None
-        if APIType.REST in api_types:
-            rest_validation = RESTValidator.validate_directory(self.project_path)
+        start_time = time.time()
 
-        # Validate GraphQL
-        graphql_validation = None
-        if APIType.GRAPHQL in api_types:
-            graphql_validation = GraphQLValidator.validate_directory(self.project_path)
-
-        # Validate OpenAPI specs
-        openapi_spec = OpenAPIValidator.validate_directory(self.project_path)
-
-        # Detect security patterns
-        security_patterns = self._detect_security_patterns(rest_validation)
-
-        # Calculate scores
-        security_score = self._calculate_security_score(
-            rest_validation, graphql_validation, security_patterns
-        )
-        best_practices_score = self._calculate_best_practices_score(
-            rest_validation, graphql_validation, openapi_spec
-        )
-        overall_score = (security_score + best_practices_score) / 2
-
-        # Count total endpoints
-        total_endpoints = 0
-        if rest_validation:
-            total_endpoints += rest_validation.total_endpoints
-        if graphql_validation:
-            total_endpoints += graphql_validation.total_queries + graphql_validation.total_mutations
-
-        metrics = APIMetrics(
-            api_types_detected=api_types,
-            rest_validation=rest_validation,
-            graphql_validation=graphql_validation,
-            openapi_spec=openapi_spec,
-            security_patterns=security_patterns,
-            total_endpoints=total_endpoints,
-            security_score=security_score,
-            best_practices_score=best_practices_score,
-            overall_score=overall_score,
-            files_analyzed=self._count_analyzed_files(),
+        # Log audit trail: Analysis started
+        logger.info(
+            "API analysis started",
+            extra={
+                "analyzer": self.name,
+                "version": self.version,
+                "project_path": str(self.project_path),
+                "timestamp": time.time(),
+            },
         )
 
-        findings = self._generate_findings(metrics)
+        try:
+            # Detect API types
+            api_types = self._detect_api_types()
 
-        return self._create_response(
-            {
-                "metrics": metrics.model_dump(),
-                "findings": [f.model_dump() for f in findings],
-                "summary": self._generate_summary(metrics),
-            }
-        )
+            # Log detected API types for audit trail
+            logger.info(
+                "API types detected",
+                extra={
+                    "api_types": [t.value for t in api_types],
+                    "count": len(api_types),
+                },
+            )
+
+            # Validate REST APIs
+            rest_validation = None
+            if APIType.REST in api_types:
+                logger.debug("Validating REST APIs")
+                rest_validation = RESTValidator.validate_directory(self.project_path)
+                if rest_validation:
+                    logger.info(
+                        "REST validation complete",
+                        extra={
+                            "total_endpoints": rest_validation.total_endpoints,
+                            "authenticated_endpoints": rest_validation.authenticated_endpoints,
+                        },
+                    )
+
+            # Validate GraphQL
+            graphql_validation = None
+            if APIType.GRAPHQL in api_types:
+                logger.debug("Validating GraphQL APIs")
+                graphql_validation = GraphQLValidator.validate_directory(self.project_path)
+                if graphql_validation:
+                    logger.info(
+                        "GraphQL validation complete",
+                        extra={
+                            "total_queries": graphql_validation.total_queries,
+                            "total_mutations": graphql_validation.total_mutations,
+                        },
+                    )
+
+            # Validate OpenAPI specs
+            logger.debug("Validating OpenAPI specifications")
+            openapi_spec = OpenAPIValidator.validate_directory(self.project_path)
+
+            # Detect security patterns
+            security_patterns = self._detect_security_patterns(rest_validation)
+
+            # Log security findings for audit trail
+            detected_patterns = [p.pattern_name for p in security_patterns if p.detected]
+            missing_patterns = [p.pattern_name for p in security_patterns if not p.detected]
+
+            logger.info(
+                "Security pattern analysis complete",
+                extra={
+                    "detected_patterns": detected_patterns,
+                    "missing_patterns": missing_patterns,
+                },
+            )
+
+            # Calculate scores
+            security_score = self._calculate_security_score(
+                rest_validation, graphql_validation, security_patterns
+            )
+            best_practices_score = self._calculate_best_practices_score(
+                rest_validation, graphql_validation, openapi_spec
+            )
+            overall_score = (security_score + best_practices_score) / 2
+
+            # Count total endpoints
+            total_endpoints = 0
+            if rest_validation:
+                total_endpoints += rest_validation.total_endpoints
+            if graphql_validation:
+                total_endpoints += graphql_validation.total_queries + graphql_validation.total_mutations
+
+            metrics = APIMetrics(
+                api_types_detected=api_types,
+                rest_validation=rest_validation,
+                graphql_validation=graphql_validation,
+                openapi_spec=openapi_spec,
+                security_patterns=security_patterns,
+                total_endpoints=total_endpoints,
+                security_score=security_score,
+                best_practices_score=best_practices_score,
+                overall_score=overall_score,
+                files_analyzed=self._count_analyzed_files(),
+            )
+
+            findings = self._generate_findings(metrics)
+
+            # Log audit trail: Analysis complete with results
+            duration = time.time() - start_time
+            logger.info(
+                "API analysis completed successfully",
+                extra={
+                    "duration_seconds": round(duration, 2),
+                    "total_endpoints": total_endpoints,
+                    "security_score": round(security_score, 2),
+                    "best_practices_score": round(best_practices_score, 2),
+                    "overall_score": round(overall_score, 2),
+                    "findings_count": len(findings),
+                    "critical_findings": len([f for f in findings if f.severity == "critical"]),
+                    "warning_findings": len([f for f in findings if f.severity == "warning"]),
+                },
+            )
+
+            return self._create_response(
+                {
+                    "metrics": metrics.model_dump(),
+                    "findings": [f.model_dump() for f in findings],
+                    "summary": self._generate_summary(metrics),
+                }
+            )
+
+        except Exception as e:
+            # Log audit trail: Analysis failed
+            duration = time.time() - start_time
+            logger.error(
+                "API analysis failed",
+                extra={
+                    "duration_seconds": round(duration, 2),
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                },
+                exc_info=True,
+            )
+            raise
 
     def _detect_api_types(self) -> List[APIType]:
-        """Detect API types used in project."""
+        """
+        Detect API types used in project with security bounds.
+
+        Returns:
+            List of detected API types
+        """
         api_types = []
 
         # Check for REST APIs (common route files)
@@ -126,27 +224,30 @@ class APIAnalyzer(BaseAnalyzer):
         ]
 
         for pattern in rest_indicators:
-            if list(self.project_path.glob(pattern)):
+            # Use safe_glob with a small limit since we only need to know if files exist
+            if self._safe_glob(pattern, max_results=1):
                 api_types.append(APIType.REST)
                 break
 
         # Check for GraphQL
-        if list(self.project_path.glob("**/*.graphql")) or list(
-            self.project_path.glob("**/*.gql")
-        ):
+        graphql_files = self._safe_glob("**/*.graphql", max_results=1)
+        if not graphql_files:
+            graphql_files = self._safe_glob("**/*.gql", max_results=1)
+        if graphql_files:
             api_types.append(APIType.GRAPHQL)
 
         # Check for gRPC
-        if list(self.project_path.glob("**/*.proto")):
+        if self._safe_glob("**/*.proto", max_results=1):
             api_types.append(APIType.GRPC)
 
         # Check for WebSocket
-        ws_files = list(self.project_path.glob("**/websocket*.py")) + list(
-            self.project_path.glob("**/ws*.py")
-        )
+        ws_files = self._safe_glob("**/websocket*.py", max_results=1)
+        if not ws_files:
+            ws_files = self._safe_glob("**/ws*.py", max_results=1)
         if ws_files:
             api_types.append(APIType.WEBSOCKET)
 
+        logger.info(f"Detected API types: {[t.value for t in api_types]}")
         return api_types
 
     def _detect_security_patterns(
@@ -460,8 +561,66 @@ class APIAnalyzer(BaseAnalyzer):
             f"Total Endpoints: {metrics.total_endpoints}."
         )
 
+    def _safe_glob(self, pattern: str, max_results: int = MAX_FILES_TO_SCAN) -> List[Path]:
+        """
+        Safely glob files with bounds to prevent resource exhaustion.
+
+        Args:
+            pattern: Glob pattern
+            max_results: Maximum number of results to return
+
+        Returns:
+            List of matching file paths (bounded)
+        """
+        try:
+            files = []
+            excluded_dirs = {"node_modules", "vendor", ".git", "dist", "build", "__pycache__"}
+
+            for file_path in self.project_path.glob(pattern):
+                # Check if we've hit the limit
+                if len(files) >= max_results:
+                    logger.warning(
+                        f"Reached file scan limit ({max_results}) for pattern {pattern}"
+                    )
+                    break
+
+                # Validate path depth to prevent deep directory traversal
+                try:
+                    relative_path = file_path.relative_to(self.project_path)
+                    depth = len(relative_path.parts)
+
+                    if depth > MAX_DIRECTORY_DEPTH:
+                        logger.debug(f"Skipping file due to excessive depth: {file_path}")
+                        continue
+                except ValueError:
+                    # Path is outside project root - skip it
+                    logger.warning(f"Skipping file outside project root: {file_path}")
+                    continue
+
+                # Exclude common third-party and generated directories
+                path_str = str(file_path)
+                if any(excluded_dir in path_str for excluded_dir in excluded_dirs):
+                    continue
+
+                # Exclude test files
+                if "test" in path_str.lower():
+                    continue
+
+                files.append(file_path)
+
+            return files
+
+        except Exception as e:
+            logger.error(f"Error during glob operation for pattern {pattern}: {e}")
+            return []
+
     def _count_analyzed_files(self) -> int:
-        """Count total files analyzed."""
+        """
+        Count total files analyzed with security bounds.
+
+        Returns:
+            Number of files that will be analyzed
+        """
         patterns = [
             "**/routes/**/*.py",
             "**/routes/**/*.js",
@@ -475,8 +634,16 @@ class APIAnalyzer(BaseAnalyzer):
 
         total = 0
         for pattern in patterns:
-            files = list(self.project_path.glob(pattern))
-            files = [f for f in files if "node_modules" not in str(f) and "test" not in str(f).lower()]
+            files = self._safe_glob(pattern, max_results=MAX_FILES_TO_SCAN - total)
             total += len(files)
 
+            # Stop if we've reached the global limit
+            if total >= MAX_FILES_TO_SCAN:
+                logger.warning(
+                    f"Reached maximum file scan limit ({MAX_FILES_TO_SCAN}). "
+                    "Some files may not be analyzed."
+                )
+                break
+
+        logger.info(f"Will analyze {total} API-related files")
         return total

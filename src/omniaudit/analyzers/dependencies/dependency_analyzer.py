@@ -5,6 +5,7 @@ Comprehensive dependency analysis tool for security, licensing, and updates.
 """
 
 import json
+import logging
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -24,6 +25,14 @@ from .types import (
     SBOMFormat,
 )
 from .scanners import CVEScanner, LicenseScanner, OutdatedScanner, SBOMGenerator
+
+logger = logging.getLogger(__name__)
+
+# Security limits to prevent resource exhaustion
+MAX_FILE_SIZE_MB = 10  # Maximum file size to parse (10MB)
+MAX_DEPENDENCIES_PER_FILE = 10000  # Maximum dependencies to parse from a single file
+MAX_DEPENDENCY_NAME_LENGTH = 500  # Maximum length for dependency name
+MAX_VERSION_STRING_LENGTH = 100  # Maximum length for version string
 
 
 class DependencyAnalyzer(BaseAnalyzer):
@@ -209,16 +218,88 @@ class DependencyAnalyzer(BaseAnalyzer):
 
         return dependencies
 
-    def _parse_package_json(self, file_path: Path) -> List[Dependency]:
-        """Parse npm package.json file."""
+    def _check_file_size(self, file_path: Path) -> bool:
+        """
+        Check if file size is within acceptable limits.
+
+        Args:
+            file_path: Path to file
+
+        Returns:
+            True if file size is acceptable, False otherwise
+        """
         try:
+            file_size_mb = file_path.stat().st_size / (1024 * 1024)
+            if file_size_mb > MAX_FILE_SIZE_MB:
+                logger.warning(
+                    "File exceeds size limit",
+                    extra={
+                        "file": str(file_path),
+                        "size_mb": round(file_size_mb, 2),
+                        "limit_mb": MAX_FILE_SIZE_MB,
+                    },
+                )
+                return False
+            return True
+        except Exception as e:
+            logger.error(f"Error checking file size for {file_path}: {e}")
+            return False
+
+    def _validate_dependency_data(self, name: str, version: str) -> bool:
+        """
+        Validate dependency name and version to prevent injection attacks.
+
+        Args:
+            name: Dependency name
+            version: Version string
+
+        Returns:
+            True if valid, False otherwise
+        """
+        if len(name) > MAX_DEPENDENCY_NAME_LENGTH:
+            logger.warning(f"Dependency name too long: {name[:50]}...")
+            return False
+
+        if len(version) > MAX_VERSION_STRING_LENGTH:
+            logger.warning(f"Version string too long for {name}: {version[:50]}...")
+            return False
+
+        return True
+
+    def _parse_package_json(self, file_path: Path) -> List[Dependency]:
+        """
+        Parse npm package.json file with security bounds.
+
+        Args:
+            file_path: Path to package.json
+
+        Returns:
+            List of dependencies
+        """
+        try:
+            # Check file size before parsing
+            if not self._check_file_size(file_path):
+                logger.error(f"Skipping {file_path}: file too large")
+                return []
+
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             dependencies: List[Dependency] = []
+            dep_count = 0
 
             # Regular dependencies
             for name, version in data.get("dependencies", {}).items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
+                # Validate input
+                if not self._validate_dependency_data(name, version):
+                    continue
+
                 dep = Dependency(
                     name=name,
                     version=version.lstrip("^~>="),  # Remove version prefixes
@@ -227,9 +308,20 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
             # Dev dependencies
             for name, version in data.get("devDependencies", {}).items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
+                # Validate input
+                if not self._validate_dependency_data(name, version):
+                    continue
+
                 dep = Dependency(
                     name=name,
                     version=version.lstrip("^~>="),
@@ -238,36 +330,66 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
+            logger.info(f"Parsed {dep_count} dependencies from {file_path}")
             return dependencies
 
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in {file_path}: {e}")
+            return []
         except Exception as e:
+            logger.error(f"Error parsing {file_path}: {type(e).__name__}: {e}")
             return []
 
     def _parse_requirements_txt(self, file_path: Path) -> List[Dependency]:
-        """Parse pip requirements.txt file."""
+        """
+        Parse pip requirements.txt file with security bounds.
+
+        Args:
+            file_path: Path to requirements.txt
+
+        Returns:
+            List of dependencies
+        """
         try:
+            # Check file size before parsing
+            if not self._check_file_size(file_path):
+                logger.error(f"Skipping {file_path}: file too large")
+                return []
+
             dependencies: List[Dependency] = []
+            dep_count = 0
 
             with open(file_path, "r", encoding="utf-8") as f:
                 for line in f:
+                    if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                        logger.warning(
+                            f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                        )
+                        break
+
                     line = line.strip()
                     if not line or line.startswith("#"):
                         continue
 
                     # Parse package==version or package>=version
                     if "==" in line:
-                        name, version = line.split("==")
+                        name, version = line.split("==", 1)
                     elif ">=" in line:
-                        name, version = line.split(">=")
+                        name, version = line.split(">=", 1)
                     elif "~=" in line:
-                        name, version = line.split("~=")
+                        name, version = line.split("~=", 1)
                     else:
                         name = line
                         version = "unknown"
 
                     name = name.strip()
                     version = version.strip()
+
+                    # Validate input
+                    if not self._validate_dependency_data(name, version):
+                        continue
 
                     dep = Dependency(
                         name=name,
@@ -277,29 +399,56 @@ class DependencyAnalyzer(BaseAnalyzer):
                         is_direct=True,
                     )
                     dependencies.append(dep)
+                    dep_count += 1
 
+            logger.info(f"Parsed {dep_count} dependencies from {file_path}")
             return dependencies
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error parsing {file_path}: {type(e).__name__}: {e}")
             return []
 
     def _parse_pyproject_toml(self, file_path: Path) -> List[Dependency]:
-        """Parse poetry pyproject.toml file."""
+        """
+        Parse poetry pyproject.toml file with security bounds.
+
+        Args:
+            file_path: Path to pyproject.toml
+
+        Returns:
+            List of dependencies
+        """
         try:
+            # Check file size before parsing
+            if not self._check_file_size(file_path):
+                logger.error(f"Skipping {file_path}: file too large")
+                return []
+
             with open(file_path, "rb") as f:
                 data = tomli.load(f)
 
             dependencies: List[Dependency] = []
+            dep_count = 0
 
             # Poetry dependencies
             poetry_deps = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
 
             for name, version_spec in poetry_deps.items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
                 if name == "python":
                     continue
 
                 version = version_spec if isinstance(version_spec, str) else "latest"
 
+                # Validate input
+                if not self._validate_dependency_data(name, version):
+                    continue
+
                 dep = Dependency(
                     name=name,
                     version=version.lstrip("^~>="),
@@ -308,12 +457,23 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
             # Dev dependencies
             dev_deps = data.get("tool", {}).get("poetry", {}).get("dev-dependencies", {})
 
             for name, version_spec in dev_deps.items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
                 version = version_spec if isinstance(version_spec, str) else "latest"
+
+                # Validate input
+                if not self._validate_dependency_data(name, version):
+                    continue
 
                 dep = Dependency(
                     name=name,
@@ -323,26 +483,53 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
+            logger.info(f"Parsed {dep_count} dependencies from {file_path}")
             return dependencies
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error parsing {file_path}: {type(e).__name__}: {e}")
             return []
 
     def _parse_cargo_toml(self, file_path: Path) -> List[Dependency]:
-        """Parse Rust Cargo.toml file."""
+        """
+        Parse Rust Cargo.toml file with security bounds.
+
+        Args:
+            file_path: Path to Cargo.toml
+
+        Returns:
+            List of dependencies
+        """
         try:
+            # Check file size before parsing
+            if not self._check_file_size(file_path):
+                logger.error(f"Skipping {file_path}: file too large")
+                return []
+
             with open(file_path, "rb") as f:
                 data = tomli.load(f)
 
             dependencies: List[Dependency] = []
+            dep_count = 0
 
             # Regular dependencies
             for name, version_spec in data.get("dependencies", {}).items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
                 if isinstance(version_spec, dict):
                     version = version_spec.get("version", "latest")
                 else:
                     version = version_spec
+
+                # Validate input
+                if not self._validate_dependency_data(name, version):
+                    continue
 
                 dep = Dependency(
                     name=name,
@@ -352,13 +539,24 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
             # Dev dependencies
             for name, version_spec in data.get("dev-dependencies", {}).items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
                 if isinstance(version_spec, dict):
                     version = version_spec.get("version", "latest")
                 else:
                     version = version_spec
+
+                # Validate input
+                if not self._validate_dependency_data(name, version):
+                    continue
 
                 dep = Dependency(
                     name=name,
@@ -368,20 +566,43 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
+            logger.info(f"Parsed {dep_count} dependencies from {file_path}")
             return dependencies
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error parsing {file_path}: {type(e).__name__}: {e}")
             return []
 
     def _parse_go_mod(self, file_path: Path) -> List[Dependency]:
-        """Parse Go go.mod file."""
+        """
+        Parse Go go.mod file with security bounds.
+
+        Args:
+            file_path: Path to go.mod
+
+        Returns:
+            List of dependencies
+        """
         try:
+            # Check file size before parsing
+            if not self._check_file_size(file_path):
+                logger.error(f"Skipping {file_path}: file too large")
+                return []
+
             dependencies: List[Dependency] = []
+            dep_count = 0
 
             with open(file_path, "r", encoding="utf-8") as f:
                 in_require = False
                 for line in f:
+                    if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                        logger.warning(
+                            f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                        )
+                        break
+
                     line = line.strip()
 
                     if line.startswith("require ("):
@@ -397,6 +618,10 @@ class DependencyAnalyzer(BaseAnalyzer):
                             name = parts[0]
                             version = parts[1]
 
+                            # Validate input
+                            if not self._validate_dependency_data(name, version):
+                                continue
+
                             dep = Dependency(
                                 name=name,
                                 version=version,
@@ -405,23 +630,50 @@ class DependencyAnalyzer(BaseAnalyzer):
                                 is_direct=True,
                             )
                             dependencies.append(dep)
+                            dep_count += 1
 
+            logger.info(f"Parsed {dep_count} dependencies from {file_path}")
             return dependencies
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error parsing {file_path}: {type(e).__name__}: {e}")
             return []
 
     def _parse_composer_json(self, file_path: Path) -> List[Dependency]:
-        """Parse PHP composer.json file."""
+        """
+        Parse PHP composer.json file with security bounds.
+
+        Args:
+            file_path: Path to composer.json
+
+        Returns:
+            List of dependencies
+        """
         try:
+            # Check file size before parsing
+            if not self._check_file_size(file_path):
+                logger.error(f"Skipping {file_path}: file too large")
+                return []
+
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             dependencies: List[Dependency] = []
+            dep_count = 0
 
             # Regular dependencies
             for name, version in data.get("require", {}).items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
                 if name == "php":
+                    continue
+
+                # Validate input
+                if not self._validate_dependency_data(name, version):
                     continue
 
                 dep = Dependency(
@@ -432,9 +684,20 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
             # Dev dependencies
             for name, version in data.get("require-dev", {}).items():
+                if dep_count >= MAX_DEPENDENCIES_PER_FILE:
+                    logger.warning(
+                        f"Reached maximum dependency limit ({MAX_DEPENDENCIES_PER_FILE}) for {file_path}"
+                    )
+                    break
+
+                # Validate input
+                if not self._validate_dependency_data(name, version):
+                    continue
+
                 dep = Dependency(
                     name=name,
                     version=version.lstrip("^~>="),
@@ -443,10 +706,16 @@ class DependencyAnalyzer(BaseAnalyzer):
                     is_direct=True,
                 )
                 dependencies.append(dep)
+                dep_count += 1
 
+            logger.info(f"Parsed {dep_count} dependencies from {file_path}")
             return dependencies
 
-        except Exception:
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in {file_path}: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Error parsing {file_path}: {type(e).__name__}: {e}")
             return []
 
     def _create_summary(

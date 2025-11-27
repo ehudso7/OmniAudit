@@ -270,7 +270,7 @@ class FalsePositiveFilter:
 
         Uses a simple scoring system based on multiple features:
         - Message length and complexity
-        - File path characteristics
+        - File path characteristics (normalized to prevent manipulation)
         - Rule ID patterns
         - Category patterns
 
@@ -279,6 +279,10 @@ class FalsePositiveFilter:
 
         Returns:
             False positive probability (0.0 to 1.0)
+
+        Security Note:
+            Path depth calculation uses normalized paths to prevent
+            manipulation via crafted paths (e.g., "../../../").
         """
         score = 0.0
 
@@ -295,10 +299,39 @@ class FalsePositiveFilter:
         if generic_count > 0 and message_length < 8:
             score += 0.15
 
-        # Feature 3: File depth (very deep paths in node_modules, etc.)
-        path_depth = finding.file_path.count(os.sep)
-        if path_depth > 8:
-            score += 0.1
+        # Feature 3: File depth (with path normalization to prevent bypass)
+        # Normalize path to prevent manipulation via relative paths or symlinks
+        try:
+            from pathlib import Path
+
+            # Normalize the path to resolve any relative components
+            normalized_path = str(Path(finding.file_path).resolve())
+
+            # Count depth based on normalized path
+            path_depth = normalized_path.count(os.sep)
+
+            # Additional security: Check for known third-party directories
+            # rather than relying solely on depth
+            third_party_indicators = [
+                "node_modules",
+                "vendor",
+                "site-packages",
+                ".cargo",
+                "target/debug",
+                "target/release",
+            ]
+
+            is_third_party = any(
+                indicator in normalized_path for indicator in third_party_indicators
+            )
+
+            # Only apply depth heuristic if path seems legitimate and deep
+            if is_third_party or path_depth > 10:
+                score += 0.1
+
+        except Exception:
+            # If path normalization fails, skip this heuristic
+            pass
 
         # Feature 4: Rule ID patterns (some tools have known false positive rules)
         if finding.rule_id:
