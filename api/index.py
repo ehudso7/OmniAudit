@@ -10,13 +10,16 @@ from pathlib import Path
 current_file = Path(__file__).resolve()
 project_root = current_file.parent.parent
 src_path = project_root / "src"
+python_app_path = project_root / "python-app"
 
 # Add to Python path (use absolute paths)
+# Try python-app first (where the API is located), then src
+sys.path.insert(0, str(python_app_path.absolute()))
 sys.path.insert(0, str(src_path.absolute()))
 sys.path.insert(0, str(project_root.absolute()))
 
 # Also try setting environment variable for good measure
-os.environ["PYTHONPATH"] = f"{src_path.absolute()}:{project_root.absolute()}"
+os.environ["PYTHONPATH"] = f"{python_app_path.absolute()}:{src_path.absolute()}:{project_root.absolute()}"
 
 # Import the FastAPI application
 try:
@@ -52,7 +55,9 @@ except ImportError as e:
             "cwd": os.getcwd(),
             "project_root": str(project_root),
             "src_path": str(src_path),
-            "files_in_src": list(str(p) for p in src_path.glob("*")) if src_path.exists() else []
+            "python_app_path": str(python_app_path),
+            "files_in_src": list(str(p) for p in src_path.glob("*")) if src_path.exists() else [],
+            "files_in_python_app": list(str(p) for p in python_app_path.glob("*")) if python_app_path.exists() else []
         }
     else:
         detailed_error = None
