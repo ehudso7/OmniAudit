@@ -65,7 +65,6 @@ jobs:
 
     - name: Run unit tests
       run: pytest python-app/tests/unit/ tests/analyzers/ -v --cov=src/omniaudit --cov-report=xml --ignore=python-app/tests/unit/harmonizer --ignore=python-app/tests/unit/analyzers
-      continue-on-error: true
 
     - name: Run integration tests
       run: pytest python-app/tests/integration/ -v
