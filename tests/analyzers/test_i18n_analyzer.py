@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 from omniaudit.analyzers.i18n import I18nAnalyzer, I18nFramework
 from omniaudit.analyzers.i18n.detectors import HardcodedStringDetector, CompletenessChecker
-from omniaudit.analyzers.base import AnalyzerError
 
 
 class TestI18nAnalyzer:
