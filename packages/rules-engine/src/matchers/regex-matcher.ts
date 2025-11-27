@@ -1,7 +1,23 @@
 import type { Rule, Match, Matcher, FileToAnalyze } from '../types';
 
 /**
- * RegexMatcher - Handles regex pattern matching with caching
+ * Maximum number of matches to collect per file (ReDoS protection)
+ */
+const MAX_MATCHES_PER_FILE = 1000;
+
+/**
+ * Maximum content length to process with potentially slow patterns
+ * Patterns with unbounded quantifiers are limited to this size
+ */
+const MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS = 500000; // 500KB
+
+/**
+ * Patterns that may cause ReDoS (unbounded quantifiers with lookahead/lookbehind)
+ */
+const SLOW_PATTERN_INDICATORS = /\[\^[^\]]*\]\*|\[\s\\S\]\{|\(\?[=!<]/;
+
+/**
+ * RegexMatcher - Handles regex pattern matching with caching and ReDoS protection
  */
 export class RegexMatcher implements Matcher {
   private regexCache: Map<string, RegExp> = new Map();
@@ -48,6 +64,13 @@ export class RegexMatcher implements Matcher {
   }
 
   /**
+   * Check if a pattern may cause ReDoS
+   */
+  private isSlowPattern(pattern: string): boolean {
+    return SLOW_PATTERN_INDICATORS.test(pattern);
+  }
+
+  /**
    * Match content against a rule's regex pattern
    */
   match(content: string, rule: Rule, file: FileToAnalyze): Match[] {
@@ -59,6 +82,13 @@ export class RegexMatcher implements Matcher {
       return matches;
     }
 
+    // ReDoS protection: limit content size for potentially slow patterns
+    let contentToMatch = content;
+    if (this.isSlowPattern(patterns.regex) && content.length > MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS) {
+      console.warn(`Rule ${rule.id}: Content truncated for slow pattern (${content.length} > ${MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS} bytes)`);
+      contentToMatch = content.substring(0, MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS);
+    }
+
     try {
       const regex = this.getRegex(patterns.regex, patterns.flags);
       let match: RegExpExecArray | null;
@@ -66,7 +96,13 @@ export class RegexMatcher implements Matcher {
       // Reset regex state
       regex.lastIndex = 0;
 
-      while ((match = regex.exec(content)) !== null) {
+      while ((match = regex.exec(contentToMatch)) !== null) {
+        // ReDoS protection: limit number of matches
+        if (matches.length >= MAX_MATCHES_PER_FILE) {
+          console.warn(`Rule ${rule.id}: Match limit reached (${MAX_MATCHES_PER_FILE})`);
+          break;
+        }
+
         const startPos = this.getPosition(content, match.index);
         const endIndex = match.index + match[0].length;
         const endPos = this.getPosition(content, endIndex);
@@ -100,6 +136,11 @@ export class RegexMatcher implements Matcher {
             confidence: rule.fix.confidence || 0.5,
           } : undefined,
         });
+
+        // Prevent infinite loops on zero-length matches
+        if (match[0].length === 0) {
+          regex.lastIndex++;
+        }
       }
     } catch (error) {
       console.error(`Error executing regex for rule ${rule.id}:`, error);

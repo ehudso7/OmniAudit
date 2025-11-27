@@ -65,7 +65,7 @@ function main() {
     }
 
     // Log command for audit trail
-    const logDir = path.join('/home/user/OmniAudit', '.claude', 'logs');
+    const logDir = path.join(process.cwd(), '.claude', 'logs');
     try {
       if (!fs.existsSync(logDir)) {
         fs.mkdirSync(logDir, { recursive: true });
