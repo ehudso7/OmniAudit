@@ -58,6 +58,11 @@ function App() {
 
       const result = await response.json();
 
+      // Check if API returned an error
+      if (result.success === false) {
+        throw new Error(result.message || result.error || 'API returned an error');
+      }
+
       // Transform data for dashboard
       const gitData = result.results.collectors.git_collector?.data || {};
       const qualityData = result.results.analyzers.code_quality?.data || {};

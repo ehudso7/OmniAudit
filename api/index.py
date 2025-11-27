@@ -73,6 +73,16 @@ except ImportError as e:
         """Health check endpoint."""
         return {"status": "error", "message": "Application failed to initialize"}
 
+    @app.post("/api/v1/audit")
+    async def audit_fallback():
+        """Fallback audit endpoint when main app fails to initialize."""
+        return {
+            "success": False,
+            "error": "Application initialization failed",
+            "message": "The API is temporarily unavailable. Please check server logs.",
+            "results": {"collectors": {}, "analyzers": {}}
+        }
+
     # Only expose debug endpoint when debug mode is enabled
     if debug_enabled:
         @app.get("/debug")
