@@ -11,10 +11,7 @@ const MAX_MATCHES_PER_FILE = 1000;
  */
 const MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS = 500000; // 500KB
 
-/**
- * Patterns that may cause ReDoS (unbounded quantifiers with lookahead/lookbehind)
- */
-const SLOW_PATTERN_INDICATORS = /\[\^[^\]]*\]\*|\[\s\\S\]\{|\(\?[=!<]/;
+const SLOW_PATTERN_INDICATORS = /\[\^[^\]]*\]\*|\[\\s\\S\]|\[\\S\\s\]|\(\?[=!<]/;
 
 /**
  * RegexMatcher - Handles regex pattern matching with caching and ReDoS protection
