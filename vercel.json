@@ -16,11 +16,11 @@
     }
   ],
   "env": {
-    "PYTHONPATH": "src"
+    "PYTHONPATH": "python-app:src"
   },
   "build": {
     "env": {
-      "PYTHONPATH": "src"
+      "PYTHONPATH": "python-app:src"
     }
   }
 }
