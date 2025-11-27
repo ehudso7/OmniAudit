@@ -5,10 +5,13 @@ Comprehensive security analysis tool performing SAST, secret detection,
 and vulnerability identification.
 """
 
+import logging
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from ..base import BaseAnalyzer, AnalyzerError
 from .types import SecurityFinding, SecurityReport, Severity
@@ -127,7 +130,16 @@ class SecurityAnalyzer(BaseAnalyzer):
                 all_findings.extend(findings)
             except Exception as e:
                 # Log error but continue with other detectors
-                pass
+                logger.error(
+                    f"Security detector '{detector_name}' failed",
+                    extra={
+                        "detector": detector_name,
+                        "project_path": str(project_path),
+                        "error_type": type(e).__name__,
+                        "error_message": str(e),
+                    },
+                    exc_info=True,
+                )
 
         # Filter by severity
         filtered_findings = self._filter_by_severity(all_findings, min_severity)

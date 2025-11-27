@@ -23,7 +23,8 @@ function sendWebhook(url, payload) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': data.length
+          // Use Buffer.byteLength for correct byte length (handles non-ASCII)
+          'Content-Length': Buffer.byteLength(data, 'utf8')
         }
       };
 
@@ -110,6 +111,24 @@ function main() {
       );
     }
 
+    // Send to Microsoft Teams
+    if (teamsWebhook) {
+      const teamsPayload = {
+        '@type': 'MessageCard',
+        '@context': 'http://schema.org/extensions',
+        summary: 'OmniAudit Notification',
+        themeColor: level === 'error' ? 'FF0000' : level === 'warn' ? 'FFA500' : '00FF00',
+        title: 'OmniAudit Notification',
+        text: message
+      };
+
+      promises.push(
+        sendWebhook(teamsWebhook, teamsPayload)
+          .then(() => console.log('  ✓ Sent to Teams'))
+          .catch(err => console.warn('  ⚠️  Teams webhook failed:', err.message))
+      );
+    }
+
     // Send to custom webhook
     if (customWebhook) {
       const customPayload = {
@@ -137,7 +156,8 @@ function main() {
 
   } catch (error) {
     console.error('❌ Notification hook error:', error.message);
-    process.exit(0);
+    // Exit with error code to indicate failure
+    process.exit(1);
   }
 }
 

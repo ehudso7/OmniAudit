@@ -6,7 +6,11 @@ export class CSVReporter implements Reporter {
 
   private escapeCSV(text: string): string {
     if (!text) return '';
-    const escaped = text.replace(/"/g, '""');
+    // Mitigate CSV formula injection in spreadsheet applications
+    // Values starting with =, +, -, @ can be interpreted as formulas
+    const needsFormulaEscape = /^[=+\-@]/.test(text);
+    const safeText = needsFormulaEscape ? `'${text}` : text;
+    const escaped = safeText.replace(/"/g, '""');
     return `"${escaped}"`;
   }
 

@@ -34,15 +34,16 @@ export class GitLabReporter implements Reporter {
   }
 
   private generateFingerprint(finding: Finding): string {
-    const data = `${finding.rule_id}:${finding.file}:${finding.line || 0}`;
-    // Simple hash function for fingerprint
-    let hash = 0;
+    // Include end_line for better deduplication of multi-line findings
+    const data = `${finding.rule_id}:${finding.file}:${finding.line || 0}:${finding.end_line || 0}`;
+    // Use a better hash algorithm (djb2) for reduced collisions
+    let hash = 5381;
     for (let i = 0; i < data.length; i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+      hash = ((hash << 5) + hash) + char; // hash * 33 + char
+      hash = hash & 0x7fffffff; // Keep it 31-bit positive
     }
-    return Math.abs(hash).toString(16);
+    return hash.toString(16).padStart(8, '0');
   }
 
   private findingToGitLabIssue(finding: Finding): GitLabCodeQualityIssue {

@@ -334,11 +334,27 @@ class Harmonizer:
             Updated HarmonizationResult
         """
         # Convert previous harmonized findings back to Finding objects
-        # (simplified - in production, maintain full history)
-        all_findings = new_findings
+        previous_findings = []
+        for hf in previous_result.findings:
+            # Reconstruct Finding from HarmonizedFinding
+            finding = Finding(
+                id=hf.id,
+                file_path=hf.file_path,
+                line_number=hf.line_number,
+                severity=hf.severity,
+                category=hf.category,
+                message=hf.message,
+                analyzer_name=hf.analyzers[0] if hf.analyzers else "unknown",
+                timestamp=hf.first_seen,
+                metadata=hf.metadata or {},
+            )
+            previous_findings.append(finding)
 
-        # Run full harmonization
-        # In production, this could be optimized to only process new findings
+        # Combine with new findings
+        all_findings = new_findings + previous_findings
+
+        # Run full harmonization on combined findings
+        # The deduplicator will handle any duplicates between new and previous
         return self.harmonize(all_findings)
 
     def get_top_priority_findings(

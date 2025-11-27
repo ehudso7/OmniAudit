@@ -5,7 +5,9 @@ This module identifies likely false positives using heuristic-based machine lear
 techniques, including pattern recognition, anomaly detection, and historical analysis.
 """
 
+import os
 import re
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 from omniaudit.harmonizer.types import FalsePositiveConfig, Finding, Severity
@@ -302,8 +304,6 @@ class FalsePositiveFilter:
         # Feature 3: File depth (with path normalization to prevent bypass)
         # Normalize path to prevent manipulation via relative paths or symlinks
         try:
-            from pathlib import Path
-
             # Normalize the path to resolve any relative components
             normalized_path = str(Path(finding.file_path).resolve())
 
@@ -377,7 +377,3 @@ class FalsePositiveFilter:
             "filter_enabled": self.config.enabled,
             "confidence_threshold": self.config.confidence_threshold,
         }
-
-
-# Import os for path operations
-import os

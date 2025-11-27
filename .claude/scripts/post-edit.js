@@ -7,9 +7,12 @@
  * - Execute related unit tests
  */
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+
+// Use process.cwd() for portability instead of hardcoded path
+const PROJECT_ROOT = process.cwd();
 
 function main() {
   try {
@@ -28,12 +31,12 @@ function main() {
 
     console.log(`🔍 Running post-edit validation for: ${fileName}`);
 
-    // Validate TypeScript files
+    // Validate TypeScript files - use execFileSync to avoid command injection
     if (['.ts', '.tsx'].includes(ext)) {
       try {
         // Quick syntax check (TypeScript compilation without emit)
-        execSync(`npx tsc --noEmit "${filePath}"`, {
-          cwd: '/home/user/OmniAudit',
+        execFileSync('npx', ['tsc', '--noEmit', filePath], {
+          cwd: PROJECT_ROOT,
           stdio: 'pipe',
           timeout: 10000
         });
@@ -46,9 +49,9 @@ function main() {
     // Validate Python files
     if (ext === '.py') {
       try {
-        // Syntax check with Python
-        execSync(`python -m py_compile "${filePath}"`, {
-          cwd: '/home/user/OmniAudit',
+        // Syntax check with Python - use execFileSync to avoid command injection
+        execFileSync('python', ['-m', 'py_compile', filePath], {
+          cwd: PROJECT_ROOT,
           stdio: 'pipe',
           timeout: 5000
         });

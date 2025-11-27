@@ -32,28 +32,47 @@ except ImportError as e:
 
     app = FastAPI(title="OmniAudit API - Import Error")
 
-    error_details = {
-        "error": "Failed to import main application",
-        "details": str(e),
-        "traceback": traceback.format_exc(),
-        "python_path": sys.path,
-        "cwd": os.getcwd(),
-        "project_root": str(project_root),
-        "src_path": str(src_path),
-        "files_in_src": list(str(p) for p in src_path.glob("*")) if src_path.exists() else []
+    # Only expose detailed debug info when explicitly enabled
+    debug_enabled = os.environ.get("OMNIAUDIT_DEBUG", "false").lower() == "true"
+
+    # Minimal error info for non-debug mode
+    minimal_error = {
+        "error": "Application initialization failed",
+        "status": "error",
+        "message": "Please check server logs or enable debug mode for details",
     }
+
+    # Detailed error info only for debug mode
+    if debug_enabled:
+        detailed_error = {
+            "error": "Failed to import main application",
+            "details": str(e),
+            "traceback": traceback.format_exc(),
+            "python_path": sys.path,
+            "cwd": os.getcwd(),
+            "project_root": str(project_root),
+            "src_path": str(src_path),
+            "files_in_src": list(str(p) for p in src_path.glob("*")) if src_path.exists() else []
+        }
+    else:
+        detailed_error = None
 
     @app.get("/")
     async def root():
-        return error_details
+        """Root endpoint - returns minimal error info."""
+        return minimal_error
 
     @app.get("/health")
     async def health():
-        return {"status": "error", "message": str(e)}
+        """Health check endpoint."""
+        return {"status": "error", "message": "Application failed to initialize"}
 
-    @app.get("/debug")
-    async def debug():
-        return error_details
+    # Only expose debug endpoint when debug mode is enabled
+    if debug_enabled:
+        @app.get("/debug")
+        async def debug():
+            """Debug endpoint - only available when OMNIAUDIT_DEBUG=true."""
+            return detailed_error
 
 # Export the app
 __all__ = ["app"]

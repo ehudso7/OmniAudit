@@ -8,9 +8,12 @@
  * - Regenerate barrel files (index.ts)
  */
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+
+// Use process.cwd() for portability instead of hardcoded path
+const PROJECT_ROOT = process.cwd();
 
 function main() {
   try {
@@ -38,17 +41,17 @@ function main() {
     // Format TypeScript/JavaScript files
     if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
       try {
-        // Try Biome first
-        execSync(`npx @biomejs/biome format --write "${filePath}"`, {
-          cwd: '/home/user/OmniAudit',
+        // Try Biome first - use execFileSync to avoid command injection
+        execFileSync('npx', ['@biomejs/biome', 'format', '--write', filePath], {
+          cwd: PROJECT_ROOT,
           stdio: 'pipe'
         });
         console.log('  ✓ Formatted with Biome');
       } catch (err) {
         // Fallback to Prettier
         try {
-          execSync(`npx prettier --write "${filePath}"`, {
-            cwd: '/home/user/OmniAudit',
+          execFileSync('npx', ['prettier', '--write', filePath], {
+            cwd: PROJECT_ROOT,
             stdio: 'pipe'
           });
           console.log('  ✓ Formatted with Prettier');
@@ -59,8 +62,8 @@ function main() {
 
       // Auto-fix linting issues
       try {
-        execSync(`npx @biomejs/biome check --apply "${filePath}"`, {
-          cwd: '/home/user/OmniAudit',
+        execFileSync('npx', ['@biomejs/biome', 'check', '--apply', filePath], {
+          cwd: PROJECT_ROOT,
           stdio: 'pipe'
         });
         console.log('  ✓ Linting auto-fixed');
@@ -72,8 +75,8 @@ function main() {
     // Format Python files
     if (ext === '.py') {
       try {
-        execSync(`black "${filePath}"`, {
-          cwd: '/home/user/OmniAudit',
+        execFileSync('black', [filePath], {
+          cwd: PROJECT_ROOT,
           stdio: 'pipe'
         });
         console.log('  ✓ Formatted with Black');

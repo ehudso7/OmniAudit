@@ -6,11 +6,17 @@ Comprehensive dependency analysis tool for security, licensing, and updates.
 
 import json
 import logging
+import sys
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from datetime import datetime
-import tomli  # For parsing TOML files
+
+# Use tomllib (Python 3.11+) or tomli (Python 3.10)
+if sys.version_info >= (3, 11):
+    import tomllib as tomli
+else:
+    import tomli  # type: ignore[import-not-found]
 
 from ..base import BaseAnalyzer, AnalyzerError
 from .types import (

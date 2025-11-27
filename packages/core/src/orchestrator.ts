@@ -145,15 +145,14 @@ export class AgentOrchestrator extends EventEmitter {
       // Distribute and execute work
       const results = await this.executeWork(workItems);
 
-      // Stop monitoring
-      this.stopMonitoring();
-
       this.emit('completed', results);
       return results;
     } catch (error) {
       this.emit('error', error as Error);
       throw error;
     } finally {
+      // Always stop monitoring in finally to prevent leaks
+      this.stopMonitoring();
       await this.agentPool.shutdown();
       this.isRunning = false;
     }
@@ -267,31 +266,38 @@ export class AgentOrchestrator extends EventEmitter {
   }
 
   /**
-   * Execute work items using agent pool
+   * Execute work items using agent pool in parallel
+   *
+   * The agent pool's internal limiter controls concurrency (up to maxAgents),
+   * so we can safely use Promise.all to enable parallel processing.
    */
   private async executeWork(workItems: WorkItem[]): Promise<AnalysisResult[]> {
-    const results: AnalysisResult[] = [];
-
-    // Process work items
+    // Mark all work items as processing
     for (const workItem of workItems) {
       workItem.status = 'processing';
       workItem.startedAt = new Date();
-
-      const result = await this.agentPool.executeWork(workItem);
-      results.push(result);
-
-      // Update state
-      if (result.success) {
-        this.state.completedItems.add(workItem.id);
-      } else {
-        this.state.failedItems.add(workItem.id);
-      }
-
-      this.state.results.set(workItem.id, result);
-
-      // Emit progress
-      this.emitProgress();
     }
+
+    // Execute all work items in parallel (pool's limiter controls concurrency)
+    const results = await Promise.all(
+      workItems.map(async (workItem) => {
+        const result = await this.agentPool.executeWork(workItem);
+
+        // Update state for each completed item
+        if (result.success) {
+          this.state.completedItems.add(workItem.id);
+        } else {
+          this.state.failedItems.add(workItem.id);
+        }
+
+        this.state.results.set(workItem.id, result);
+
+        // Emit progress after each completion
+        this.emitProgress();
+
+        return result;
+      }),
+    );
 
     return results;
   }

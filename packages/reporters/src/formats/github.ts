@@ -40,6 +40,19 @@ export class GitHubReporter implements Reporter {
     };
   }
 
+  /**
+   * Escape special characters for GitHub Actions annotation format
+   * See: https://github.com/actions/toolkit/issues/193
+   */
+  private escapeAnnotationValue(value: string): string {
+    return value
+      .replace(/%/g, '%25')
+      .replace(/\r/g, '%0D')
+      .replace(/\n/g, '%0A')
+      .replace(/:/g, '%3A')
+      .replace(/,/g, '%2C');
+  }
+
   private formatAsGitHubCommand(finding: Finding): string {
     const level = this.severityToGitHub(finding.severity);
     const file = finding.file;
@@ -48,8 +61,12 @@ export class GitHubReporter implements Reporter {
     const endLine = finding.end_line || line;
     const endCol = finding.end_column || col;
 
-    const props = `file=${file},line=${line},col=${col},endLine=${endLine},endColumn=${endCol},title=${finding.title}`;
-    return `::${level} ${props}::${finding.message}`;
+    // Escape title and message to prevent format issues
+    const title = this.escapeAnnotationValue(finding.title);
+    const message = this.escapeAnnotationValue(finding.message);
+
+    const props = `file=${file},line=${line},col=${col},endLine=${endLine},endColumn=${endCol},title=${title}`;
+    return `::${level} ${props}::${message}`;
   }
 
   async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {

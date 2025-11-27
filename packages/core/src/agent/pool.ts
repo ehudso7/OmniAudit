@@ -72,6 +72,7 @@ export interface AgentPoolOptions {
 export class AgentPool {
   private agents: Map<string, IAgent> = new Map();
   private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
+  private pendingRestarts: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private limiter: ReturnType<typeof pLimit>;
   private tasksProcessed = 0;
   private totalFailures = 0;
@@ -117,6 +118,7 @@ export class AgentPool {
         this.tasksProcessed++;
 
         if (!result.success) {
+          this.totalFailures++;
           this.handleAgentFailure(agent.id);
         } else {
           this.handleAgentSuccess(agent.id);
@@ -171,6 +173,12 @@ export class AgentPool {
    * Shutdown the pool and cleanup all agents
    */
   async shutdown(): Promise<void> {
+    // Cancel all pending restart timers first
+    for (const timerId of this.pendingRestarts.values()) {
+      clearTimeout(timerId);
+    }
+    this.pendingRestarts.clear();
+
     const cleanupPromises = Array.from(this.agents.values()).map((agent) =>
       agent.cleanup().catch((error) => {
         console.error(`Error cleaning up agent ${agent.id}:`, error);
@@ -245,13 +253,21 @@ export class AgentPool {
   }
 
   /**
-   * Wait for an agent to become available
+   * Wait for an agent to become available with timeout
    */
   private async waitForAvailableAgent(): Promise<IAgent> {
-    return new Promise((resolve) => {
+    const timeoutMs = this.options.circuitBreakerResetMs * 2;
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        clearInterval(checkInterval);
+        reject(new Error(`Timeout waiting for available agent after ${timeoutMs}ms`));
+      }, timeoutMs);
+
       const checkInterval = setInterval(() => {
         const available = this.getAvailableAgents();
         if (available.length > 0) {
+          clearTimeout(timeout);
           clearInterval(checkInterval);
           resolve(available[0]);
         }
@@ -343,17 +359,30 @@ export class AgentPool {
       return;
     }
 
+    // Cancel any existing pending restart for this agent
+    const existingTimer = this.pendingRestarts.get(agentId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
     const backoffMs = Math.min(
       1000 * Math.pow(2, circuitBreaker.failureCount - this.options.circuitBreakerThreshold),
       60000, // Max 60 seconds
     );
 
-    setTimeout(async () => {
+    // Add jitter (±10%) to prevent thundering herd
+    const jitter = backoffMs * 0.1 * (Math.random() - 0.5) * 2;
+    const finalBackoffMs = Math.max(0, backoffMs + jitter);
+
+    const timerId = setTimeout(async () => {
+      this.pendingRestarts.delete(agentId);
       try {
         await this.restartAgent(agentId);
       } catch (error) {
         console.error(`Failed to restart agent ${agentId}:`, error);
       }
-    }, backoffMs);
+    }, finalBackoffMs);
+
+    this.pendingRestarts.set(agentId, timerId);
   }
 }
