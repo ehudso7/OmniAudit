@@ -5,7 +5,6 @@ from pathlib import Path
 from omniaudit.analyzers.accessibility import AccessibilityAnalyzer
 from omniaudit.analyzers.accessibility.checkers import WCAGChecker, ARIAChecker, ContrastChecker
 from omniaudit.analyzers.accessibility.types import WCAGLevel
-from omniaudit.analyzers.base import AnalyzerError
 
 
 class TestAccessibilityAnalyzer:
