@@ -1,0 +1,263 @@
+---
+# Best Practices - Python
+# 20+ Python-specific best practices
+
+- id: BP201
+  name: Mutable Default Argument
+  description: Detects mutable default arguments which can cause bugs
+  severity: high
+  category: best-practices
+  tags: [python, default-arguments, anti-pattern]
+  languages: [python]
+  patterns:
+    regex: def\s+\w+\([^)]*=\s*(\[\]|\{\}|set\(\))
+  message: Mutable default arguments are shared between calls. Use None and initialize inside.
+
+- id: BP202
+  name: Bare Except
+  description: Detects bare except clauses that catch all exceptions
+  severity: medium
+  category: best-practices
+  tags: [python, exceptions, error-handling]
+  languages: [python]
+  patterns:
+    regex: 'except\s*:'
+  message: Avoid bare except. Catch specific exceptions or use 'except Exception:'.
+
+- id: BP203
+  name: Assert Used for Validation
+  description: Detects assert used for input validation
+  severity: medium
+  category: best-practices
+  tags: [python, assert, validation]
+  languages: [python]
+  patterns:
+    regex: assert\s+\w+(?![\s\S]{1,50}test|Test)
+  conditions:
+    fileExclude:
+      - "**/test_*.py"
+      - "**/*_test.py"
+  message: Don't use assert for validation. Asserts can be disabled with -O flag.
+
+- id: BP204
+  name: Using == for None Comparison
+  description: Detects == None instead of is None
+  severity: low
+  category: best-practices
+  tags: [python, comparison, none]
+  languages: [python]
+  patterns:
+    regex: (==|!=)\s*None
+  message: Use 'is None' or 'is not None' instead of == None for singleton comparison.
+
+- id: BP205
+  name: Using == for Boolean Comparison
+  description: Detects == True/False instead of boolean evaluation
+  severity: low
+  category: best-practices
+  tags: [python, comparison, booleans]
+  languages: [python]
+  patterns:
+    regex: (==|!=)\s*(True|False)
+  message: Use 'if value:' or 'if not value:' instead of comparing to True/False.
+
+- id: BP206
+  name: String Concatenation in Loop
+  description: Detects inefficient string concatenation in loops
+  severity: medium
+  category: best-practices
+  tags: [python, performance, strings]
+  languages: [python]
+  patterns:
+    regex: for\s+[\s\S]{1,100}\+=\s*['"]
+  message: Use list and ''.join() for efficient string concatenation in loops.
+
+- id: BP207
+  name: Dict.keys() in Iteration
+  description: Detects unnecessary .keys() in dict iteration
+  severity: low
+  category: best-practices
+  tags: [python, dict, iteration, cleanup]
+  languages: [python]
+  patterns:
+    regex: for\s+\w+\s+in\s+\w+\.keys\(\)
+  message: Iterating over dict already gives keys. Remove .keys() for clarity.
+
+- id: BP208
+  name: List Comprehension Over Loop
+  description: Detects loops that could be list comprehensions
+  severity: low
+  category: best-practices
+  tags: [python, list-comprehension, pythonic]
+  languages: [python]
+  patterns:
+    regex: \w+\s*=\s*\[\]\s*\n\s*for\s+\w+\s+in[\s\S]{1,50}\n\s+\w+\.append\(
+  message: Use list comprehension instead of for loop with append.
+
+- id: BP209
+  name: Open Without Context Manager
+  description: Detects file open without context manager
+  severity: medium
+  category: best-practices
+  tags: [python, file-handling, context-manager]
+  languages: [python]
+  patterns:
+    regex: (?<!with\s)\w+\s*=\s*open\(
+  message: Use 'with open()' context manager to ensure files are properly closed.
+
+- id: BP210
+  name: Using type() for Type Checking
+  description: Detects type() instead of isinstance()
+  severity: low
+  category: best-practices
+  tags: [python, type-checking, isinstance]
+  languages: [python]
+  patterns:
+    regex: type\(\w+\)\s*(==|!=|is)
+  message: Use isinstance() instead of type() for type checking (supports inheritance).
+
+- id: BP211
+  name: Lambda Instead of def
+  description: Detects complex lambdas that should be functions
+  severity: low
+  category: best-practices
+  tags: [python, lambda, readability]
+  languages: [python]
+  patterns:
+    regex: 'lambda[\s\S]{50,}:'
+  message: Complex lambda should be a named function for readability and debugging.
+
+- id: BP212
+  name: Global Variable Usage
+  description: Detects global keyword usage which can make code harder to test
+  severity: low
+  category: best-practices
+  tags: [python, globals, scope]
+  languages: [python]
+  patterns:
+    regex: ^\s*global\s+\w+
+  message: Avoid global variables. Use function parameters or class attributes.
+
+- id: BP213
+  name: Catch Exception Instead of BaseException
+  description: Detects catching BaseException which is too broad
+  severity: medium
+  category: best-practices
+  tags: [python, exceptions, error-handling]
+  languages: [python]
+  patterns:
+    regex: except\s+BaseException
+  message: Catch Exception instead of BaseException to allow KeyboardInterrupt to propagate.
+
+- id: BP214
+  name: Using exec or eval
+  description: Detects dangerous exec/eval functions
+  severity: high
+  category: best-practices
+  tags: [python, security, eval, exec]
+  languages: [python]
+  patterns:
+    regex: (exec|eval)\(
+  message: Avoid exec/eval. They execute arbitrary code and pose security risks.
+
+- id: BP215
+  name: Import Star
+  description: Detects 'from module import *' which pollutes namespace
+  severity: low
+  category: best-practices
+  tags: [python, imports, namespace]
+  languages: [python]
+  patterns:
+    regex: from\s+[\w.]+\s+import\s+\*
+  message: Avoid 'import *'. Import specific names or use 'import module'.
+
+- id: BP216
+  name: Missing __init__ in Package
+  description: Detects packages without __init__.py
+  severity: low
+  category: best-practices
+  tags: [python, packages, structure]
+  languages: [python]
+  patterns:
+    regex: ^(?!.*__init__)
+  conditions:
+    fileMatch:
+      - "**/packages/**/__init__.py"
+  message: Add __init__.py to make directory a proper Python package.
+
+- id: BP217
+  name: Using input() in Python 2
+  description: Detects input() which is unsafe in Python 2
+  severity: high
+  category: best-practices
+  tags: [python, python2, security, deprecated]
+  languages: [python]
+  patterns:
+    regex: input\(
+  conditions:
+    fileMatch:
+      - "**/*py2*"
+      - "**/python2/**"
+  message: In Python 2, use raw_input() instead of input() to avoid code execution.
+
+- id: BP218
+  name: Class Missing __repr__
+  description: Detects classes without __repr__ method
+  severity: low
+  category: best-practices
+  tags: [python, classes, debugging]
+  languages: [python]
+  patterns:
+    regex: class\s+\w+(?![\s\S]{1,300}def __repr__)
+  message: Add __repr__ method for better debugging and logging.
+
+- id: BP219
+  name: Using range() Instead of xrange()
+  description: Detects Python 2 pattern that should use xrange
+  severity: low
+  category: best-practices
+  tags: [python, python2, performance, deprecated]
+  languages: [python]
+  patterns:
+    regex: for\s+\w+\s+in\s+range\(
+  conditions:
+    fileMatch:
+      - "**/*py2*"
+  message: In Python 2, use xrange() instead of range() for memory efficiency.
+
+- id: BP220
+  name: F-String Not Used
+  description: Detects string formatting that could use f-strings
+  severity: low
+  category: best-practices
+  tags: [python, strings, f-strings, python3]
+  languages: [python]
+  patterns:
+    regex: ['"].*\{\}.*['"]\.format\(|['"].*%[sd].*['"]\s*%
+  message: Use f-strings (Python 3.6+) for cleaner string formatting.
+
+- id: BP221
+  name: Missing Type Hints
+  description: Detects functions without type hints in Python 3.5+
+  severity: low
+  category: best-practices
+  tags: [python, type-hints, python3, typing]
+  languages: [python]
+  patterns:
+    regex: def\s+\w+\([^)]*\)(?![\s\S]{1,20}->)
+  conditions:
+    fileExclude:
+      - "**/*py2*"
+      - "**/test_*.py"
+  message: Add type hints for better code documentation and IDE support.
+
+- id: BP222
+  name: Using os.path Over pathlib
+  description: Detects os.path usage that could use pathlib
+  severity: low
+  category: best-practices
+  tags: [python, pathlib, files, python3]
+  languages: [python]
+  patterns:
+    regex: os\.path\.(join|exists|dirname|basename)
+  message: Consider using pathlib (Python 3.4+) for more intuitive path operations.

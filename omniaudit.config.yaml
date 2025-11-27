@@ -1,0 +1,402 @@
+# OmniAudit Universal Configuration
+# This file controls all aspects of the OmniAudit framework
+
+version: "2.0"
+
+# Project metadata
+project:
+  name: "OmniAudit"
+  repository: "https://github.com/omniaudit/omniaudit"
+  description: "Universal AI Coding Auditing Framework"
+  team: "OmniAudit Core Team"
+
+# Analysis scope
+scope:
+  include:
+    - "src/**"
+    - "packages/**"
+    - "backend/**"
+    - "frontend/**"
+    - "lib/**"
+
+  exclude:
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/.next/**"
+    - "**/coverage/**"
+    - "**/*.min.js"
+    - "**/*.min.css"
+    - "**/vendor/**"
+    - "**/__tests__/**"
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/fixtures/**"
+    - "**/mocks/**"
+    - "**/__pycache__/**"
+    - "**/.venv/**"
+    - "**/.pytest_cache/**"
+
+# Language-specific settings
+languages:
+  typescript:
+    enabled: true
+    tsconfig: "./tsconfig.json"
+  javascript:
+    enabled: true
+  python:
+    enabled: true
+    version: "3.10+"
+  go:
+    enabled: true
+  java:
+    enabled: true
+  rust:
+    enabled: true
+  ruby:
+    enabled: true
+  php:
+    enabled: true
+  csharp:
+    enabled: true
+  kotlin:
+    enabled: true
+
+# Agent configuration
+agents:
+  # Parallel execution settings
+  parallel:
+    enabled: true
+    max_agents: 20
+    auto_scale: true
+    memory_limit_mb: 512
+    timeout_seconds: 300
+
+  # Security Agent
+  security:
+    enabled: true
+    severity_threshold: "low"
+    rules:
+      enable:
+        - "SEC*"  # All security rules
+      disable:
+        - "SEC999"  # Example: known false positive
+    features:
+      detect_secrets: true
+      detect_sql_injection: true
+      detect_xss: true
+      detect_ssrf: true
+      detect_path_traversal: true
+      detect_crypto_issues: true
+      detect_injection: true
+    integrations:
+      cve_databases:
+        - "nvd"
+        - "github_advisory"
+        - "osv"
+
+  # Dependency Agent
+  dependencies:
+    enabled: true
+    features:
+      check_vulnerabilities: true
+      check_licenses: true
+      check_outdated: true
+      check_abandoned: true
+      detect_typosquatting: true
+      generate_sbom: true
+    license_compliance:
+      allowed:
+        - "MIT"
+        - "Apache-2.0"
+        - "BSD-3-Clause"
+        - "ISC"
+      blocked:
+        - "GPL-3.0"
+        - "AGPL-3.0"
+      warn:
+        - "LGPL-3.0"
+
+  # Code Quality Agent
+  quality:
+    enabled: true
+    thresholds:
+      cyclomatic_complexity: 15
+      cognitive_complexity: 20
+      function_length: 50
+      file_length: 500
+      nesting_depth: 4
+      parameter_count: 5
+    features:
+      detect_duplication: true
+      detect_dead_code: true
+      detect_magic_numbers: true
+      enforce_naming_conventions: true
+      detect_anti_patterns: true
+
+  # Performance Agent
+  performance:
+    enabled: true
+    features:
+      detect_n_plus_one: true
+      detect_memory_leaks: true
+      analyze_algorithm_complexity: true
+      detect_inefficient_loops: true
+      analyze_bundle_size: true
+      predict_web_vitals: true
+
+  # Architecture Agent
+  architecture:
+    enabled: true
+    patterns:
+      enforce_clean_architecture: true
+      enforce_solid_principles: true
+      enforce_dry_principle: true
+    layers:
+      - name: "domain"
+        pattern: "src/domain/**"
+      - name: "application"
+        pattern: "src/application/**"
+      - name: "infrastructure"
+        pattern: "src/infrastructure/**"
+    allowed_dependencies:
+      domain: []
+      application: ["domain"]
+      infrastructure: ["domain", "application"]
+
+  # Testing Agent
+  testing:
+    enabled: true
+    coverage_thresholds:
+      line: 80
+      branch: 75
+      function: 80
+      statement: 80
+    features:
+      detect_missing_tests: true
+      detect_flaky_tests: true
+      analyze_test_quality: true
+
+  # Documentation Agent
+  documentation:
+    enabled: true
+    require_public_docs: true
+    features:
+      check_jsdoc_coverage: true
+      check_readme_completeness: true
+      check_api_docs: true
+      check_examples: true
+
+  # Accessibility Agent
+  accessibility:
+    enabled: true
+    standard: "WCAG-2.1-AA"
+    features:
+      check_aria: true
+      check_color_contrast: true
+      check_keyboard_navigation: true
+      check_semantic_html: true
+
+  # i18n Agent
+  i18n:
+    enabled: true
+    features:
+      detect_hardcoded_strings: true
+      check_translation_coverage: true
+      check_pluralization: true
+      check_date_formatting: true
+
+  # Infrastructure Agent
+  infrastructure:
+    enabled: true
+    features:
+      analyze_terraform: true
+      analyze_kubernetes: true
+      analyze_docker: true
+      check_iac_security: true
+      optimize_docker: true
+
+  # API Agent
+  api:
+    enabled: true
+    features:
+      check_rest_practices: true
+      check_graphql_security: true
+      check_rate_limiting: true
+      check_authentication: true
+      check_versioning: true
+
+# Custom rules
+rules:
+  paths:
+    - "./rules/custom/**"
+  remote:
+    - "https://rules.omniaudit.dev/community/popular.yaml"
+  auto_update: false
+
+# Baseline and exceptions
+baseline:
+  file: ".omniaudit-baseline.json"
+  auto_update: false
+  mode: "snapshot"  # snapshot | incremental
+
+exceptions:
+  # Example exception
+  - rule: "SEC001"
+    paths: ["src/legacy/**"]
+    reason: "Legacy code pending migration"
+    expires: "2025-12-31"
+    approved_by: "security-team"
+
+# Harmonization settings
+harmonization:
+  enabled: true
+  deduplication:
+    enabled: true
+    similarity_threshold: 0.85
+  correlation:
+    enabled: true
+    max_distance: 5  # files
+  false_positive_filtering:
+    enabled: true
+    ml_model: "default"
+    confidence_threshold: 0.7
+  priority_scoring:
+    enabled: true
+    factors:
+      - severity
+      - frequency
+      - business_impact
+      - fix_effort
+
+# AI-powered features
+ai:
+  enabled: true
+  provider: "anthropic"
+  model: "claude-sonnet-4-5-20250929"
+  features:
+    insights: true
+    executive_summary: true
+    config_validation: true
+    trend_analysis: true
+    anomaly_detection: true
+    natural_language_query: true
+    root_cause_analysis: true
+    predictive_analytics: true
+  caching:
+    enabled: true
+    ttl_seconds: 3600
+    provider: "redis"  # redis | memory | disk
+  cost_controls:
+    max_monthly_cost_usd: 100.00
+    alert_threshold_usd: 80.00
+    fallback_to_rules: true
+
+# Output configuration
+output:
+  formats:
+    - "json"
+    - "sarif"
+    - "markdown"
+    - "html"
+    - "pdf"
+  directory: "./omniaudit-reports"
+  filename_template: "audit-{timestamp}-{hash}"
+  clean_old_reports: true
+  max_reports: 10
+
+# CI/CD configuration
+ci:
+  enabled: true
+  fail_on:
+    - severity: "critical"
+      count: 0
+    - severity: "high"
+      count: 5
+  annotations: true
+  pr_comment: true
+  status_check: true
+  auto_fix:
+    enabled: false
+    max_fixes: 10
+    require_approval: true
+
+# Notifications
+notifications:
+  slack:
+    enabled: false
+    webhook: "${SLACK_WEBHOOK_URL}"
+    channel: "#security-alerts"
+    on:
+      - "critical"
+      - "high"
+
+  email:
+    enabled: false
+    to: ["security@example.com"]
+    on:
+      - "critical"
+
+  webhook:
+    enabled: false
+    url: "${OMNIAUDIT_WEBHOOK_URL}"
+    on:
+      - "complete"
+      - "critical"
+
+# Performance tuning
+performance:
+  parallel_agents: 10
+  max_file_size_mb: 10
+  timeout_seconds: 3600
+  cache:
+    enabled: true
+    directory: ".omniaudit-cache"
+    ttl_hours: 24
+
+  # Memory limits
+  memory:
+    max_heap_mb: 4096
+    gc_threshold: 0.8
+
+# Telemetry (opt-in)
+telemetry:
+  enabled: false
+  endpoint: "https://telemetry.omniaudit.dev"
+  anonymous: true
+
+# MCP Server configuration
+mcp:
+  enabled: true
+  port: 3000
+  host: "localhost"
+  tools:
+    - "audit_repository"
+    - "audit_files"
+    - "audit_diff"
+    - "audit_pr"
+    - "get_findings"
+    - "search_findings"
+    - "suggest_fix"
+    - "apply_fix"
+    - "generate_report"
+  resources:
+    - "findings://current"
+    - "findings://history"
+    - "metrics://dashboard"
+    - "config://rules"
+
+# Logging
+logging:
+  level: "info"  # debug | info | warn | error
+  file: "./logs/omniaudit.log"
+  max_size_mb: 100
+  max_files: 5
+  format: "json"  # json | text
+
+# Feature flags
+features:
+  experimental_agents: false
+  beta_features: false
+  auto_fix: false
+  real_time_audit: false

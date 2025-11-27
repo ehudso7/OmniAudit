@@ -1,0 +1,5 @@
+packages:
+  - 'packages/*'
+  - 'frontend'
+  - 'vscode-extension'
+  - 'github-app'

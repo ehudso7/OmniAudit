@@ -1,0 +1,155 @@
+---
+# Quality Rules - Code Structure
+# 10+ rules for code organization and structure
+
+- id: QUA301
+  name: Missing JSDoc/Docstring
+  description: Detects public functions without documentation
+  severity: low
+  category: quality
+  tags: [structure, documentation, comments]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (export|public)\s+(function|class|def|func)(?![\s\S]{0,50}(/\*\*|'''))
+  conditions:
+    fileExclude:
+      - "**/*.test.*"
+      - "**/*.spec.*"
+  message: Public functions should have JSDoc/docstring documentation.
+
+- id: QUA302
+  name: Commented Out Code
+  description: Detects commented out code blocks
+  severity: low
+  category: quality
+  tags: [structure, dead-code, cleanup]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: ^\s*//\s*(const|let|var|function|if|for|while|class)
+  message: Remove commented out code. Use version control instead.
+
+- id: QUA303
+  name: Empty Catch Block
+  description: Detects empty catch blocks that swallow errors
+  severity: medium
+  category: quality
+  tags: [structure, error-handling, anti-pattern]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: catch\s*\([^)]*\)\s*\{\s*\}
+  message: Empty catch block. Handle or log the error appropriately.
+
+- id: QUA304
+  name: Empty Function
+  description: Detects empty function bodies
+  severity: low
+  category: quality
+  tags: [structure, dead-code, cleanup]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (function|def|func)\s+\w+\s*\([^)]*\)\s*\{\s*\}
+  message: Empty function detected. Implement or remove it.
+
+- id: QUA305
+  name: Multiple Classes Per File
+  description: Detects multiple class definitions in a single file
+  severity: low
+  category: quality
+  tags: [structure, organization, single-responsibility]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: (class|export class)[\s\S]+?(class|export class)
+  message: Multiple classes in one file. Use one class per file for better organization.
+
+- id: QUA306
+  name: Inconsistent Return
+  description: Detects functions with inconsistent return statements
+  severity: medium
+  category: quality
+  tags: [structure, control-flow, consistency]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: function[^{]*\{[\s\S]*?return\s+[^;]+[\s\S]*?return\s*;
+  message: Inconsistent return statements. Always return a value or always return void.
+
+- id: QUA307
+  name: Unreachable Code
+  description: Detects code after return statement
+  severity: medium
+  category: quality
+  tags: [structure, dead-code, control-flow]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: return\s+[^;]+;\s*\n\s+(?!})[\w]
+  message: Unreachable code after return statement.
+
+- id: QUA308
+  name: Console Statement in Production
+  description: Detects console.log statements that should be removed
+  severity: low
+  category: quality
+  tags: [structure, debugging, cleanup]
+  languages: [javascript, typescript]
+  patterns:
+    ast: console.log
+  conditions:
+    fileExclude:
+      - "**/*.test.*"
+      - "**/*.spec.*"
+      - "**/dev/**"
+  message: Remove console.log before committing. Use proper logging library.
+
+- id: QUA309
+  name: Debugger Statement
+  description: Detects debugger statements left in code
+  severity: medium
+  category: quality
+  tags: [structure, debugging, cleanup]
+  languages: [javascript, typescript]
+  patterns:
+    regex: debugger\s*;
+  message: Remove debugger statement before committing.
+
+- id: QUA310
+  name: TODO Comment
+  description: Detects TODO comments that should be tracked as issues
+  severity: info
+  category: quality
+  tags: [structure, todo, technical-debt]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: //\s*TODO|#\s*TODO|/\*\s*TODO
+  message: TODO found. Consider creating a ticket for proper tracking.
+
+- id: QUA311
+  name: Excessive Blank Lines
+  description: Detects excessive consecutive blank lines (>3)
+  severity: low
+  category: quality
+  tags: [structure, formatting, style]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: \n\s*\n\s*\n\s*\n\s*\n
+  message: Excessive blank lines. Keep whitespace minimal (max 2-3 blank lines).
+
+- id: QUA312
+  name: Mixed Tabs and Spaces
+  description: Detects mixed tabs and spaces for indentation
+  severity: low
+  category: quality
+  tags: [structure, formatting, indentation]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: ^\t.*\n^[ ]{2,}|^[ ]{2,}.*\n^\t
+  message: Mixed tabs and spaces. Use consistent indentation.
+
+- id: QUA313
+  name: Import Order
+  description: Detects unorganized imports
+  severity: low
+  category: quality
+  tags: [structure, imports, organization]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: import\s+.*from\s+['"]\.|import\s+.*from\s+['"][^.][\s\S]{1,100}import\s+.*from\s+['"]\.
+  message: Organize imports (external packages first, then local modules).
