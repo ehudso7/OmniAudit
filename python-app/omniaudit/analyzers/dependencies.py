@@ -314,19 +314,41 @@ class DependencyAnalyzer(BaseAnalyzer):
 
         return dependencies
 
-    def _parse_pyproject_toml(self, file_path: Path) -> List[Dependency]:
-        """Parse pyproject.toml file (Poetry or PEP 621 format)."""
-        dependencies: List[Dependency] = []
+    def _load_toml(self, file_path: Path) -> Optional[Dict[str, Any]]:
+        """
+        Load and parse a TOML file.
 
+        Args:
+            file_path: Path to the TOML file
+
+        Returns:
+            Parsed TOML data as a dictionary, or None if parsing fails
+        """
         try:
             # Try to import tomli/tomllib for TOML parsing
             try:
                 import tomllib  # Python 3.11+
             except ImportError:
-                import tomli as tomllib  # Fallback for Python 3.10
+                try:
+                    import tomli as tomllib  # Fallback for Python 3.10
+                except ImportError:
+                    # Neither tomllib nor tomli available
+                    return None
 
             content = file_path.read_bytes()
-            data = tomllib.loads(content.decode("utf-8"))
+            return tomllib.loads(content.decode("utf-8"))
+        except (OSError, Exception):
+            return None
+
+    def _parse_pyproject_toml(self, file_path: Path) -> List[Dependency]:
+        """Parse pyproject.toml file (Poetry or PEP 621 format)."""
+        dependencies: List[Dependency] = []
+
+        data = self._load_toml(file_path)
+        if data is None:
+            return dependencies
+
+        try:
 
             # Poetry format
             poetry_deps = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
@@ -368,16 +390,11 @@ class DependencyAnalyzer(BaseAnalyzer):
         """Parse Cargo.toml file (Rust)."""
         dependencies: List[Dependency] = []
 
+        data = self._load_toml(file_path)
+        if data is None:
+            return dependencies
+
         try:
-            # Try to import tomli/tomllib for TOML parsing
-            try:
-                import tomllib  # Python 3.11+
-            except ImportError:
-                import tomli as tomllib  # Fallback for Python 3.10
-
-            content = file_path.read_bytes()
-            data = tomllib.loads(content.decode("utf-8"))
-
             # Parse dependencies
             cargo_deps = data.get("dependencies", {})
             for name, version_spec in cargo_deps.items():

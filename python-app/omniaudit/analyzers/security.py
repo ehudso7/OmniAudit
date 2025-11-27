@@ -8,7 +8,6 @@ This module provides security analysis capabilities including:
 - OWASP Top 10 compliance checking
 """
 
-from abc import abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
