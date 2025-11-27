@@ -11,10 +11,15 @@ import uuid
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
 from .base import BaseAnalyzer, AnalyzerError
+
+
+def _utc_now() -> datetime:
+    """Return current UTC datetime with timezone info."""
+    return datetime.now(timezone.utc)
 
 
 class PackageManager(str, Enum):
@@ -189,7 +194,7 @@ class DependencyReport:
     typosquatting_matches: List[TyposquattingMatch] = field(default_factory=list)
     summary: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=_utc_now)
 
     def get_critical_vulnerabilities(self) -> List[DependencyVulnerability]:
         """Get all critical vulnerabilities."""
@@ -264,9 +269,7 @@ class DependencyAnalyzer(BaseAnalyzer):
             Dependency analysis results
         """
         project_path = Path(self.config["project_path"])
-        check_vulnerabilities = self.config.get("check_vulnerabilities", True)
         check_licenses = self.config.get("check_licenses", True)
-        check_outdated = self.config.get("check_outdated", True)
         project_license = self.config.get("project_license", "MIT")
 
         scan_id = str(uuid.uuid4())
@@ -411,13 +414,16 @@ class DependencyAnalyzer(BaseAnalyzer):
                         continue
 
                     # Parse package==version, package>=version, etc.
-                    match = re.match(r"^([a-zA-Z0-9_-]+)([<>=~!]+)?(.+)?$", line)
+                    # More restrictive pattern for valid version specifiers
+                    match = re.match(r"^([a-zA-Z0-9_][a-zA-Z0-9._-]*)([<>=~!]+)?([a-zA-Z0-9._*,-]+)?", line)
                     if match:
                         name = match.group(1)
                         version = match.group(3) or "unknown"
+                        # Clean the version string
+                        version = self._clean_version(version.strip())
                         dependencies.append(Dependency(
                             name=name,
-                            version=version.strip(),
+                            version=version,
                             package_manager=PackageManager.PIP,
                             is_dev=False,
                             is_direct=True,
@@ -568,10 +574,28 @@ class DependencyAnalyzer(BaseAnalyzer):
         return dependencies
 
     def _clean_version(self, version_spec: str) -> str:
-        """Clean version specifier to get version number."""
-        # Remove common prefixes like ^, ~, >=, etc.
-        version = re.sub(r"^[\^~>=<]+", "", version_spec.strip())
-        return version
+        """Clean version specifier to get version number.
+
+        Handles complex version specifiers like:
+        - ^1.0.0 -> 1.0.0
+        - ~1.4.2 -> 1.4.2
+        - >=1.0,<2.0 -> 1.0 (takes first version)
+        - ~=1.4.2 -> 1.4.2
+        """
+        version_spec = version_spec.strip()
+
+        # Handle complex specifiers with comma (e.g., >=1.0,<2.0)
+        if "," in version_spec:
+            # Take the first version specifier
+            version_spec = version_spec.split(",")[0].strip()
+
+        # Remove common prefixes like ^, ~, >=, <=, ~=, ==, !=, etc.
+        version = re.sub(r"^[~^!<>=]+", "", version_spec)
+
+        # Clean up any remaining whitespace
+        version = version.strip()
+
+        return version if version else "unknown"
 
     def _check_licenses(self, dependencies: List[Dependency], project_license: str) -> List[LicenseIssue]:
         """Check for license compliance issues."""

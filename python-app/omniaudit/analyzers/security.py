@@ -10,10 +10,15 @@ import uuid
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
 from .base import BaseAnalyzer, AnalyzerError
+
+
+def _utc_now() -> datetime:
+    """Return current UTC datetime with timezone info."""
+    return datetime.now(timezone.utc)
 
 
 class Severity(str, Enum):
@@ -116,7 +121,7 @@ class SecurityReport:
     findings: List[SecurityFinding] = field(default_factory=list)
     summary: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=_utc_now)
 
     def get_severity_counts(self) -> Dict[str, int]:
         """Get count of findings by severity."""
@@ -165,8 +170,9 @@ SECRET_PATTERNS = [
         "recommendation": "Use environment variables for API keys.",
     },
     {
+        # Pattern excludes common placeholders like "****", "xxx", "REPLACE", "your-password"
         "name": "Hardcoded Password",
-        "pattern": r"(?i)(password|passwd|pwd)\s*[=:]\s*['\"][^'\"]{4,}['\"]",
+        "pattern": r"(?i)(password|passwd|pwd)\s*[=:]\s*['\"](?!(\*+|x+|X+|your[_-]|REPLACE|placeholder|example|secret123))[^'\"]{4,}['\"]",
         "severity": Severity.HIGH,
         "category": VulnerabilityCategory.SECRET_EXPOSURE.value,
         "cwe_id": 798,
@@ -177,8 +183,9 @@ SECRET_PATTERNS = [
 
 INJECTION_PATTERNS = [
     {
+        # More specific pattern: looks for SQL keywords followed by string concatenation with variables
         "name": "SQL Injection",
-        "pattern": r"(?i)(SELECT|INSERT|UPDATE|DELETE).*\+\s*\w+",
+        "pattern": r"(?i)['\"](?:SELECT|INSERT|UPDATE|DELETE)[^'\"]*['\"][\s]*\+[\s]*[a-zA-Z_]",
         "severity": Severity.HIGH,
         "category": VulnerabilityCategory.INJECTION.value,
         "cwe_id": 89,
