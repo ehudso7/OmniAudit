@@ -2,9 +2,9 @@
 
 import pytest
 from pathlib import Path
-from src.omniaudit.analyzers.documentation import DocumentationAnalyzer
-from src.omniaudit.analyzers.documentation.parsers import DocstringParser, JSDocParser, MarkdownParser
-from src.omniaudit.analyzers.base import AnalyzerError
+from omniaudit.analyzers.documentation import DocumentationAnalyzer
+from omniaudit.analyzers.documentation.parsers import DocstringParser, JSDocParser, MarkdownParser
+from omniaudit.analyzers.base import AnalyzerError
 
 
 class TestDocumentationAnalyzer:

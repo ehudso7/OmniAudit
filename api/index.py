@@ -33,6 +33,7 @@ except ImportError as e:
     # Fallback: create a minimal FastAPI app to show the error
     import traceback
     from fastapi import FastAPI
+    from fastapi.responses import JSONResponse
 
     app = FastAPI(title="OmniAudit API - Import Error")
 
@@ -66,12 +67,28 @@ except ImportError as e:
     @app.get("/")
     async def root():
         """Root endpoint - returns minimal error info."""
-        return minimal_error
+        return JSONResponse(content=minimal_error, status_code=503)
 
     @app.get("/health")
     async def health():
         """Health check endpoint."""
-        return {"status": "error", "message": "Application failed to initialize"}
+        return JSONResponse(
+            content={"status": "error", "message": "Application failed to initialize"},
+            status_code=503
+        )
+
+    @app.post("/api/v1/audit")
+    async def audit_fallback():
+        """Fallback audit endpoint when main app fails to initialize."""
+        return JSONResponse(
+            content={
+                "success": False,
+                "error": "Application initialization failed",
+                "message": "The API is temporarily unavailable. Please check server logs.",
+                "results": {"collectors": {}, "analyzers": {}}
+            },
+            status_code=503
+        )
 
     # Only expose debug endpoint when debug mode is enabled
     if debug_enabled:
