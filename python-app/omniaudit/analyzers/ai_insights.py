@@ -18,6 +18,12 @@ from omniaudit.models.ai_models import (
     AIAnalysisMetadata,
     AIInsightsResult,
     CodeSmell,
+    EnhancedAIInsightsResult,
+    HolisticHealthAssessment,
+    RefactoringTask,
+    TechnicalDebtItem,
+    ThreatItem,
+    TeamPattern,
 )
 
 # Anthropic SDK imports - handle gracefully if not installed
@@ -534,3 +540,256 @@ def warm_up_ai_schemas(api_key: Optional[str] = None) -> bool:
 
     except Exception:
         return False
+
+
+    # ========================================================================
+    # Enhanced AI Analysis Methods (Phase 6)
+    # ========================================================================
+
+    def analyze_enhanced(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Perform enhanced AI analysis with holistic health, technical debt,
+        refactoring roadmap, threat modeling, and team pattern analysis.
+
+        Args:
+            data: Input data containing:
+                - project_path (str): Path to project
+                - files (List[Dict]): List of file analysis results
+                - metrics (Dict): Existing metrics
+                - findings (List[Dict]): Security and quality findings
+                - language_breakdown (Dict): Languages used
+
+        Returns:
+            Enhanced analysis results
+
+        Raises:
+            AnalyzerError: If analysis fails and fallback is disabled
+        """
+        if not self._is_enabled():
+            return self._create_disabled_response()
+
+        try:
+            start_time = datetime.utcnow()
+            enhanced_result = self._analyze_enhanced_with_ai(data)
+            duration = (datetime.utcnow() - start_time).total_seconds()
+
+            metadata = AIAnalysisMetadata(
+                model_version=self._get_model(),
+                analysis_duration_seconds=duration,
+                tokens_used=0,  # TODO: Extract from API response
+                cost_usd=None,
+                cache_hit=False,
+                structured_output_used=True,
+            )
+
+            result = {
+                "enhanced_insights": enhanced_result.model_dump(),
+                "metadata": metadata.model_dump(),
+            }
+
+            return self._create_response(result)
+
+        except Exception as e:
+            if self.config.get("fallback_to_rules", True):
+                return self._fallback_enhanced_analysis(data, str(e))
+            else:
+                raise AnalyzerError(f"Enhanced AI analysis failed: {str(e)}")
+
+    def _analyze_enhanced_with_ai(self, data: Dict[str, Any]) -> EnhancedAIInsightsResult:
+        """
+        Perform enhanced AI analysis using Anthropic Structured Outputs.
+
+        Args:
+            data: Project data to analyze
+
+        Returns:
+            EnhancedAIInsightsResult with comprehensive insights
+
+        Raises:
+            AnalyzerError: If Anthropic client not initialized or API error
+        """
+        if not self._client:
+            raise AnalyzerError("Anthropic client not initialized")
+
+        prompt = self._build_enhanced_analysis_prompt(data)
+
+        try:
+            response = self._client.beta.messages.parse(
+                model=self._get_model(),
+                betas=["structured-outputs-2025-11-13"],
+                max_tokens=8192,  # Larger for comprehensive analysis
+                response_model=EnhancedAIInsightsResult,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            return response.parsed_output
+
+        except Exception as e:
+            raise AnalyzerError(f"Anthropic API error: {str(e)}")
+
+    def _build_enhanced_analysis_prompt(self, data: Dict[str, Any]) -> str:
+        """
+        Build comprehensive enhanced analysis prompt.
+
+        Args:
+            data: Project data
+
+        Returns:
+            Detailed prompt for enhanced analysis
+        """
+        project_path = data.get("project_path", "unknown")
+        files = data.get("files", [])
+        metrics = data.get("metrics", {})
+        findings = data.get("findings", [])
+        language_breakdown = data.get("language_breakdown", {})
+
+        # Extract key metrics
+        total_files = len(files)
+        total_lines = sum(f.get("lines", 0) for f in files)
+        avg_complexity = metrics.get("complexity_avg", 0)
+        coverage = metrics.get("coverage_percent", 0)
+        languages_used = ", ".join(language_breakdown.keys()) if language_breakdown else "Unknown"
+
+        # Findings summary
+        security_findings = [f for f in findings if f.get("category") in ["security", "vulnerability"]]
+        quality_findings = [f for f in findings if f.get("category") in ["code_quality", "maintainability"]]
+
+        prompt = f"""You are an expert software architect and security analyst. Perform a comprehensive analysis of this project.
+
+**Project Overview:**
+- Path: {project_path}
+- Total Files: {total_files}
+- Total Lines of Code: {total_lines:,}
+- Languages: {languages_used}
+- Average Cyclomatic Complexity: {avg_complexity:.2f}
+- Test Coverage: {coverage:.1f}%
+- Security Findings: {len(security_findings)}
+- Quality Findings: {len(quality_findings)}
+
+**Code Metrics:**
+{self._format_metrics(metrics)}
+
+**Sample Findings:**
+{self._format_findings_summary(findings[:10])}
+
+**Your Task: Provide Comprehensive Analysis**
+
+1. **Holistic Health Assessment**:
+   - Overall health score (0-100) considering all factors
+   - Component scores: code quality, security, performance, maintainability, testing
+   - Health status: healthy/warning/critical
+   - Top 5 strengths and top 5 weaknesses
+   - Top 5 critical issues requiring immediate attention
+   - Trend direction (improving/stable/degrading) with explanation
+
+2. **Technical Debt Quantification**:
+   - Total estimated hours to address all technical debt
+   - Detailed debt items with category, description, cost, impact, and affected files
+   - Debt trend (increasing/stable/decreasing)
+
+3. **Refactoring Roadmap**:
+   - Prioritized refactoring tasks (priority 1-5, where 1 is highest)
+   - For each task: title, description, estimated hours, files to change, benefits, and risks
+   - Focus on high-impact refactorings
+
+4. **Threat Modeling**:
+   - Identify security threats based on findings and code patterns
+   - For each threat: type, severity, description, attack vectors, affected components, mitigation steps
+   - Assess likelihood (high/medium/low) and impact (high/medium/low)
+   - Overall security posture summary
+
+5. **Team Pattern Analysis**:
+   - Identify coding patterns (good practices, anti-patterns, inconsistencies)
+   - Note frequency (frequent/occasional/rare)
+   - Provide examples and recommendations for the team
+
+6. **Recommendations**:
+   - Immediate actions (top 5 things to do now)
+   - Short-term goals (next 1-3 months, top 5)
+   - Long-term strategy (paragraph describing strategic direction)
+
+Be thorough, specific, and actionable. Use the structured output format to ensure all fields are populated.
+"""
+
+        return prompt
+
+    def _format_findings_summary(self, findings: List[Dict[str, Any]]) -> str:
+        """Format findings for prompt."""
+        if not findings:
+            return "No findings available"
+
+        lines = []
+        for f in findings:
+            category = f.get("category", "unknown")
+            severity = f.get("severity", "unknown")
+            message = f.get("message", "")[:100]
+            file_path = f.get("file_path", "unknown")
+            lines.append(f"- [{severity.upper()}] {category}: {message} ({file_path})")
+
+        return "\n".join(lines)
+
+    def _fallback_enhanced_analysis(
+        self, data: Dict[str, Any], error_message: str
+    ) -> Dict[str, Any]:
+        """
+        Provide rule-based enhanced analysis as fallback.
+
+        Args:
+            data: Project data
+            error_message: Error that caused fallback
+
+        Returns:
+            Rule-based enhanced analysis results
+        """
+        metrics = data.get("metrics", {})
+        findings = data.get("findings", [])
+        coverage = metrics.get("coverage_percent", 0)
+        complexity_avg = metrics.get("complexity_avg", 0)
+
+        # Simple scoring
+        code_quality_score = max(0, 100 - int(complexity_avg * 5))
+        test_coverage_score = int(coverage)
+        security_score = max(0, 100 - len([f for f in findings if f.get("category") == "security"]) * 10)
+
+        overall_score = int((code_quality_score + test_coverage_score + security_score) / 3)
+
+        # Create fallback result
+        result = EnhancedAIInsightsResult(
+            project_id=data.get("project_path", "unknown"),
+            analyzed_at=datetime.utcnow().isoformat() + "Z",
+            holistic_health=HolisticHealthAssessment(
+                overall_health_score=overall_score,
+                health_status="warning" if overall_score < 70 else "healthy",
+                code_quality_score=code_quality_score,
+                security_score=security_score,
+                performance_score=70,
+                maintainability_score=code_quality_score,
+                test_coverage_score=test_coverage_score,
+                strengths=["Basic functionality implemented"],
+                weaknesses=["AI analysis unavailable - limited insights"],
+                critical_issues=["Enable AI features for detailed analysis"],
+                trend_direction="stable",
+                trend_explanation="Unable to assess trend without AI analysis",
+            ),
+            technical_debt_total_hours=0.0,
+            technical_debt_items=[],
+            debt_trend="stable",
+            refactoring_roadmap=[],
+            threat_model=[],
+            security_posture_summary="AI analysis unavailable - manual security review recommended",
+            team_patterns=[],
+            immediate_actions=["Enable AI features", "Review security findings manually"],
+            short_term_goals=["Increase test coverage", "Address high-complexity code"],
+            long_term_strategy=f"Fallback analysis due to: {error_message}. Enable AI for comprehensive analysis.",
+        )
+
+        metadata = {
+            "fallback_mode": True,
+            "fallback_reason": error_message,
+            "ai_available": False,
+        }
+
+        return self._create_response(
+            {"enhanced_insights": result.model_dump(), "metadata": metadata},
+            metadata=metadata
+        )

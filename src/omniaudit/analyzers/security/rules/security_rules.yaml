@@ -1,0 +1,391 @@
+# Security Detection Rules
+# Comprehensive ruleset for SAST analysis covering OWASP Top 10 and common vulnerabilities
+
+secrets:
+  # API Keys and Tokens
+  - name: "AWS Access Key ID"
+    pattern: '(?i)(AKIA[0-9A-Z]{16})'
+    severity: "critical"
+    confidence: 0.95
+    description: "AWS Access Key ID exposed in code"
+    recommendation: "Remove hardcoded AWS credentials. Use environment variables or AWS IAM roles."
+
+  - name: "AWS Secret Access Key"
+    pattern: '(?i)aws(.{0,20})?[''"][0-9a-zA-Z/+]{40}[''"]'
+    severity: "critical"
+    confidence: 0.90
+    description: "AWS Secret Access Key exposed in code"
+    recommendation: "Remove hardcoded AWS credentials. Use AWS Secrets Manager or environment variables."
+
+  - name: "GitHub Token"
+    pattern: '(?i)gh[pousr]_[0-9a-zA-Z]{36,255}'
+    severity: "critical"
+    confidence: 0.95
+    description: "GitHub personal access token or OAuth token exposed"
+    recommendation: "Revoke the token immediately and use GitHub Secrets for CI/CD."
+
+  - name: "Generic API Key"
+    pattern: '(?i)(api[_-]?key|apikey)([''"\s:=]+)?[0-9a-zA-Z\-_]{20,}'
+    severity: "high"
+    confidence: 0.75
+    description: "Generic API key pattern detected"
+    recommendation: "Move API keys to environment variables or secret management system."
+
+  - name: "Private Key"
+    pattern: '-----BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-----'
+    severity: "critical"
+    confidence: 1.0
+    description: "Private cryptographic key exposed in code"
+    recommendation: "Remove private keys from code immediately. Use key management systems."
+
+  - name: "Slack Token"
+    pattern: 'xox[baprs]-[0-9a-zA-Z]{10,48}'
+    severity: "high"
+    confidence: 0.95
+    description: "Slack API token exposed"
+    recommendation: "Revoke the token and use environment variables."
+
+  - name: "Stripe API Key"
+    pattern: '(?i)sk_live_[0-9a-zA-Z]{24,}'
+    severity: "critical"
+    confidence: 0.95
+    description: "Stripe live API key exposed"
+    recommendation: "Revoke the key immediately and use environment variables."
+
+  - name: "Google API Key"
+    pattern: 'AIza[0-9A-Za-z\-_]{35}'
+    severity: "high"
+    confidence: 0.90
+    description: "Google API key exposed"
+    recommendation: "Restrict and rotate the API key. Use Google Secret Manager."
+
+  - name: "Google OAuth"
+    pattern: '[0-9]+-[0-9A-Za-z_]{32}\.apps\.googleusercontent\.com'
+    severity: "medium"
+    confidence: 0.85
+    description: "Google OAuth client ID exposed"
+    recommendation: "While client IDs are not secret, avoid hardcoding them."
+
+  - name: "Heroku API Key"
+    pattern: '[hH][eE][rR][oO][kK][uU].*[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}'
+    severity: "high"
+    confidence: 0.85
+    description: "Heroku API key exposed"
+    recommendation: "Regenerate the key and use environment variables."
+
+  - name: "NPM Token"
+    pattern: 'npm_[0-9a-zA-Z]{36}'
+    severity: "high"
+    confidence: 0.95
+    description: "NPM access token exposed"
+    recommendation: "Revoke the token and use .npmrc with environment variables."
+
+  - name: "PyPI Token"
+    pattern: 'pypi-AgEIcHlwaS5vcmc[0-9A-Za-z\-_]{50,}'
+    severity: "high"
+    confidence: 0.95
+    description: "PyPI API token exposed"
+    recommendation: "Revoke the token and use environment variables for publishing."
+
+  - name: "JWT Token"
+    pattern: 'eyJ[A-Za-z0-9-_=]+\.eyJ[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*'
+    severity: "medium"
+    confidence: 0.70
+    description: "JWT token found in code"
+    recommendation: "Do not hardcode JWT tokens. Generate them at runtime."
+
+  - name: "Generic Password"
+    pattern: '(?i)(password|passwd|pwd)([''"\s:=]+)?[''"][^''"]{8,}[''"]'
+    severity: "high"
+    confidence: 0.65
+    description: "Hardcoded password detected"
+    recommendation: "Remove hardcoded passwords. Use secure credential management."
+
+  - name: "Database Connection String"
+    pattern: '(?i)(mysql|postgres|mongodb):\/\/[^:]+:[^@]+@'
+    severity: "critical"
+    confidence: 0.90
+    description: "Database connection string with credentials"
+    recommendation: "Use environment variables for database credentials."
+
+injection:
+  # SQL Injection
+  - name: "SQL Injection - String Concatenation"
+    pattern: '(?i)(execute|exec|query|select|insert|update|delete).*\+.*[''"]'
+    category: "injection"
+    severity: "high"
+    cwe_id: 89
+    description: "Potential SQL injection via string concatenation"
+    recommendation: "Use parameterized queries or prepared statements."
+
+  - name: "SQL Injection - f-string/format"
+    pattern: '(?i)(execute|query|select).*f[''"].*{.*}.*[''"]'
+    category: "injection"
+    severity: "high"
+    cwe_id: 89
+    description: "Potential SQL injection using f-string formatting"
+    recommendation: "Never use f-strings or .format() for SQL queries. Use parameterized queries."
+
+  - name: "SQL Injection - Dynamic Query Building"
+    pattern: '(?i)(SELECT|INSERT|UPDATE|DELETE).*WHERE.*=.*%s'
+    category: "injection"
+    severity: "medium"
+    cwe_id: 89
+    description: "Dynamic SQL query construction detected"
+    recommendation: "Ensure parameterized queries are used correctly."
+
+  # Command Injection
+  - name: "Command Injection - os.system"
+    pattern: 'os\.system\([^)]*\+[^)]*\)'
+    category: "injection"
+    severity: "critical"
+    cwe_id: 78
+    description: "Command injection via os.system with concatenation"
+    recommendation: "Use subprocess with argument lists, not shell=True."
+
+  - name: "Command Injection - subprocess shell=True"
+    pattern: 'subprocess\.(run|call|Popen|check_output).*shell=True'
+    category: "injection"
+    severity: "high"
+    cwe_id: 78
+    description: "Subprocess called with shell=True, potential command injection"
+    recommendation: "Avoid shell=True. Use argument lists instead."
+
+  - name: "Command Injection - eval"
+    pattern: '(?i)eval\([^)]*input[^)]*\)'
+    category: "injection"
+    severity: "critical"
+    cwe_id: 95
+    description: "Use of eval() with user input"
+    recommendation: "Never use eval() with untrusted input. Use ast.literal_eval() for safe evaluation."
+
+  - name: "Command Injection - exec"
+    pattern: '(?i)exec\('
+    category: "injection"
+    severity: "high"
+    cwe_id: 95
+    description: "Use of exec() which can execute arbitrary code"
+    recommendation: "Avoid exec(). If necessary, sanitize and validate all inputs."
+
+xss:
+  # Cross-Site Scripting
+  - name: "XSS - Unescaped HTML"
+    pattern: '(?i)(innerHTML|outerHTML)\s*=\s*[^''"]'
+    category: "xss"
+    severity: "high"
+    cwe_id: 79
+    description: "Potential XSS via innerHTML assignment"
+    recommendation: "Use textContent or properly escape HTML. Consider using DOMPurify."
+
+  - name: "XSS - document.write"
+    pattern: 'document\.write\([^)]*\+[^)]*\)'
+    category: "xss"
+    severity: "high"
+    cwe_id: 79
+    description: "XSS via document.write with concatenation"
+    recommendation: "Avoid document.write. Use DOM manipulation with proper escaping."
+
+  - name: "XSS - React dangerouslySetInnerHTML"
+    pattern: 'dangerouslySetInnerHTML={{__html:'
+    category: "xss"
+    severity: "medium"
+    cwe_id: 79
+    description: "React dangerouslySetInnerHTML used - potential XSS"
+    recommendation: "Ensure content is sanitized with DOMPurify before rendering."
+
+  - name: "XSS - Flask render_template_string"
+    pattern: 'render_template_string\([^)]*\+[^)]*\)'
+    category: "xss"
+    severity: "high"
+    cwe_id: 79
+    description: "Template injection via render_template_string"
+    recommendation: "Use render_template with pre-defined templates."
+
+ssrf:
+  # Server-Side Request Forgery
+  - name: "SSRF - Unvalidated URL in requests"
+    pattern: 'requests\.(get|post|put|delete)\([^)]*input[^)]*\)'
+    category: "ssrf"
+    severity: "high"
+    cwe_id: 918
+    description: "Potential SSRF via unvalidated URL"
+    recommendation: "Validate and whitelist allowed domains before making requests."
+
+  - name: "SSRF - Unvalidated URL in urllib"
+    pattern: 'urllib\.request\.urlopen\([^)]*\+[^)]*\)'
+    category: "ssrf"
+    severity: "high"
+    cwe_id: 918
+    description: "Potential SSRF via urllib with user input"
+    recommendation: "Validate URLs against a whitelist of allowed hosts."
+
+path_traversal:
+  # Path Traversal
+  - name: "Path Traversal - File Open"
+    pattern: 'open\([^)]*\+[^)]*\)'
+    category: "path_traversal"
+    severity: "high"
+    cwe_id: 22
+    description: "Path traversal via string concatenation in file operations"
+    recommendation: "Use os.path.join() and validate paths with os.path.realpath()."
+
+  - name: "Path Traversal - Direct User Input"
+    pattern: '(?i)open\([^)]*request\.(args|form|json)[^)]*\)'
+    category: "path_traversal"
+    severity: "critical"
+    cwe_id: 22
+    description: "File operation with direct user input"
+    recommendation: "Validate and sanitize file paths. Use a whitelist approach."
+
+crypto:
+  # Cryptographic Weaknesses
+  - name: "Weak Hash - MD5"
+    pattern: 'hashlib\.md5\('
+    category: "cryptographic"
+    severity: "medium"
+    cwe_id: 327
+    description: "Use of weak MD5 hashing algorithm"
+    recommendation: "Use SHA-256 or stronger hashing algorithms."
+
+  - name: "Weak Hash - SHA1"
+    pattern: 'hashlib\.sha1\('
+    category: "cryptographic"
+    severity: "medium"
+    cwe_id: 327
+    description: "Use of weak SHA-1 hashing algorithm"
+    recommendation: "Use SHA-256 or SHA-3 for cryptographic hashing."
+
+  - name: "Weak Encryption - DES"
+    pattern: '(?i)(DES|3DES)\.new\('
+    category: "cryptographic"
+    severity: "high"
+    cwe_id: 327
+    description: "Use of weak DES encryption"
+    recommendation: "Use AES-256-GCM for encryption."
+
+  - name: "Insecure Random"
+    pattern: 'random\.(random|randint|choice)'
+    category: "cryptographic"
+    severity: "low"
+    cwe_id: 338
+    description: "Use of predictable random number generator"
+    recommendation: "Use secrets module for cryptographic operations."
+
+  - name: "Hard-coded Encryption Key"
+    pattern: '(?i)(AES|Cipher)\.new\([^)]*[''"][0-9a-fA-F]{16,}[''"]'
+    category: "cryptographic"
+    severity: "critical"
+    cwe_id: 321
+    description: "Hard-coded encryption key detected"
+    recommendation: "Generate keys at runtime or use key management systems."
+
+owasp:
+  # OWASP Top 10 Additional Patterns
+  - name: "Insecure Deserialization - pickle"
+    pattern: 'pickle\.loads?\('
+    category: "deserialization"
+    severity: "high"
+    cwe_id: 502
+    description: "Insecure deserialization using pickle"
+    recommendation: "Avoid pickle with untrusted data. Use JSON for serialization."
+    owasp: "A08:2021-Software and Data Integrity Failures"
+
+  - name: "Insecure Deserialization - yaml.load"
+    pattern: 'yaml\.load\([^)]*\)'
+    category: "deserialization"
+    severity: "high"
+    cwe_id: 502
+    description: "Unsafe YAML deserialization"
+    recommendation: "Use yaml.safe_load() instead of yaml.load()."
+    owasp: "A08:2021-Software and Data Integrity Failures"
+
+  - name: "XXE - XML Parser"
+    pattern: 'xml\.etree\.ElementTree\.parse\('
+    category: "xxe"
+    severity: "medium"
+    cwe_id: 611
+    description: "XML parser without entity expansion protection"
+    recommendation: "Use defusedxml library to prevent XXE attacks."
+    owasp: "A05:2021-Security Misconfiguration"
+
+  - name: "CSRF - Missing Token"
+    pattern: '@app\.route.*methods.*POST'
+    category: "csrf"
+    severity: "medium"
+    cwe_id: 352
+    description: "POST endpoint without CSRF protection mentioned"
+    recommendation: "Implement CSRF tokens for state-changing operations."
+    owasp: "A01:2021-Broken Access Control"
+
+  - name: "Insecure Direct Object Reference"
+    pattern: '(?i)\.get\(id\)|\.filter\(id=|\.get\(pk='
+    category: "authorization"
+    severity: "medium"
+    cwe_id: 639
+    description: "Potential IDOR vulnerability"
+    recommendation: "Verify user authorization before accessing objects by ID."
+    owasp: "A01:2021-Broken Access Control"
+
+  - name: "Debug Mode Enabled"
+    pattern: '(?i)debug\s*=\s*True'
+    category: "configuration"
+    severity: "medium"
+    cwe_id: 489
+    description: "Debug mode enabled - may leak sensitive information"
+    recommendation: "Disable debug mode in production environments."
+    owasp: "A05:2021-Security Misconfiguration"
+
+  - name: "Weak TLS Version"
+    pattern: '(?i)ssl_version\s*=\s*(SSLv2|SSLv3|TLSv1|PROTOCOL_SSLv2|PROTOCOL_SSLv3|PROTOCOL_TLSv1)'
+    category: "cryptographic"
+    severity: "high"
+    cwe_id: 326
+    description: "Use of weak TLS/SSL version"
+    recommendation: "Use TLS 1.2 or higher."
+    owasp: "A02:2021-Cryptographic Failures"
+
+  - name: "Cleartext Transmission"
+    pattern: 'http://(?!localhost|127\.0\.0\.1)'
+    category: "data_exposure"
+    severity: "medium"
+    cwe_id: 319
+    description: "HTTP used instead of HTTPS"
+    recommendation: "Use HTTPS for all sensitive communications."
+    owasp: "A02:2021-Cryptographic Failures"
+
+  - name: "Information Disclosure - Stack Trace"
+    pattern: '(?i)(printStackTrace|print_exc|traceback\.print)'
+    category: "data_exposure"
+    severity: "low"
+    cwe_id: 209
+    description: "Stack traces may be exposed to users"
+    recommendation: "Log errors securely and show generic error messages to users."
+    owasp: "A04:2021-Insecure Design"
+
+  - name: "Insufficient Logging"
+    pattern: 'except.*:\s*pass'
+    category: "configuration"
+    severity: "low"
+    cwe_id: 778
+    description: "Exception silently ignored without logging"
+    recommendation: "Log exceptions for security monitoring and debugging."
+    owasp: "A09:2021-Security Logging and Monitoring Failures"
+
+authentication:
+  - name: "Weak Password Policy"
+    pattern: '(?i)(password|passwd).*length.*<.*[1-7]'
+    category: "authentication"
+    severity: "medium"
+    cwe_id: 521
+    description: "Weak password length requirement"
+    recommendation: "Require passwords of at least 12 characters."
+    owasp: "A07:2021-Identification and Authentication Failures"
+
+  - name: "Missing Rate Limiting"
+    pattern: '@app\.route.*login.*POST'
+    category: "authentication"
+    severity: "medium"
+    cwe_id: 307
+    description: "Login endpoint without rate limiting"
+    recommendation: "Implement rate limiting to prevent brute force attacks."
+    owasp: "A07:2021-Identification and Authentication Failures"

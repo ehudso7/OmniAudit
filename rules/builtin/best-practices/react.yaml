@@ -1,0 +1,249 @@
+---
+# Best Practices - React
+# 20+ React-specific best practices
+
+- id: BP101
+  name: Missing Key Prop
+  description: Detects array.map without key prop
+  severity: medium
+  category: best-practices
+  tags: [react, keys, performance]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: \.map\([^)]*\)\s*=>[\s\S]{1,100}<(?![\s\S]{1,50}key=)
+  message: Add key prop to elements in array.map() for proper reconciliation.
+
+- id: BP102
+  name: Index as Key
+  description: Detects array index used as key prop
+  severity: low
+  category: best-practices
+  tags: [react, keys, anti-pattern]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: \.map\([^,]*,\s*(index|i|idx)\)\s*=>[\s\S]{1,100}key=\{?\1\}?
+  message: Avoid using index as key. Use stable unique identifiers.
+
+- id: BP103
+  name: Inline Function in JSX
+  description: Detects inline functions in JSX which cause re-renders
+  severity: low
+  category: best-practices
+  tags: [react, performance, functions]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: (onClick|onChange|onSubmit)=\{\(\)\s*=>
+  message: Extract inline functions to useCallback to prevent unnecessary re-renders.
+
+- id: BP104
+  name: Missing useCallback
+  description: Detects functions passed to child components without useCallback
+  severity: low
+  category: best-practices
+  tags: [react, hooks, performance, usecallback]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: const\s+\w+\s*=\s*\([^)]*\)\s*=>[\s\S]{1,100}<\w+[\s\S]{1,50}\w+=\{
+  message: Wrap callback functions in useCallback to prevent child re-renders.
+
+- id: BP105
+  name: Missing useMemo
+  description: Detects expensive computations that should use useMemo
+  severity: low
+  category: best-practices
+  tags: [react, hooks, performance, usememo]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: const\s+\w+\s*=\s*\w+\.(filter|map|reduce|sort)
+  conditions:
+    fileMatch:
+      - "**/components/**"
+      - "**/pages/**"
+  message: Wrap expensive computations in useMemo to avoid recalculation on every render.
+
+- id: BP106
+  name: Missing Dependency in useEffect
+  description: Detects useEffect with missing dependencies
+  severity: medium
+  category: best-practices
+  tags: [react, hooks, useeffect, dependencies]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: useEffect\([^,]*,\s*\[\s*\]\)
+  message: Verify useEffect dependencies. Empty array means effect runs once on mount.
+
+- id: BP107
+  name: setState in useEffect Without Cleanup
+  description: Detects setState in useEffect without cleanup
+  severity: medium
+  category: best-practices
+  tags: [react, hooks, memory-leak, cleanup]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: useEffect\([^{]*\{[\s\S]{1,200}set\w+\((?![\s\S]{1,100}return\s*\(\))
+  message: Add cleanup function to prevent setState on unmounted component.
+
+- id: BP108
+  name: Direct State Mutation
+  description: Detects direct state mutation instead of setState
+  severity: high
+  category: best-practices
+  tags: [react, state, immutability]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: (this\.state|state)\.\w+\s*=(?!=)
+  message: Never mutate state directly. Use setState or state setter functions.
+
+- id: BP109
+  name: Props Destructuring Missing
+  description: Suggests props destructuring for cleaner code
+  severity: low
+  category: best-practices
+  tags: [react, props, readability]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: (function|const)\s+\w+\(\s*props\s*[):]\s*\{[\s\S]{1,100}props\.
+  message: Destructure props for cleaner code and better readability.
+
+- id: BP110
+  name: Fragment Shorthand
+  description: Detects React.Fragment that could use shorthand
+  severity: low
+  category: best-practices
+  tags: [react, jsx, syntax]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: <React\.Fragment>(?![\s\S]{1,50}key=)
+  message: Use fragment shorthand <></> when key prop is not needed.
+
+- id: BP111
+  name: Unnecessary Fragment
+  description: Detects fragments wrapping single elements
+  severity: low
+  category: best-practices
+  tags: [react, jsx, cleanup]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: <(React\.Fragment|>)\s*<\w+[\s\S]{1,100}</\w+>\s*</(React\.Fragment|>)
+  message: Remove unnecessary fragment wrapping single element.
+
+- id: BP112
+  name: Missing PropTypes
+  description: Detects components without PropTypes or TypeScript types
+  severity: low
+  category: best-practices
+  tags: [react, proptypes, type-safety]
+  languages: [javascript, jsx]
+  patterns:
+    regex: (function|const)\s+[A-Z]\w+\s*\([^)]*props(?![\s\S]{1,200}PropTypes)
+  message: Add PropTypes for runtime type checking in JavaScript.
+
+- id: BP113
+  name: Default Props Pattern
+  description: Detects missing default props for optional props
+  severity: low
+  category: best-practices
+  tags: [react, props, defaults]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: interface\s+\w+Props[\s\S]{1,100}\w+\?\s*:(?![\s\S]{1,100}defaultProps)
+  message: Provide default values for optional props using destructuring or defaultProps.
+
+- id: BP114
+  name: Component Too Large
+  description: Detects React components that are too large
+  severity: medium
+  category: best-practices
+  tags: [react, component-size, maintainability]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: (export\s+)?(function|const)\s+[A-Z]\w+[\s\S]{2000,}export\s+(default\s+)?\w+
+  message: Component is too large. Split into smaller, focused components.
+
+- id: BP115
+  name: Conditional Rendering with &&
+  description: Detects potential 0 rendering in conditional
+  severity: low
+  category: best-practices
+  tags: [react, jsx, conditional-rendering]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: \{\s*\w+\.length\s*&&\s*<
+  message: Use !! or ternary to avoid rendering 0. Use {items.length > 0 && <...>}.
+
+- id: BP116
+  name: useEffect Missing Cleanup
+  description: Detects subscriptions in useEffect without cleanup
+  severity: medium
+  category: best-practices
+  tags: [react, hooks, memory-leak, subscriptions]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: useEffect\([^{]*\{[\s\S]{1,200}(subscribe|addEventListener|setInterval|setTimeout)(?![\s\S]{1,100}return)
+  message: Add cleanup function to unsubscribe/remove listeners in useEffect.
+
+- id: BP117
+  name: Async useEffect
+  description: Detects async function directly in useEffect
+  severity: low
+  category: best-practices
+  tags: [react, hooks, async, pattern]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: useEffect\(\s*async\s*\(
+  message: Don't pass async function to useEffect. Create async function inside and call it.
+
+- id: BP118
+  name: Ref Not Initialized
+  description: Detects useRef without initial value
+  severity: low
+  category: best-practices
+  tags: [react, hooks, useref]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: useRef\(\)(?!<)
+  message: Initialize useRef with null for better type safety.
+
+- id: BP119
+  name: Custom Hook Naming
+  description: Detects custom hooks not starting with 'use'
+  severity: medium
+  category: best-practices
+  tags: [react, hooks, naming, convention]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: (export\s+)?function\s+(?!use)[a-z]\w+\([^)]*\)[\s\S]{1,100}(useState|useEffect|useCallback)
+  message: Custom hooks must start with 'use' prefix for React to enforce rules.
+
+- id: BP120
+  name: React Import Not Needed
+  description: Detects unnecessary React import in React 17+
+  severity: low
+  category: best-practices
+  tags: [react, imports, react-17]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: import\s+React\s+from\s+['"]react['"](?![\s\S]{1,100}React\.)
+  message: React import not needed for JSX in React 17+. Remove if not using React.X.
+
+- id: BP121
+  name: Missing Error Boundary
+  description: Suggests adding error boundary for async components
+  severity: low
+  category: best-practices
+  tags: [react, error-handling, error-boundary]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: (Suspense|lazy)(?![\s\S]{1,300}ErrorBoundary)
+  message: Wrap Suspense/lazy components with Error Boundary for better error handling.
+
+- id: BP122
+  name: Unnecessary useEffect
+  description: Detects useEffect that could be removed
+  severity: low
+  category: best-practices
+  tags: [react, hooks, useeffect, optimization]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    regex: useEffect\(\(\)\s*=>\s*\{\s*set\w+\([^)]+\)\s*\},\s*\[\]\)
+  message: Don't use useEffect for initial state. Initialize state directly.

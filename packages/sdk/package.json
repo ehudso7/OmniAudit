@@ -1,0 +1,36 @@
+{
+  "name": "@omniaudit/sdk",
+  "version": "2.0.0",
+  "description": "Embeddable TypeScript SDK for OmniAudit with streaming and promise-based APIs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --apply ."
+  },
+  "keywords": ["omniaudit", "sdk", "api", "streaming", "typescript"],
+  "author": "OmniAudit Team",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.22.4",
+    "eventemitter3": "^5.0.1",
+    "p-queue": "^8.0.1",
+    "p-retry": "^6.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.5.3",
+    "@types/node": "^20.11.16",
+    "tsup": "^8.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

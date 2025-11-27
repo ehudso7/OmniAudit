@@ -1,0 +1,166 @@
+{
+  "analyzer": "security_analyzer",
+  "version": "1.0.0",
+  "timestamp": "2025-11-27T04:50:00Z",
+  "data": {
+    "scan_id": "example-scan-id",
+    "findings": [
+      {
+        "id": "finding-001",
+        "title": "Secret Exposure: AWS Access Key ID",
+        "description": "AWS Access Key ID exposed in code",
+        "severity": "critical",
+        "category": "secret_exposure",
+        "cwe": {
+          "id": 798,
+          "name": "Use of Hard-coded Credentials",
+          "url": "https://cwe.mitre.org/data/definitions/798.html"
+        },
+        "owasp": "A02:2021-Cryptographic Failures",
+        "confidence": 0.95,
+        "file_path": "/project/src/config.py",
+        "line_number": 15,
+        "code_snippet": "aws_key = \"[REDACTED]\"",
+        "recommendation": "Remove hardcoded AWS credentials. Use environment variables or AWS IAM roles.",
+        "references": [
+          "https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure",
+          "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+        ]
+      },
+      {
+        "id": "finding-002",
+        "title": "SQL Injection - String Concatenation",
+        "description": "Potential SQL injection via string concatenation",
+        "severity": "high",
+        "category": "injection",
+        "cwe": {
+          "id": 89,
+          "name": "SQL Injection",
+          "url": "https://cwe.mitre.org/data/definitions/89.html"
+        },
+        "owasp": "A03:2021-Injection",
+        "confidence": 0.8,
+        "file_path": "/project/src/database.py",
+        "line_number": 42,
+        "code_snippet": "query = \"SELECT * FROM users WHERE id = \" + user_id",
+        "recommendation": "Use parameterized queries or prepared statements.",
+        "references": [
+          "https://owasp.org/www-community/attacks/SQL_Injection",
+          "https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html"
+        ]
+      },
+      {
+        "id": "finding-003",
+        "title": "XSS - innerHTML Assignment",
+        "description": "Potential XSS via innerHTML assignment",
+        "severity": "high",
+        "category": "xss",
+        "cwe": {
+          "id": 79,
+          "name": "Cross-site Scripting (XSS)",
+          "url": "https://cwe.mitre.org/data/definitions/79.html"
+        },
+        "owasp": "A03:2021-Injection",
+        "confidence": 0.75,
+        "file_path": "/project/frontend/src/app.js",
+        "line_number": 128,
+        "code_snippet": "element.innerHTML = userInput;",
+        "recommendation": "Use textContent or properly escape HTML. Consider using DOMPurify.",
+        "references": [
+          "https://owasp.org/www-community/attacks/xss/",
+          "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+        ]
+      },
+      {
+        "id": "finding-004",
+        "title": "Weak Hash - MD5",
+        "description": "Use of weak MD5 hashing algorithm",
+        "severity": "medium",
+        "category": "cryptographic",
+        "cwe": {
+          "id": 327,
+          "name": "Use of a Broken or Risky Cryptographic Algorithm",
+          "url": "https://cwe.mitre.org/data/definitions/327.html"
+        },
+        "owasp": "A02:2021-Cryptographic Failures",
+        "confidence": 0.85,
+        "file_path": "/project/src/utils/crypto.py",
+        "line_number": 67,
+        "code_snippet": "hash_val = hashlib.md5(password)",
+        "recommendation": "Use SHA-256 or stronger hashing algorithms.",
+        "references": [
+          "https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure",
+          "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+        ]
+      },
+      {
+        "id": "finding-005",
+        "title": "Debug Mode Enabled",
+        "description": "Debug mode enabled - may leak sensitive information",
+        "severity": "medium",
+        "category": "configuration",
+        "cwe": {
+          "id": 489,
+          "name": "Active Debug Code",
+          "url": "https://cwe.mitre.org/data/definitions/489.html"
+        },
+        "owasp": "A05:2021-Security Misconfiguration",
+        "confidence": 0.75,
+        "file_path": "/project/src/settings.py",
+        "line_number": 12,
+        "code_snippet": "DEBUG = True",
+        "recommendation": "Disable debug mode in production environments.",
+        "references": [
+          "https://owasp.org/www-project-top-ten/"
+        ]
+      }
+    ],
+    "summary": {
+      "total_findings": 5,
+      "by_severity": {
+        "critical": 1,
+        "high": 2,
+        "medium": 2,
+        "low": 0,
+        "info": 0
+      },
+      "by_category": {
+        "secret_exposure": 1,
+        "injection": 1,
+        "xss": 1,
+        "cryptographic": 1,
+        "configuration": 1
+      },
+      "top_issues": [
+        {
+          "issue": "Secret Exposure: AWS Access Key ID",
+          "count": 1
+        },
+        {
+          "issue": "SQL Injection - String Concatenation",
+          "count": 1
+        }
+      ],
+      "files_with_issues": 5
+    },
+    "risk_score": 45.5,
+    "compliance": {
+      "owasp_top_10": {
+        "covered": true,
+        "issues_found": {
+          "A02:2021-Cryptographic Failures": 2,
+          "A03:2021-Injection": 2,
+          "A05:2021-Security Misconfiguration": 1
+        }
+      },
+      "pci_dss": {
+        "compliant": false,
+        "critical_issues": 1
+      },
+      "hipaa": {
+        "encryption_issues": 1,
+        "access_control_issues": 0
+      }
+    }
+  }
+}

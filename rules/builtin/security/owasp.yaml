@@ -1,0 +1,181 @@
+---
+# Security Rules - OWASP Top 10 Coverage
+# 10+ rules covering OWASP Top 10 vulnerabilities
+
+- id: SEC301
+  name: Missing Access Control
+  description: Detects potential missing authorization checks
+  severity: high
+  category: security
+  tags: [owasp, access-control, authorization]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (app\.(get|post|put|delete|patch)\(['"][^'"]+['"].*(?!auth|verify|check))
+  references:
+    - https://owasp.org/Top10/A01_2021-Broken_Access_Control/
+  cwe: [CWE-284]
+  owasp: [A01_2021-Broken_Access_Control]
+  message: Potential missing authorization check. Verify user permissions.
+
+- id: SEC302
+  name: Sensitive Data Exposure
+  description: Detects potential sensitive data in logs
+  severity: medium
+  category: security
+  tags: [owasp, data-exposure, logging]
+  languages: [javascript, typescript, python, go, java, php, ruby]
+  patterns:
+    regex: (console\.log|logger\.|print|echo|Log\.)\s*\([^)]*\b(password|token|secret|key|credential)\b
+  cwe: [CWE-532]
+  owasp: [A02_2021-Cryptographic_Failures]
+  message: Potential sensitive data in logs. Avoid logging credentials.
+
+- id: SEC303
+  name: Mass Assignment Vulnerability
+  description: Detects potential mass assignment vulnerabilities
+  severity: medium
+  category: security
+  tags: [owasp, mass-assignment, data-binding]
+  languages: [javascript, typescript, python, java, ruby, php]
+  patterns:
+    regex: (update|save|create)\s*\(\s*req\.(body|params|query)\s*\)
+  cwe: [CWE-915]
+  message: Potential mass assignment. Whitelist allowed fields.
+
+- id: SEC304
+  name: Insecure Direct Object Reference
+  description: Detects potential IDOR vulnerabilities
+  severity: high
+  category: security
+  tags: [owasp, idor, access-control]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (findById|getById|get)\s*\(\s*req\.(params|query)\.(id|userId)
+  cwe: [CWE-639]
+  owasp: [A01_2021-Broken_Access_Control]
+  message: Potential IDOR. Verify user owns the resource before accessing.
+
+- id: SEC305
+  name: Open Redirect
+  description: Detects potential open redirect vulnerabilities
+  severity: medium
+  category: security
+  tags: [owasp, open-redirect, redirect]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (redirect|location)\s*\(\s*(req\.(params|query)|request\.args)
+  cwe: [CWE-601]
+  message: Potential open redirect. Validate redirect URLs against whitelist.
+
+- id: SEC306
+  name: XML External Entity (XXE)
+  description: Detects potential XXE vulnerabilities
+  severity: high
+  category: security
+  tags: [owasp, xxe, xml]
+  languages: [javascript, typescript, python, java, csharp]
+  patterns:
+    regex: (XMLParser|SAXParser|DocumentBuilder).*(?!disallow|disable)
+  cwe: [CWE-611]
+  owasp: [A05_2021-Security_Misconfiguration]
+  message: Potential XXE vulnerability. Disable external entity processing.
+
+- id: SEC307
+  name: CORS Misconfiguration
+  description: Detects overly permissive CORS configuration
+  severity: medium
+  category: security
+  tags: [owasp, cors, configuration]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: Access-Control-Allow-Origin.*\*
+  cwe: [CWE-942]
+  owasp: [A05_2021-Security_Misconfiguration]
+  message: Overly permissive CORS. Specify allowed origins explicitly.
+
+- id: SEC308
+  name: Missing Security Headers
+  description: Detects missing security-related HTTP headers
+  severity: medium
+  category: security
+  tags: [owasp, headers, configuration]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (app\.use|use\(|helmet\()(?!.*helmet)
+  conditions:
+    fileMatch:
+      - "**/server.*"
+      - "**/app.*"
+      - "**/index.*"
+  cwe: [CWE-693]
+  owasp: [A05_2021-Security_Misconfiguration]
+  message: Consider using helmet.js or equivalent for security headers.
+
+- id: SEC309
+  name: Debug Mode in Production
+  description: Detects debug mode enabled which can expose sensitive info
+  severity: high
+  category: security
+  tags: [owasp, debug, configuration]
+  languages: [javascript, typescript, python, go, java, php, ruby]
+  patterns:
+    regex: (DEBUG|debug)\s*=\s*(true|True|1|'true')
+  conditions:
+    fileMatch:
+      - "**/production.*"
+      - "**/prod.*"
+      - "**/.env.production"
+  cwe: [CWE-489]
+  owasp: [A05_2021-Security_Misconfiguration]
+  message: Debug mode enabled in production. Disable before deployment.
+
+- id: SEC310
+  name: Outdated Dependency
+  description: Detects usage of packages with known vulnerabilities
+  severity: high
+  category: security
+  tags: [owasp, dependencies, vulnerable-components]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (webpack|lodash|moment|request).*["'][\^~]?[0-3]\.
+  conditions:
+    fileMatch:
+      - "**/package.json"
+  cwe: [CWE-1035]
+  owasp: [A06_2021-Vulnerable_and_Outdated_Components]
+  message: Outdated dependency detected. Update to latest secure version.
+
+- id: SEC311
+  name: Missing Input Validation
+  description: Detects potential missing input validation
+  severity: medium
+  category: security
+  tags: [owasp, validation, input]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (req\.(body|params|query)|request\.args)(?!.*validate|sanitize|check)
+  conditions:
+    fileMatch:
+      - "**/routes/**"
+      - "**/controllers/**"
+      - "**/api/**"
+  cwe: [CWE-20]
+  owasp: [A03_2021-Injection]
+  message: Potential missing input validation. Validate all user inputs.
+
+- id: SEC312
+  name: Insufficient Logging
+  description: Detects insufficient security event logging
+  severity: low
+  category: security
+  tags: [owasp, logging, monitoring]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (login|authenticate|authorize)(?!.*log|audit|track)
+  conditions:
+    fileMatch:
+      - "**/auth/**"
+      - "**/login/**"
+  cwe: [CWE-778]
+  owasp: [A09_2021-Security_Logging_and_Monitoring_Failures]
+  message: Security event not logged. Log authentication attempts.

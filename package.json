@@ -1,28 +1,25 @@
 {
-  "name": "omniaudit",
-  "version": "1.0.0",
-  "description": "Universal AI Coding Optimization Framework with Advanced Skills System",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "bin": {
-    "omniaudit": "./dist/cli/omniaudit.js"
-  },
+  "name": "omniaudit-monorepo",
+  "version": "2.0.0",
+  "description": "Universal AI Coding Auditing Framework - Enterprise Monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "vscode-extension",
+    "github-app"
+  ],
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
-    "build": "tsc",
-    "build:local": "tsc",
-    "vercel-build": "echo 'Skipping build - Vercel compiles functions automatically'",
-    "build:api": "tsc && cp -r src api/dist",
-    "cli": "bun run src/cli/omniaudit.ts",
-    "db:migrate": "bun run src/db/migrate.ts",
-    "db:seed": "bun run src/db/seed.ts",
-    "test": "bun test",
-    "lint": "biome check .",
-    "lint:fix": "biome check --apply .",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
     "format": "biome format --write .",
-    "type-check": "tsc --noEmit",
-    "deploy": "wrangler deploy",
-    "deploy:vercel": "vercel --prod",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "backend:dev": "cd backend && uvicorn src.omniaudit.api.main:app --reload",
+    "backend:test": "cd backend && pytest tests/ -v",
     "prepare": "husky install"
   },
   "keywords": [
@@ -63,10 +60,11 @@
     "@types/babel__traverse": "^7.20.5",
     "@types/node": "^20.11.16",
     "typescript": "^5.7.2",
+    "turbo": "^1.12.0",
     "husky": "^9.0.10",
     "lint-staged": "^15.2.2",
-    "wrangler": "^3.28.4",
-    "bun-types": "^1.1.0"
+    "tsup": "^8.0.1",
+    "vitest": "^1.2.2"
   },
   "engines": {
     "bun": ">=1.1.0",

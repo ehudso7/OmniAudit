@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "write|edit",
+        "command": "node ./.claude/scripts/pre-write.js",
+        "description": "Validate changes, check protected files, enforce patterns"
+      },
+      {
+        "matcher": "bash",
+        "command": "node ./.claude/scripts/pre-bash.js",
+        "description": "Audit commands, block dangerous operations, log for compliance"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "write",
+        "command": "node ./.claude/scripts/post-write.js",
+        "description": "Auto-format, lint, update imports, regenerate barrel files"
+      },
+      {
+        "matcher": "edit",
+        "command": "node ./.claude/scripts/post-edit.js",
+        "description": "Validate syntax, run affected tests, update snapshots"
+      }
+    ],
+    "Stop": [
+      {
+        "command": "node ./.claude/scripts/on-stop.js",
+        "description": "Generate session summary, commit checkpoint, calculate metrics"
+      }
+    ],
+    "Notification": [
+      {
+        "command": "node ./.claude/scripts/notify.js",
+        "description": "Route to Slack, Discord, Teams, email, webhooks, PagerDuty"
+      }
+    ]
+  }
+}

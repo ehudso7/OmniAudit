@@ -1,0 +1,124 @@
+---
+# Performance Rules - Loop Optimization
+# 10+ rules for optimizing loops
+
+- id: PERF101
+  name: Loop Length Recalculation
+  description: Detects array.length accessed in loop condition
+  severity: low
+  category: performance
+  tags: [performance, loops, optimization]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: for\s*\([^;]*;\s*\w+\s*<\s*\w+\.length
+  message: Cache array length outside loop to avoid recalculation.
+
+- id: PERF102
+  name: Unnecessary Loop
+  description: Detects loops that could use built-in array methods
+  severity: low
+  category: performance
+  tags: [performance, loops, arrays, functional]
+  languages: [javascript, typescript]
+  patterns:
+    regex: for\s*\([^)]*\)\s*\{\s*\w+\.push\(
+  message: Use map() instead of for loop with push() for better readability and performance.
+
+- id: PERF103
+  name: Nested Loop with Same Array
+  description: Detects nested loops iterating over same array
+  severity: medium
+  category: performance
+  tags: [performance, loops, complexity]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: for\s*\([^)]*(\w+)\.[^)]*\)[\s\S]{1,100}for\s*\([^)]*\1\.
+  message: Nested loops on same array. Consider alternative algorithm to reduce O(n²) complexity.
+
+- id: PERF104
+  name: Array Push in Loop
+  description: Detects array.push() in tight loops
+  severity: low
+  category: performance
+  tags: [performance, loops, arrays]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (for|while)\s*\([^)]*\)\s*\{\s*[^}]{1,50}\w+\.push\(
+  message: Multiple push() calls. Preallocate array size if known for better performance.
+
+- id: PERF105
+  name: Function Call in Loop Condition
+  description: Detects function calls in loop conditions
+  severity: medium
+  category: performance
+  tags: [performance, loops, optimization]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (for|while)\s*\([^;]*;\s*[^;]*\w+\([^)]*\)
+  message: Function called in loop condition. Cache the result outside loop.
+
+- id: PERF106
+  name: DOM Query in Loop
+  description: Detects DOM queries inside loops
+  severity: high
+  category: performance
+  tags: [performance, loops, dom, frontend]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}(querySelector|getElementById|getElementsBy)
+  message: DOM query in loop. Cache the element reference outside the loop.
+
+- id: PERF107
+  name: Try-Catch in Loop
+  description: Detects try-catch inside loops which impacts performance
+  severity: low
+  category: performance
+  tags: [performance, loops, error-handling]
+  languages: [javascript, typescript, python, java, csharp]
+  patterns:
+    regex: (for|while)[\s\S]{1,50}try\s*\{
+  message: Try-catch in loop impacts performance. Move outside loop if possible.
+
+- id: PERF108
+  name: Object Property Access in Loop
+  description: Detects repeated object property lookups
+  severity: low
+  category: performance
+  tags: [performance, loops, objects]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}(\w+\.\w+\.\w+)
+  message: Cache deeply nested property access outside loop.
+
+- id: PERF109
+  name: forEach with Async
+  description: Detects async/await in forEach which doesn't await
+  severity: medium
+  category: performance
+  tags: [performance, async, arrays, javascript]
+  languages: [javascript, typescript]
+  patterns:
+    regex: \.forEach\(\s*async\s*\(
+  message: forEach doesn't await promises. Use for...of or Promise.all() for concurrent execution.
+
+- id: PERF110
+  name: Filter Then Map
+  description: Detects filter().map() which can be combined
+  severity: low
+  category: performance
+  tags: [performance, arrays, functional]
+  languages: [javascript, typescript]
+  patterns:
+    regex: \.filter\([^)]*\)[\s\S]{0,20}\.map\(
+  message: filter().map() makes two passes. Use reduce() or flatMap() for single pass.
+
+- id: PERF111
+  name: Reverse Loop Not Used
+  description: Detects loops that could benefit from reverse iteration
+  severity: low
+  category: performance
+  tags: [performance, loops, optimization]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: for\s*\([^)]*\s*=\s*0[\s\S]{1,100}\.splice\(
+  message: When removing items, iterate backwards to avoid index shifting issues.

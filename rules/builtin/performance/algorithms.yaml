@@ -1,0 +1,124 @@
+---
+# Performance Rules - Algorithm Efficiency
+# 10+ rules for detecting inefficient algorithms
+
+- id: PERF001
+  name: Array indexOf in Loop
+  description: Detects indexOf in loop which is O(n²)
+  severity: medium
+  category: performance
+  tags: [performance, algorithms, complexity, arrays]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}(indexOf|index)\(
+  message: Using indexOf in loop creates O(n²) complexity. Use Set for O(n) lookups.
+
+- id: PERF002
+  name: Nested Array Operations
+  description: Detects nested map/filter/forEach which can be combined
+  severity: medium
+  category: performance
+  tags: [performance, arrays, functional-programming]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: \.(map|filter|forEach)\([^)]*\)[\s\S]{1,50}\.(map|filter|forEach)\(
+  message: Nested array operations. Consider chaining or combining for better performance.
+
+- id: PERF003
+  name: RegEx in Loop
+  description: Detects regex compilation inside loops
+  severity: medium
+  category: performance
+  tags: [performance, regex, loops]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}new RegExp\(|re\.compile\(
+  message: Regex compiled in loop. Move regex compilation outside the loop.
+
+- id: PERF004
+  name: Inefficient String Concatenation
+  description: Detects string concatenation in loops (use StringBuilder/join)
+  severity: medium
+  category: performance
+  tags: [performance, strings, loops]
+  languages: [javascript, typescript, python, java, csharp]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}\w+\s*\+=\s*['"]
+  message: String concatenation in loop is slow. Use array.join() or StringBuilder.
+
+- id: PERF005
+  name: Blocking Synchronous Operations
+  description: Detects synchronous file operations in Node.js
+  severity: medium
+  category: performance
+  tags: [performance, async, nodejs, io]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (readFileSync|writeFileSync|existsSync|readdirSync|statSync)
+  message: Synchronous I/O blocks the event loop. Use async alternatives.
+
+- id: PERF006
+  name: Large Object in Loop
+  description: Detects object creation inside loops
+  severity: low
+  category: performance
+  tags: [performance, loops, memory-allocation]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}(new |{[\s\S]{50,}})
+  message: Object creation in loop. Consider object pooling or move outside loop.
+
+- id: PERF007
+  name: Sort in Loop
+  description: Detects array sorting inside loops
+  severity: high
+  category: performance
+  tags: [performance, sorting, algorithms]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}\.(sort|sorted)\(
+  message: Sorting in loop is inefficient. Sort once before or after the loop.
+
+- id: PERF008
+  name: JSON Parse in Loop
+  description: Detects JSON parsing inside loops
+  severity: medium
+  category: performance
+  tags: [performance, json, parsing]
+  languages: [javascript, typescript, python, go]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}JSON\.parse|json\.loads
+  message: JSON parsing in loop. Parse once and reuse the result.
+
+- id: PERF009
+  name: Inefficient Array Deletion
+  description: Detects splice() in loop which shifts array elements
+  severity: medium
+  category: performance
+  tags: [performance, arrays, deletion]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}\.splice\(
+  message: splice() in loop is O(n²). Use filter() or build new array.
+
+- id: PERF010
+  name: Unoptimized Database Query in Loop
+  description: Detects database queries inside loops (N+1 problem)
+  severity: high
+  category: performance
+  tags: [performance, database, n-plus-one]
+  languages: [javascript, typescript, python, go, java, php, ruby]
+  patterns:
+    regex: (for|while)[\s\S]{1,150}(query|find|findOne|get|fetch|execute)\(
+  message: Database query in loop (N+1 problem). Use batch queries or eager loading.
+
+- id: PERF011
+  name: Excessive Array Copying
+  description: Detects spread operator or slice() creating unnecessary copies
+  severity: low
+  category: performance
+  tags: [performance, arrays, memory]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (for|while)[\s\S]{1,100}(\.\.\.|\.slice\(\))
+  message: Array copying in loop. Avoid unnecessary copies for better performance.

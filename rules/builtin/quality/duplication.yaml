@@ -1,0 +1,128 @@
+---
+# Quality Rules - Code Duplication
+# 10+ rules for detecting duplicated code and violations of DRY principle
+
+- id: QUA101
+  name: Duplicate String Literals
+  description: Detects repeated string literals that should be constants
+  severity: low
+  category: quality
+  tags: [duplication, magic-strings, constants]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (['"][^'"]{10,}['"])[\s\S]*?\1[\s\S]*?\1
+  message: Duplicate string literal found. Consider using a constant.
+
+- id: QUA102
+  name: Duplicate Number Literals
+  description: Detects magic numbers that should be named constants
+  severity: low
+  category: quality
+  tags: [duplication, magic-numbers, constants]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: \b(100|1000|10000|3600|86400|1024|2048|4096)\b[\s\S]*?\b\1\b
+  conditions:
+    fileExclude:
+      - "**/*.test.*"
+      - "**/*.spec.*"
+  message: Magic number detected. Use a named constant for clarity.
+
+- id: QUA103
+  name: Duplicate Conditional Logic
+  description: Detects repeated if conditions
+  severity: medium
+  category: quality
+  tags: [duplication, conditionals, dry]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: if\s*\(([^)]{20,})\)[\s\S]{1,200}if\s*\(\1\)
+  message: Duplicate conditional logic. Extract to a variable or function.
+
+- id: QUA104
+  name: Repeated Function Calls
+  description: Detects same function called multiple times with same arguments
+  severity: low
+  category: quality
+  tags: [duplication, function-calls, caching]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (\w+\([^)]{10,}\))[\s\S]{1,100}\1
+  message: Repeated function call. Consider caching the result.
+
+- id: QUA105
+  name: Duplicate Imports
+  description: Detects duplicate import statements
+  severity: low
+  category: quality
+  tags: [duplication, imports, cleanup]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (import\s+.*from\s+['"][^'"]+['"])[\s\S]*?\1
+  message: Duplicate import statement. Remove redundant imports.
+
+- id: QUA106
+  name: Copy-Paste Detection
+  description: Detects likely copy-pasted code blocks
+  severity: medium
+  category: quality
+  tags: [duplication, copy-paste, refactoring]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (\w+\s*=\s*[^;]{20,};)[\s\S]{1,50}\1
+  message: Potential copy-paste code. Consider extracting to a reusable function.
+
+- id: QUA107
+  name: Duplicate Error Messages
+  description: Detects duplicate error messages
+  severity: low
+  category: quality
+  tags: [duplication, error-messages, i18n]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (throw new Error\(['"][^'"]{20,}['"])[\s\S]*?\1
+  message: Duplicate error message. Consider using error constants or i18n.
+
+- id: QUA108
+  name: Duplicate Validation Logic
+  description: Detects duplicate validation patterns
+  severity: medium
+  category: quality
+  tags: [duplication, validation, refactoring]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (if\s*\(!\w+\)\s*{\s*throw)[\s\S]{1,200}\1
+  message: Duplicate validation logic. Extract to a validation function.
+
+- id: QUA109
+  name: Repeated Null Checks
+  description: Detects repeated null/undefined checks for same variable
+  severity: low
+  category: quality
+  tags: [duplication, null-checks, optional-chaining]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: (\w+)\s*(?:===|!==|==|!=)\s*(?:null|undefined)[\s\S]{1,100}\1\s*(?:===|!==|==|!=)\s*(?:null|undefined)
+  message: Repeated null checks. Consider using optional chaining (?.) or early returns.
+
+- id: QUA110
+  name: Duplicate Type Assertions
+  description: Detects repeated type assertions/casts
+  severity: low
+  category: quality
+  tags: [duplication, typescript, type-safety]
+  languages: [typescript]
+  patterns:
+    regex: (\w+)\s+as\s+\w+[\s\S]{1,100}\1\s+as\s+\w+
+  message: Repeated type assertion. Consider storing the casted value in a variable.
+
+- id: QUA111
+  name: Duplicate Array Operations
+  description: Detects repeated array operations that could be optimized
+  severity: low
+  category: quality
+  tags: [duplication, arrays, optimization]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: (\w+\.(map|filter|reduce)\([^)]+\))[\s\S]{1,50}\1
+  message: Repeated array operation. Chain operations or cache the result.

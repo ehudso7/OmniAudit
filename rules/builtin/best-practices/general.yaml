@@ -1,0 +1,249 @@
+---
+# Best Practices - General Programming
+# 20+ General best practices applicable across languages
+
+- id: BP301
+  name: Early Return Pattern
+  description: Detects nested if-else that could use early returns
+  severity: low
+  category: best-practices
+  tags: [general, readability, control-flow]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: if\s*\([^)]+\)\s*\{[\s\S]{1,50}else\s*\{[\s\S]{100,}\}
+  message: Use early returns to reduce nesting and improve readability.
+
+- id: BP302
+  name: Hard-Coded Configuration
+  description: Detects hard-coded URLs, ports, and configuration
+  severity: medium
+  category: best-practices
+  tags: [general, configuration, environment]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (https?://|localhost|127\.0\.0\.1|:[0-9]{4,5})
+  conditions:
+    fileExclude:
+      - "**/*.test.*"
+      - "**/*.spec.*"
+  message: Extract hard-coded configuration to environment variables or config files.
+
+- id: BP303
+  name: Magic Number
+  description: Detects magic numbers that should be named constants
+  severity: low
+  category: best-practices
+  tags: [general, constants, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (if|while|for|return)[\s\S]{1,50}[><=!]+\s*(100|1000|60|3600|86400|365|7|24)
+  message: Replace magic number with a named constant for clarity.
+
+- id: BP304
+  name: Boolean Method Return
+  description: Detects unnecessary if-else returning boolean
+  severity: low
+  category: best-practices
+  tags: [general, booleans, simplification]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: if\s*\([^)]+\)\s*\{\s*return\s+true\s*;\s*\}\s*else\s*\{\s*return\s+false
+  message: Return the condition directly instead of if-else with boolean.
+
+- id: BP305
+  name: Negative Conditional
+  description: Detects negative conditionals that hurt readability
+  severity: low
+  category: best-practices
+  tags: [general, conditionals, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: if\s*\(!\w+\)\s*\{[\s\S]{100,}\}\s*else
+  message: Flip condition to positive form for better readability.
+
+- id: BP306
+  name: Nested Ternary
+  description: Detects nested ternary operators
+  severity: medium
+  category: best-practices
+  tags: [general, ternary, readability]
+  languages: [javascript, typescript, java, php, csharp]
+  patterns:
+    regex: '\?[^:]+:[^;]+\?[^:]+:'
+  message: Nested ternaries are hard to read. Use if-else or extract to function.
+
+- id: BP307
+  name: Long Parameter List
+  description: Detects functions with too many parameters
+  severity: medium
+  category: best-practices
+  tags: [general, parameters, function-signature]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (function|def|func)\s+\w+\s*\([^)]{100,}\)
+  message: Too many parameters. Use options object or builder pattern.
+
+- id: BP308
+  name: Boolean Parameter
+  description: Detects boolean parameters which can indicate poor design
+  severity: low
+  category: best-practices
+  tags: [general, parameters, api-design]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (function|def|func)\s+\w+\([^)]*:\s*bool(ean)?[^)]*\)
+  message: Boolean parameters can indicate unclear API. Consider separate methods.
+
+- id: BP309
+  name: Yoda Condition
+  description: Detects Yoda conditions which hurt readability
+  severity: low
+  category: best-practices
+  tags: [general, conditionals, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: if\s*\((true|false|null|[0-9]+|['"][^'"]*['"])\s*[=!]=
+  message: Avoid Yoda conditions. Put variable on left side for readability.
+
+- id: BP310
+  name: Empty String Check
+  description: Detects verbose empty string checks
+  severity: low
+  category: best-practices
+  tags: [general, strings, simplification]
+  languages: [javascript, typescript, python, ruby, php]
+  patterns:
+    regex: (===|==|!=|!==)\s*['"]["']
+  message: Use !str or str.length for empty string checks instead of == ''.
+
+- id: BP311
+  name: Switch Without Default
+  description: Detects switch statements without default case
+  severity: low
+  category: best-practices
+  tags: [general, switch, error-handling]
+  languages: [javascript, typescript, java, go, php, csharp]
+  patterns:
+    regex: switch\s*\([^)]*\)\s*\{(?![\s\S]+default:)
+  message: Add default case to switch for completeness and error handling.
+
+- id: BP312
+  name: Inconsistent Brace Style
+  description: Detects inconsistent brace placement
+  severity: low
+  category: best-practices
+  tags: [general, style, formatting]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: (if|else|for|while)\s*\([^)]*\)\s*\n\s*\{
+  message: Use consistent brace style (same line or new line throughout codebase).
+
+- id: BP313
+  name: Commented Imports
+  description: Detects commented out import statements
+  severity: low
+  category: best-practices
+  tags: [general, imports, cleanup]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: ^\s*//\s*(import|from[\s\S]+import)|^\s*#\s*import
+  message: Remove commented imports. Clean up unused code.
+
+- id: BP314
+  name: Multiple Return Statements
+  description: Detects functions with too many return statements
+  severity: low
+  category: best-practices
+  tags: [general, control-flow, complexity]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (function|def|func)[\s\S]+?(return[\s\S]+?){6,}
+  message: Too many return statements. Simplify function logic.
+
+- id: BP315
+  name: Assignment in Condition
+  description: Detects assignment in conditional which may be accidental
+  severity: medium
+  category: best-practices
+  tags: [general, conditionals, bugs]
+  languages: [javascript, typescript, java, csharp, php]
+  patterns:
+    regex: (if|while)\s*\([^)]*=(?!=)[^)]*\)
+  message: Assignment in condition may be a bug. Use === for comparison.
+
+- id: BP316
+  name: Duplicate Code Block
+  description: Detects identical code in if-else branches
+  severity: medium
+  category: best-practices
+  tags: [general, duplication, refactoring]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: if\s*\([^)]+\)\s*\{([^}]{30,})\}\s*else\s*\{\1\}
+  message: Identical code in both branches. Extract common code outside if-else.
+
+- id: BP317
+  name: Unnecessary Else After Return
+  description: Detects else block after return statement
+  severity: low
+  category: best-practices
+  tags: [general, control-flow, cleanup]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: if\s*\([^)]+\)\s*\{[\s\S]{1,50}return[\s\S]{1,50}\}\s*else
+  message: Else after return is unnecessary. Remove else and unindent code.
+
+- id: BP318
+  name: Function Too Generic
+  description: Detects overly generic function names
+  severity: low
+  category: best-practices
+  tags: [general, naming, clarity]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (function|def|func)\s+(process|handle|manage|do|execute|run)\s*\(
+  message: Generic function name. Use specific, descriptive names.
+
+- id: BP319
+  name: Premature Optimization
+  description: Detects micro-optimizations that hurt readability
+  severity: low
+  category: best-practices
+  tags: [general, optimization, readability]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (~~|\|\|0|>>0)
+  message: Premature optimization detected. Prefer readable code unless profiling shows need.
+
+- id: BP320
+  name: Insufficient Error Context
+  description: Detects error throwing without context
+  severity: low
+  category: best-practices
+  tags: [general, error-handling, debugging]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: throw\s+new\s+Error\(['"][^'"]{1,20}['"]
+  message: Include context in error messages (function name, input values) for debugging.
+
+- id: BP321
+  name: Missing Input Validation
+  description: Detects public functions without input validation
+  severity: medium
+  category: best-practices
+  tags: [general, validation, robustness]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (export|public)\s+(function|def|func)\s+\w+\([^)]+\)[\s\S]{1,100}\{(?![\s\S]{1,50}(if|throw|check|validate))
+  message: Add input validation for public functions to prevent invalid states.
+
+- id: BP322
+  name: Hardcoded Locale
+  description: Detects hard-coded locale/language strings
+  severity: low
+  category: best-practices
+  tags: [general, i18n, internationalization]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (toLocaleString|toLocaleDateString)\(['"]en-US['"]
+  message: Avoid hard-coded locales. Use user's locale or make it configurable.
