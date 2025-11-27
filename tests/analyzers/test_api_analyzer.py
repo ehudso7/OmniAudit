@@ -4,7 +4,6 @@ import pytest
 from pathlib import Path
 from omniaudit.analyzers.api import APIAnalyzer, APIType
 from omniaudit.analyzers.api.validators import RESTValidator, GraphQLValidator, OpenAPIValidator
-from omniaudit.analyzers.base import AnalyzerError
 
 
 class TestAPIAnalyzer:
