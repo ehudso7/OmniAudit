@@ -52,15 +52,11 @@ function App() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.statusText}`);
-      }
-
       const result = await response.json();
 
-      // Check if API returned an error
-      if (result.success === false) {
-        throw new Error(result.message || result.error || 'API returned an error');
+      // Check if API returned an error (either via HTTP status or success flag)
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || result.error || `Failed to fetch: ${response.statusText}`);
       }
 
       // Transform data for dashboard

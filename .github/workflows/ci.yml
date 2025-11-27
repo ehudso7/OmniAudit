@@ -65,16 +65,8 @@ jobs:
 
     - name: Run unit tests
       run: |
-        # Note: tests/analyzers/ requires base.py module not present in src/omniaudit
-        # Running basic import test only until package structure is fixed
-        python -c "import omniaudit; print('Package imports successfully')"
-      continue-on-error: true
-
-    - name: Run integration tests
-      run: |
-        # Skip integration tests - requires python-app package
-        echo "Integration tests skipped (requires python-app package)"
-      continue-on-error: true
+        pytest tests/ -v --cov=src/omniaudit --cov-report=xml
+      continue-on-error: true  # TODO: Remove once all tests pass
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
