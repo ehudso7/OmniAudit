@@ -3,9 +3,9 @@
 import pytest
 import json
 from pathlib import Path
-from src.omniaudit.analyzers.i18n import I18nAnalyzer, I18nFramework
-from src.omniaudit.analyzers.i18n.detectors import HardcodedStringDetector, CompletenessChecker
-from src.omniaudit.analyzers.base import AnalyzerError
+from omniaudit.analyzers.i18n import I18nAnalyzer, I18nFramework
+from omniaudit.analyzers.i18n.detectors import HardcodedStringDetector, CompletenessChecker
+from omniaudit.analyzers.base import AnalyzerError
 
 
 class TestI18nAnalyzer:
