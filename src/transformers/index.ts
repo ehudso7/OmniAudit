@@ -1,10 +1,10 @@
+import type { Transformer } from '../types/index';
 import {
   BaseTransformer,
   ReactMemoTransformer,
-  UseMemoTransformer,
   RemoveConsoleTransformer,
+  UseMemoTransformer,
 } from './base-transformer';
-import type { Transformer } from '../types/index';
 
 export class TransformerFactory {
   private static readonly TRANSFORMERS = new Map<string, new () => Transformer>([
@@ -32,10 +32,5 @@ export class TransformerFactory {
   }
 }
 
-export {
-  BaseTransformer,
-  ReactMemoTransformer,
-  UseMemoTransformer,
-  RemoveConsoleTransformer,
-};
+export { BaseTransformer, ReactMemoTransformer, UseMemoTransformer, RemoveConsoleTransformer };
 export type { Transformer };

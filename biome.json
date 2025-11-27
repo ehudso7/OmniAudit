@@ -1,5 +1,8 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+  "files": {
+    "ignore": ["dist", "node_modules", "frontend/dist", "*.d.ts", "build", "vscode-extension", "python-app"]
+  },
   "organizeImports": {
     "enabled": true
   },
@@ -87,7 +90,7 @@
       "quoteStyle": "single",
       "jsxQuoteStyle": "single",
       "quoteProperties": "asNeeded",
-      "trailingComma": "all",
+      "trailingCommas": "all",
       "semicolons": "always",
       "arrowParentheses": "always",
       "bracketSpacing": true,

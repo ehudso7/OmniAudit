@@ -1,25 +1,25 @@
-import { Anthropic} from '@anthropic-ai/sdk';
-import { Redis } from '@upstash/redis';
-import * as Sentry from '@sentry/bun';
 import { createHash } from 'crypto';
+import { Anthropic } from '@anthropic-ai/sdk';
+import * as Sentry from '@sentry/bun';
+import { Redis } from '@upstash/redis';
 import { AnalyzerFactory } from '../analyzers/index';
-import { TransformerFactory } from '../transformers/index';
 import { db } from '../db/client';
+import { TransformerFactory } from '../transformers/index';
 import type {
-  EngineConfig,
-  SkillDefinition,
-  LoadedSkill,
-  SkillContext,
-  SkillActivation,
+  AIAnalysisResult,
+  Analyzer,
   CodeInput,
+  EngineConfig,
   ExecutionOptions,
+  LoadedSkill,
+  Optimization,
+  SkillActivation,
+  SkillContext,
+  SkillDefinition,
   SkillExecutionResult,
   StaticAnalysisResult,
-  AIAnalysisResult,
-  Optimization,
-  Analyzer,
-  Transformer,
   ToolCall,
+  Transformer,
 } from '../types/index';
 import { SkillDefinitionSchema } from '../types/index';
 
@@ -68,9 +68,7 @@ export class OmniAuditSkillsEngine {
       const analyzers = await this.initializeAnalyzers(validated.capabilities.analyzers);
 
       // Initialize transformers
-      const transformers = await this.initializeTransformers(
-        validated.capabilities.transformers,
-      );
+      const transformers = await this.initializeTransformers(validated.capabilities.transformers);
 
       // Create loaded skill instance
       const loadedSkill: LoadedSkill = {
@@ -111,10 +109,7 @@ export class OmniAuditSkillsEngine {
   /**
    * Activate a skill for use in current session
    */
-  async activateSkill(
-    skillId: string,
-    context?: SkillContext,
-  ): Promise<SkillActivation> {
+  async activateSkill(skillId: string, context?: SkillContext): Promise<SkillActivation> {
     let skill = this.skills.get(skillId);
 
     // If not in memory, load from database
@@ -462,10 +457,7 @@ export class OmniAuditSkillsEngine {
   /**
    * Build system prompt for Claude
    */
-  private buildSystemPrompt(
-    skill: LoadedSkill,
-    staticResults: StaticAnalysisResult[],
-  ): string {
+  private buildSystemPrompt(skill: LoadedSkill, staticResults: StaticAnalysisResult[]): string {
     const { instructions, metadata } = skill.definition;
 
     return `You are OmniAudit, an expert code optimization AI assistant.
@@ -697,8 +689,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
 
     if (issueType.includes('performance')) performance = 0.8;
     if (issueType.includes('security')) security = 1.0;
-    if (issueType.includes('complexity') || issueType.includes('nesting'))
-      maintainability = 0.7;
+    if (issueType.includes('complexity') || issueType.includes('nesting')) maintainability = 0.7;
 
     const overall = Math.max(performance, security, maintainability) * severityMultiplier;
 
@@ -711,10 +702,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
   }
 
   private countAffectedLines(optimizations: Optimization[]): number {
-    return optimizations.reduce(
-      (count, opt) => count + (opt.location.length || 1),
-      0,
-    );
+    return optimizations.reduce((count, opt) => count + (opt.location.length || 1), 0);
   }
 
   private calculateConfidence(analysis: string, staticResults: StaticAnalysisResult[]): number {

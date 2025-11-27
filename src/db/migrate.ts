@@ -1,6 +1,6 @@
-import { createClient } from '@libsql/client';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { createClient } from '@libsql/client';
 import * as dotenv from 'dotenv';
 
 dotenv.config();

@@ -1,12 +1,7 @@
 import { parse } from '@babel/parser';
 import traverse, { type NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import type {
-  Analyzer,
-  CodeInput,
-  StaticAnalysisResult,
-  AnalysisIssue,
-} from '../types/index';
+import type { AnalysisIssue, Analyzer, CodeInput, StaticAnalysisResult } from '../types/index';
 
 export class PerformanceAnalyzer implements Analyzer {
   name = 'performance-analyzer';
@@ -87,10 +82,7 @@ export class PerformanceAnalyzer implements Analyzer {
 
         // Check for expensive regex operations
         NewExpression: (path: NodePath<t.NewExpression>) => {
-          if (
-            this.config.checkRegex &&
-            t.isIdentifier(path.node.callee, { name: 'RegExp' })
-          ) {
+          if (this.config.checkRegex && t.isIdentifier(path.node.callee, { name: 'RegExp' })) {
             // Check if RegExp is created inside a loop or function called frequently
             let inLoop = false;
             let currentPath: NodePath | null = path;
@@ -137,8 +129,7 @@ export class PerformanceAnalyzer implements Analyzer {
                     type: 'missing-react-memo',
                     severity: 'info',
                     message: `Component '${componentName}' may benefit from React.memo`,
-                    description:
-                      'Wrap component with React.memo to prevent unnecessary re-renders',
+                    description: 'Wrap component with React.memo to prevent unnecessary re-renders',
                     line: functionParent.node.loc?.start.line || 0,
                     column: functionParent.node.loc?.start.column,
                     confidence: 0.6,
@@ -221,8 +212,7 @@ export class PerformanceAnalyzer implements Analyzer {
                 type: 'barrel-import',
                 severity: 'info',
                 message: 'Importing from barrel export',
-                description:
-                  'Import directly from component file for faster build times',
+                description: 'Import directly from component file for faster build times',
                 line: path.node.loc?.start.line || 0,
                 column: path.node.loc?.start.column,
                 confidence: 0.6,
@@ -255,8 +245,7 @@ export class PerformanceAnalyzer implements Analyzer {
               type: 'jsx-inline-array',
               severity: 'info',
               message: 'Inline array literal in JSX',
-              description:
-                'Creates new array on every render. Move outside or use useMemo',
+              description: 'Creates new array on every render. Move outside or use useMemo',
               line: path.node.loc?.start.line || 0,
               column: path.node.loc?.start.column,
               confidence: 0.7,
@@ -322,10 +311,7 @@ export class PerformanceAnalyzer implements Analyzer {
       return true;
     }
 
-    if (
-      t.isCallExpression(parent) &&
-      t.isIdentifier(parent.callee, { name: 'memo' })
-    ) {
+    if (t.isCallExpression(parent) && t.isIdentifier(parent.callee, { name: 'memo' })) {
       return true;
     }
 
@@ -383,8 +369,7 @@ export class PerformanceAnalyzer implements Analyzer {
         if (
           t.isIdentifier(path.node.id) &&
           /^[A-Z]/.test(path.node.id.name) &&
-          (t.isArrowFunctionExpression(path.node.init) ||
-            t.isFunctionExpression(path.node.init))
+          (t.isArrowFunctionExpression(path.node.init) || t.isFunctionExpression(path.node.init))
         ) {
           count++;
         }

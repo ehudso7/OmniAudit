@@ -1,13 +1,13 @@
 #!/usr/bin/env bun
 
-import { Command } from 'commander';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import chalk from 'chalk';
-import ora from 'ora';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { Command } from 'commander';
 import * as dotenv from 'dotenv';
+import ora from 'ora';
 import { OmniAuditSkillsEngine } from '../core/skills-engine';
-import { getAllBuiltinSkills, getBuiltinSkill } from '../skills/index';
 import { db } from '../db/client';
+import { getAllBuiltinSkills, getBuiltinSkill } from '../skills/index';
 import type { CodeInput, SkillExecutionResult } from '../types/index';
 
 dotenv.config();
@@ -29,7 +29,7 @@ program
   .option('-o, --output <file>', 'Output file for results')
   .option('--auto-fix', 'Automatically apply fixes')
   .option('--format <format>', 'Output format (json|markdown|terminal)', 'terminal')
-  .option('--max-issues <number>', 'Maximum issues to report', parseInt)
+  .option('--max-issues <number>', 'Maximum issues to report', Number.parseInt)
   .option('--severity <levels...>', 'Filter by severity (error|warning|info)')
   .option('--no-cache', 'Disable caching')
   .action(async (files, options) => {
@@ -116,9 +116,7 @@ program
       }
 
       // Exit with error code if critical issues found
-      const hasCriticalIssues = allResults.some(
-        (r) => r.metrics && r.metrics.issues_found > 0,
-      );
+      const hasCriticalIssues = allResults.some((r) => r.metrics && r.metrics.issues_found > 0);
       if (hasCriticalIssues) {
         process.exit(1);
       }
@@ -348,9 +346,7 @@ function displayResults(results: SkillExecutionResult[], format: string): void {
       }
 
       if (result.optimizations.length > 10) {
-        console.log(
-          chalk.gray(`   ... and ${result.optimizations.length - 10} more issues\n`),
-        );
+        console.log(chalk.gray(`   ... and ${result.optimizations.length - 10} more issues\n`));
       }
     }
 
@@ -362,10 +358,7 @@ function displayResults(results: SkillExecutionResult[], format: string): void {
   // Summary
   const totalIssues = results.reduce((sum, r) => sum + (r.metrics?.issues_found || 0), 0);
   const totalWarnings = results.reduce((sum, r) => sum + (r.metrics?.warnings_found || 0), 0);
-  const totalSuggestions = results.reduce(
-    (sum, r) => sum + (r.metrics?.suggestions_found || 0),
-    0,
-  );
+  const totalSuggestions = results.reduce((sum, r) => sum + (r.metrics?.suggestions_found || 0), 0);
 
   console.log(chalk.bold('\n' + '='.repeat(70)));
   console.log(chalk.bold('TOTAL SUMMARY'));

@@ -296,11 +296,7 @@ export default {
         const results: SkillExecutionResult[] = [];
         for (const skillId of skills || ['performance-optimizer-pro']) {
           await engine.activateSkill(skillId);
-          const result = await engine.executeSkill(
-            skillId,
-            { code, language },
-            options || {},
-          );
+          const result = await engine.executeSkill(skillId, { code, language }, options || {});
           results.push(result);
         }
 

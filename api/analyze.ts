@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { OmniAuditSkillsEngine } from '../src/core/skills-engine';
 import type { CodeInput, SkillExecutionResult } from '../src/types/index';
 
@@ -6,10 +6,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers - no credentials with wildcard origin per CORS spec
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-Requested-With'
-  );
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
 
   // Handle OPTIONS for CORS preflight
   if (req.method === 'OPTIONS') {
@@ -29,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!code || !language) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: code, language'
+        error: 'Missing required fields: code, language',
       });
     }
 
@@ -37,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (skills !== undefined && !Array.isArray(skills)) {
       return res.status(400).json({
         success: false,
-        error: 'Skills parameter must be an array'
+        error: 'Skills parameter must be an array',
       });
     }
 
@@ -77,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const skillIds = skills || ['performance-optimizer-pro'];
 
     // Activate all skills in parallel
-    await Promise.all(skillIds.map(id => engine.activateSkill(id)));
+    await Promise.all(skillIds.map((id) => engine.activateSkill(id)));
 
     // Execute analysis
     const input: CodeInput = {
@@ -89,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Execute all skills in parallel
     const results = await Promise.all(
-      skillIds.map(id => engine.executeSkill(id, input, options || {}))
+      skillIds.map((id) => engine.executeSkill(id, input, options || {})),
     );
 
     return res.status(200).json({

@@ -1,4 +1,4 @@
-import { createClient, type Client, type InValue } from '@libsql/client';
+import { type Client, type InValue, createClient } from '@libsql/client';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -212,13 +212,16 @@ export class DatabaseClient {
   }
 
   // Analytics operations
-  async updateAnalytics(skill_id: string, data: {
-    executions_count?: number;
-    success_count?: number;
-    failure_count?: number;
-    avg_execution_time_ms?: number;
-    total_execution_time_ms?: number;
-  }) {
+  async updateAnalytics(
+    skill_id: string,
+    data: {
+      executions_count?: number;
+      success_count?: number;
+      failure_count?: number;
+      avg_execution_time_ms?: number;
+      total_execution_time_ms?: number;
+    },
+  ) {
     const date = new Date().toISOString().split('T')[0];
 
     await this.client.execute({
@@ -278,13 +281,7 @@ export class DatabaseClient {
           result = excluded.result,
           expires_at = excluded.expires_at
       `,
-      args: [
-        `${skill_id}:${input_hash}`,
-        skill_id,
-        input_hash,
-        JSON.stringify(result),
-        expires_at,
-      ],
+      args: [`${skill_id}:${input_hash}`, skill_id, input_hash, JSON.stringify(result), expires_at],
     });
   }
 

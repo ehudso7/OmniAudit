@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import axios from 'axios';
+import * as vscode from 'vscode';
 
 interface OmniAuditConfig {
   apiKey: string;
@@ -72,12 +72,8 @@ class OmniAuditExtension {
   private registerCommands(): void {
     this.context.subscriptions.push(
       vscode.commands.registerCommand('omniaudit.analyzeFile', () => this.analyzeCurrentFile()),
-      vscode.commands.registerCommand('omniaudit.analyzeSelection', () =>
-        this.analyzeSelection(),
-      ),
-      vscode.commands.registerCommand('omniaudit.analyzeWorkspace', () =>
-        this.analyzeWorkspace(),
-      ),
+      vscode.commands.registerCommand('omniaudit.analyzeSelection', () => this.analyzeSelection()),
+      vscode.commands.registerCommand('omniaudit.analyzeWorkspace', () => this.analyzeWorkspace()),
       vscode.commands.registerCommand('omniaudit.fixIssue', (optimization: Optimization) =>
         this.fixIssue(optimization),
       ),
@@ -181,22 +177,17 @@ class OmniAuditExtension {
 
           completed++;
           progress.report({
-            increment: (100 / total),
+            increment: 100 / total,
             message: `${completed}/${total} files`,
           });
         }
 
-        vscode.window.showInformationMessage(
-          `OmniAudit: Analyzed ${completed} files`,
-        );
+        vscode.window.showInformationMessage(`OmniAudit: Analyzed ${completed} files`);
       },
     );
   }
 
-  private async analyzeDocument(
-    document: vscode.TextDocument,
-    showProgress = true,
-  ): Promise<void> {
+  private async analyzeDocument(document: vscode.TextDocument, showProgress = true): Promise<void> {
     if (!this.isSupported(document.languageId)) {
       return;
     }
@@ -263,15 +254,10 @@ class OmniAuditExtension {
 
           this.displayResults(filePath, results);
 
-          const totalIssues = results.reduce(
-            (sum, r) => sum + (r.metrics?.issues_found || 0),
-            0,
-          );
+          const totalIssues = results.reduce((sum, r) => sum + (r.metrics?.issues_found || 0), 0);
           this.statusBarItem.text = `$(check) OmniAudit: ${totalIssues} issues`;
 
-          vscode.window.showInformationMessage(
-            `OmniAudit: Found ${totalIssues} issues`,
-          );
+          vscode.window.showInformationMessage(`OmniAudit: Found ${totalIssues} issues`);
         } else {
           throw new Error('Analysis failed');
         }
@@ -319,11 +305,7 @@ class OmniAuditExtension {
               ? vscode.DiagnosticSeverity.Warning
               : vscode.DiagnosticSeverity.Information;
 
-        const diagnostic = new vscode.Diagnostic(
-          range,
-          optimization.title,
-          severity,
-        );
+        const diagnostic = new vscode.Diagnostic(range, optimization.title, severity);
 
         diagnostic.source = 'OmniAudit';
         diagnostic.code = optimization.id;
@@ -417,9 +399,7 @@ class OmniAuditExtension {
   }
 
   private isSupported(languageId: string): boolean {
-    return ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'].includes(
-      languageId,
-    );
+    return ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'].includes(languageId);
   }
 
   private getConfig(): OmniAuditConfig {
@@ -478,16 +458,17 @@ class IssuesTreeProvider implements vscode.TreeDataProvider<IssueTreeItem> {
   getChildren(element?: IssueTreeItem): Thenable<IssueTreeItem[]> {
     if (!element) {
       return Promise.resolve(
-        this.issues.flatMap((result) =>
-          result.optimizations?.map(
-            (opt) =>
-              new IssueTreeItem(
-                opt.title,
-                opt.severity,
-                vscode.TreeItemCollapsibleState.None,
-                opt,
-              ),
-          ) || [],
+        this.issues.flatMap(
+          (result) =>
+            result.optimizations?.map(
+              (opt) =>
+                new IssueTreeItem(
+                  opt.title,
+                  opt.severity,
+                  vscode.TreeItemCollapsibleState.None,
+                  opt,
+                ),
+            ) || [],
         ),
       );
     }
@@ -537,8 +518,7 @@ class SkillsTreeProvider implements vscode.TreeDataProvider<SkillTreeItem> {
 
       return Promise.resolve(
         enabledSkills.map(
-          (skill) =>
-            new SkillTreeItem(skill, vscode.TreeItemCollapsibleState.None),
+          (skill) => new SkillTreeItem(skill, vscode.TreeItemCollapsibleState.None),
         ),
       );
     }
