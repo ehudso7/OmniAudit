@@ -106,7 +106,7 @@
   message: Consider WeakMap/WeakSet for DOM/object references to allow GC.
 
 - id: PERF210
-  name: Array Prealocation Missing
+  name: Array Preallocation Missing
   description: Detects arrays that grow dynamically when size is known
   severity: low
   category: performance
