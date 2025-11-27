@@ -405,3 +405,118 @@ class AIAnalysisError(BaseModel):
     retry_recommended: bool = Field(description="Whether retrying might succeed")
     fallback_available: bool = Field(description="Whether fallback analysis is available")
     timestamp: str = Field(description="ISO 8601 timestamp of error")
+
+
+# ============================================================================
+# Enhanced AI Analysis Models (Phase 6)
+# ============================================================================
+
+
+class TechnicalDebtItem(BaseModel):
+    """Individual technical debt item."""
+
+    category: str = Field(description="Debt category (e.g., 'code_quality', 'security', 'performance')")
+    description: str = Field(description="Description of the debt")
+    estimated_cost_hours: float = Field(description="Estimated hours to address", ge=0)
+    impact_score: float = Field(description="Impact score 0-100", ge=0, le=100)
+    files_affected: List[str] = Field(description="List of affected files")
+
+
+class RefactoringTask(BaseModel):
+    """A specific refactoring task."""
+
+    title: str = Field(description="Refactoring task title")
+    description: str = Field(description="Detailed description")
+    priority: int = Field(description="Priority 1 (highest) to 5 (lowest)", ge=1, le=5)
+    estimated_hours: float = Field(description="Estimated hours", ge=0)
+    files_to_change: List[str] = Field(description="Files that need changes")
+    benefits: List[str] = Field(description="Expected benefits", max_length=5)
+    risks: List[str] = Field(description="Potential risks", max_length=3)
+
+
+class ThreatItem(BaseModel):
+    """Security threat identified in the codebase."""
+
+    threat_type: str = Field(description="Type of threat (e.g., 'injection', 'xss', 'auth_bypass')")
+    severity: Severity = Field(description="Threat severity")
+    description: str = Field(description="Detailed threat description")
+    attack_vectors: List[str] = Field(description="Possible attack vectors", max_length=5)
+    affected_components: List[str] = Field(description="Affected components/files")
+    mitigation_steps: List[str] = Field(description="Recommended mitigation", max_length=5)
+    likelihood: str = Field(description="Likelihood: 'high', 'medium', 'low'")
+    impact: str = Field(description="Impact if exploited: 'high', 'medium', 'low'")
+
+
+class TeamPattern(BaseModel):
+    """Observed team coding pattern."""
+
+    pattern_type: str = Field(description="Pattern type (e.g., 'good_practice', 'anti_pattern', 'inconsistency')")
+    title: str = Field(description="Pattern title")
+    description: str = Field(description="Pattern description")
+    frequency: str = Field(description="How often observed: 'frequent', 'occasional', 'rare'")
+    examples: List[str] = Field(description="Example locations", max_length=5)
+    recommendation: str = Field(description="Recommendation for the team")
+
+
+class HolisticHealthAssessment(BaseModel):
+    """Comprehensive holistic health assessment."""
+
+    overall_health_score: int = Field(description="Overall health score 0-100", ge=0, le=100)
+    health_status: HealthStatus = Field(description="Categorical health status")
+
+    # Component scores
+    code_quality_score: int = Field(description="Code quality score 0-100", ge=0, le=100)
+    security_score: int = Field(description="Security posture score 0-100", ge=0, le=100)
+    performance_score: int = Field(description="Performance score 0-100", ge=0, le=100)
+    maintainability_score: int = Field(description="Maintainability score 0-100", ge=0, le=100)
+    test_coverage_score: int = Field(description="Testing score 0-100", ge=0, le=100)
+
+    # Detailed assessments
+    strengths: List[str] = Field(description="Key strengths", max_length=5)
+    weaknesses: List[str] = Field(description="Key weaknesses", max_length=5)
+    critical_issues: List[str] = Field(description="Critical issues requiring immediate attention", max_length=5)
+
+    # Trends
+    trend_direction: str = Field(description="Trend: 'improving', 'stable', 'degrading'")
+    trend_explanation: str = Field(description="Explanation of the trend")
+
+
+class EnhancedAIInsightsResult(BaseModel):
+    """Enhanced AI insights with holistic analysis."""
+
+    # Original fields
+    project_id: str = Field(description="Unique identifier for the analyzed project")
+    analyzed_at: str = Field(description="ISO 8601 timestamp of analysis")
+
+    # Holistic health
+    holistic_health: HolisticHealthAssessment = Field(description="Holistic health assessment")
+
+    # Technical debt
+    technical_debt_total_hours: float = Field(description="Total estimated debt hours", ge=0)
+    technical_debt_items: List[TechnicalDebtItem] = Field(description="Detailed debt items")
+    debt_trend: str = Field(description="Debt trend: 'increasing', 'stable', 'decreasing'")
+
+    # Refactoring roadmap
+    refactoring_roadmap: List[RefactoringTask] = Field(description="Prioritized refactoring tasks")
+
+    # Threat modeling
+    threat_model: List[ThreatItem] = Field(description="Identified security threats")
+    security_posture_summary: str = Field(description="Overall security posture summary")
+
+    # Team patterns
+    team_patterns: List[TeamPattern] = Field(description="Observed team coding patterns")
+
+    # Recommendations
+    immediate_actions: List[str] = Field(description="Actions to take immediately", max_length=5)
+    short_term_goals: List[str] = Field(description="Goals for next 1-3 months", max_length=5)
+    long_term_strategy: str = Field(description="Long-term improvement strategy")
+
+    @field_validator("analyzed_at")
+    @classmethod
+    def validate_timestamp(cls, v: str) -> str:
+        """Validate that analyzed_at is a valid ISO 8601 timestamp."""
+        try:
+            datetime.fromisoformat(v.replace("Z", "+00:00"))
+        except ValueError as e:
+            raise ValueError(f"Invalid ISO 8601 timestamp: {v}") from e
+        return v

@@ -1,0 +1,165 @@
+---
+# Security Rules - Cryptography & Encryption
+# 10+ rules for detecting cryptographic issues
+
+- id: SEC201
+  name: Weak Crypto Algorithm MD5
+  description: Detects use of weak MD5 hashing algorithm
+  severity: high
+  category: security
+  tags: [crypto, weak-algorithm, hashing]
+  languages: [javascript, typescript, python, go, java, php, ruby, csharp]
+  patterns:
+    regex: (createHash\(['"]md5|hashlib\.md5|MessageDigest\.getInstance\(['"]MD5|md5\()
+  references:
+    - https://owasp.org/Top10/A02_2021-Cryptographic_Failures/
+  cwe: [CWE-327]
+  owasp: [A02_2021-Cryptographic_Failures]
+  message: MD5 is cryptographically broken. Use SHA-256 or stronger.
+
+- id: SEC202
+  name: Weak Crypto Algorithm SHA1
+  description: Detects use of weak SHA1 hashing algorithm
+  severity: high
+  category: security
+  tags: [crypto, weak-algorithm, hashing]
+  languages: [javascript, typescript, python, go, java, php, ruby, csharp]
+  patterns:
+    regex: (createHash\(['"]sha1|hashlib\.sha1|MessageDigest\.getInstance\(['"]SHA-1|sha1\()
+  cwe: [CWE-327]
+  owasp: [A02_2021-Cryptographic_Failures]
+  message: SHA1 is deprecated. Use SHA-256 or stronger.
+
+- id: SEC203
+  name: Weak Encryption DES
+  description: Detects use of weak DES encryption
+  severity: critical
+  category: security
+  tags: [crypto, weak-algorithm, encryption]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (Cipher\.getInstance\(['"]DES|DES|createCipheriv\(['"]des)
+  cwe: [CWE-327]
+  owasp: [A02_2021-Cryptographic_Failures]
+  message: DES is cryptographically broken. Use AES-256 instead.
+
+- id: SEC204
+  name: ECB Mode Usage
+  description: Detects use of insecure ECB encryption mode
+  severity: high
+  category: security
+  tags: [crypto, weak-algorithm, encryption-mode]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (Cipher\.getInstance\(['"][^'"]*\/ECB|createCipheriv\(['"]aes-\d+-ecb)
+  cwe: [CWE-327]
+  message: ECB mode is insecure. Use GCM or CBC mode with HMAC.
+
+- id: SEC205
+  name: Hardcoded IV/Salt
+  description: Detects hardcoded initialization vectors or salts
+  severity: high
+  category: security
+  tags: [crypto, hardcoded, iv, salt]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (iv|salt)\s*=\s*['"][a-f0-9]{16,}['"]
+  cwe: [CWE-329]
+  message: Hardcoded IV/salt detected. Generate random values.
+
+- id: SEC206
+  name: Insufficient Key Length
+  description: Detects use of insufficient encryption key lengths
+  severity: high
+  category: security
+  tags: [crypto, key-length, encryption]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (generateKey|KeyGenerator\.getInstance).*\b(64|128)\b
+  cwe: [CWE-326]
+  message: Insufficient key length. Use at least 256 bits for symmetric encryption.
+
+- id: SEC207
+  name: Insecure Random
+  description: Detects use of Math.random() for security-sensitive operations
+  severity: medium
+  category: security
+  tags: [crypto, random, weak-random]
+  languages: [javascript, typescript]
+  patterns:
+    regex: Math\.random\(\)
+  conditions:
+    fileMatch:
+      - "**/auth/**"
+      - "**/security/**"
+      - "**/crypto/**"
+  cwe: [CWE-338]
+  message: Math.random() is not cryptographically secure. Use crypto.randomBytes().
+
+- id: SEC208
+  name: Weak SSL/TLS Version
+  description: Detects use of weak SSL/TLS versions
+  severity: high
+  category: security
+  tags: [crypto, ssl, tls, protocol]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (SSLv2|SSLv3|TLSv1\.0|TLSv1\.1)
+  cwe: [CWE-326]
+  owasp: [A02_2021-Cryptographic_Failures]
+  message: Weak SSL/TLS version. Use TLS 1.2 or higher.
+
+- id: SEC209
+  name: Certificate Validation Disabled
+  description: Detects disabled SSL certificate validation
+  severity: critical
+  category: security
+  tags: [crypto, ssl, certificate-validation]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (rejectUnauthorized|verify|SSL_VERIFY_NONE|InsecureSkipVerify).*false|True|true
+  cwe: [CWE-295]
+  owasp: [A02_2021-Cryptographic_Failures]
+  message: SSL certificate validation is disabled. This allows MITM attacks.
+
+- id: SEC210
+  name: Weak Random in Python
+  description: Detects use of random module instead of secrets for security
+  severity: medium
+  category: security
+  tags: [crypto, random, python]
+  languages: [python]
+  patterns:
+    regex: import random(?!.*secrets)
+  conditions:
+    fileMatch:
+      - "**/auth/**"
+      - "**/security/**"
+      - "**/crypto/**"
+  cwe: [CWE-338]
+  message: Use secrets module instead of random for security-sensitive operations.
+
+- id: SEC211
+  name: Unsafe Deserialization
+  description: Detects potential unsafe deserialization
+  severity: critical
+  category: security
+  tags: [crypto, deserialization, serialization]
+  languages: [javascript, typescript, python, java, php, ruby]
+  patterns:
+    regex: (pickle\.loads|unserialize|deserialize|ObjectInputStream|YAML\.load)
+  cwe: [CWE-502]
+  owasp: [A08_2021-Software_and_Data_Integrity_Failures]
+  message: Unsafe deserialization can lead to RCE. Validate and sanitize input.
+
+- id: SEC212
+  name: JWT None Algorithm
+  description: Detects JWT with none algorithm which bypasses signature verification
+  severity: critical
+  category: security
+  tags: [crypto, jwt, authentication]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: algorithm:\s*['"]none['"]
+  cwe: [CWE-347]
+  message: JWT with 'none' algorithm is insecure. Use HS256 or RS256.

@@ -1,0 +1,139 @@
+---
+# Performance Rules - Memory Management
+# 10+ rules for detecting memory leaks and inefficient memory usage
+
+- id: PERF201
+  name: Event Listener Memory Leak
+  description: Detects addEventListener without removeEventListener
+  severity: medium
+  category: performance
+  tags: [performance, memory-leak, events, dom]
+  languages: [javascript, typescript]
+  patterns:
+    regex: addEventListener\(['"][^'"]+['"](?![\s\S]{1,200}removeEventListener)
+  message: Potential memory leak. Remove event listeners when component unmounts.
+
+- id: PERF202
+  name: setInterval Without clearInterval
+  description: Detects setInterval without corresponding clearInterval
+  severity: medium
+  category: performance
+  tags: [performance, memory-leak, timers]
+  languages: [javascript, typescript]
+  patterns:
+    regex: setInterval\((?![\s\S]{1,200}clearInterval)
+  message: Potential memory leak. Clear intervals when component unmounts.
+
+- id: PERF203
+  name: Large Array in Memory
+  description: Detects large array literals that may cause memory issues
+  severity: low
+  category: performance
+  tags: [performance, memory, arrays]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: =\s*\[[\s\S]{2000,}\]
+  message: Large array literal. Consider lazy loading or pagination.
+
+- id: PERF204
+  name: Global Variable Pollution
+  description: Detects variables attached to global scope
+  severity: medium
+  category: performance
+  tags: [performance, memory, globals, scope]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (window|global)\.\w+\s*=
+  message: Global variable detected. Use modules or closures to avoid memory leaks.
+
+- id: PERF205
+  name: Closure Memory Leak
+  description: Detects large closures that may retain memory
+  severity: low
+  category: performance
+  tags: [performance, memory-leak, closures]
+  languages: [javascript, typescript]
+  patterns:
+    regex: return\s+function[\s\S]{200,}
+  message: Large closure may retain unnecessary variables. Keep closures minimal.
+
+- id: PERF206
+  name: Detached DOM Elements
+  description: Detects DOM element references that may prevent GC
+  severity: medium
+  category: performance
+  tags: [performance, memory-leak, dom]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (const|let|var)\s+\w+\s*=\s*document\.(querySelector|getElementById)(?![\s\S]{1,200}=\s*null)
+  message: DOM reference may prevent garbage collection. Set to null when done.
+
+- id: PERF207
+  name: String Concatenation Memory
+  description: Detects inefficient string building
+  severity: low
+  category: performance
+  tags: [performance, memory, strings]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: (const|let|var)\s+\w+\s*=\s*['"][\s\S]{1,50}(['"]|\+\s*\w+\s*\+)[\s\S]{1,50}\+
+  message: Multiple string concatenations. Use template literals or array.join().
+
+- id: PERF208
+  name: Unnecessary Object Creation
+  description: Detects object literals created repeatedly
+  severity: low
+  category: performance
+  tags: [performance, memory, objects]
+  languages: [javascript, typescript, python, java]
+  patterns:
+    regex: return\s*\{[\s\S]{100,}\}
+  conditions:
+    fileMatch:
+      - "**/utils/**"
+      - "**/helpers/**"
+  message: Large object returned from function. Consider object pooling or caching.
+
+- id: PERF209
+  name: WeakMap/WeakSet Opportunity
+  description: Detects Map/Set that could use Weak variants
+  severity: low
+  category: performance
+  tags: [performance, memory, collections]
+  languages: [javascript, typescript]
+  patterns:
+    regex: new\s+(Map|Set)\s*\(\)[\s\S]{1,100}(DOM|element|node|component)
+  message: Consider WeakMap/WeakSet for DOM/object references to allow GC.
+
+- id: PERF210
+  name: Array Prealocation Missing
+  description: Detects arrays that grow dynamically when size is known
+  severity: low
+  category: performance
+  tags: [performance, memory, arrays]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: (const|let|var)\s+\w+\s*=\s*\[\]\s*;\s*for\s*\(\w+\s*=\s*0;\s*\w+\s*<\s*\d+
+  message: Preallocate array when size is known using new Array(size).
+
+- id: PERF211
+  name: Buffer Reallocation
+  description: Detects repeated buffer/array reallocations
+  severity: medium
+  category: performance
+  tags: [performance, memory, buffers]
+  languages: [javascript, typescript, python, go]
+  patterns:
+    regex: (Buffer\.alloc|bytearray|make\(\[\])[\s\S]{1,100}(append|push|extend)
+  message: Repeated buffer reallocation. Preallocate with expected size.
+
+- id: PERF212
+  name: Circular Reference
+  description: Detects potential circular references
+  severity: medium
+  category: performance
+  tags: [performance, memory-leak, references]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: (this|self)\.\w+\s*=\s*\{[\s\S]{1,100}(this|self)
+  message: Potential circular reference. May prevent garbage collection.

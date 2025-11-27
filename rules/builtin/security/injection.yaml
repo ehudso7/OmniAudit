@@ -1,0 +1,219 @@
+---
+# Security Rules - Injection Vulnerabilities
+# 15+ rules for detecting SQL injection, XSS, command injection, etc.
+
+- id: SEC101
+  name: SQL Injection Risk
+  description: Detects potential SQL injection vulnerabilities from string concatenation
+  severity: critical
+  category: security
+  tags: [injection, sql-injection, database]
+  languages: [javascript, typescript, python, go, java, php, ruby, csharp]
+  patterns:
+    regex: (execute|query|exec)\s*\(\s*['"].*\+|\.format\(.*SELECT|INSERT|UPDATE|DELETE
+  references:
+    - https://owasp.org/www-community/attacks/SQL_Injection
+  cwe: [CWE-89]
+  owasp: [A03_2021-Injection]
+  message: Potential SQL injection vulnerability. Use parameterized queries.
+
+- id: SEC102
+  name: Command Injection
+  description: Detects potential command injection through exec, system calls
+  severity: critical
+  category: security
+  tags: [injection, command-injection, os-command]
+  languages: [javascript, typescript, python, go, java, php, ruby]
+  patterns:
+    ast: eval
+  references:
+    - https://owasp.org/www-community/attacks/Command_Injection
+  cwe: [CWE-78]
+  owasp: [A03_2021-Injection]
+  message: Avoid using eval() - it can execute arbitrary code.
+
+- id: SEC103
+  name: XSS via innerHTML
+  description: Detects potential XSS through innerHTML assignment
+  severity: high
+  category: security
+  tags: [injection, xss, dom]
+  languages: [javascript, typescript]
+  patterns:
+    ast: innerHTML
+  references:
+    - https://owasp.org/www-community/attacks/xss/
+  cwe: [CWE-79]
+  owasp: [A03_2021-Injection]
+  message: Assignment to innerHTML may cause XSS. Use textContent or sanitize input.
+
+- id: SEC104
+  name: XSS via dangerouslySetInnerHTML
+  description: Detects React dangerouslySetInnerHTML usage without sanitization
+  severity: high
+  category: security
+  tags: [injection, xss, react]
+  languages: [javascript, typescript, jsx, tsx]
+  patterns:
+    ast: dangerouslySetInnerHTML
+  cwe: [CWE-79]
+  owasp: [A03_2021-Injection]
+  message: dangerouslySetInnerHTML can cause XSS. Sanitize input with DOMPurify.
+
+- id: SEC105
+  name: Command Injection via child_process
+  description: Detects unsafe use of Node.js child_process with user input
+  severity: critical
+  category: security
+  tags: [injection, command-injection, nodejs]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (exec|spawn|execSync|spawnSync)\s*\([^)]*\+
+  cwe: [CWE-78]
+  message: Command injection risk. Avoid concatenating user input in shell commands.
+
+- id: SEC106
+  name: Python Command Injection
+  description: Detects unsafe os.system or subprocess usage
+  severity: critical
+  category: security
+  tags: [injection, command-injection, python]
+  languages: [python]
+  patterns:
+    regex: (os\.system|subprocess\.call|subprocess\.Popen)\s*\([^)]*\+|%|\.format
+  cwe: [CWE-78]
+  message: Command injection risk. Use subprocess with array arguments.
+
+- id: SEC107
+  name: LDAP Injection
+  description: Detects potential LDAP injection vulnerabilities
+  severity: high
+  category: security
+  tags: [injection, ldap-injection]
+  languages: [javascript, typescript, python, go, java, php]
+  patterns:
+    regex: (ldap\.search|LdapContext\.search)\s*\([^)]*\+
+  cwe: [CWE-90]
+  message: Potential LDAP injection. Sanitize user input in LDAP queries.
+
+- id: SEC108
+  name: NoSQL Injection
+  description: Detects potential NoSQL injection in MongoDB queries
+  severity: high
+  category: security
+  tags: [injection, nosql-injection, mongodb]
+  languages: [javascript, typescript, python]
+  patterns:
+    regex: \.(find|findOne|update|remove)\s*\(\s*{[^}]*\$where
+  cwe: [CWE-943]
+  message: Potential NoSQL injection. Avoid using $where with user input.
+
+- id: SEC109
+  name: XML Injection
+  description: Detects potential XML injection vulnerabilities
+  severity: high
+  category: security
+  tags: [injection, xml-injection]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: (parseXML|DOMParser|xml\.etree)\s*\([^)]*\+
+  cwe: [CWE-91]
+  message: Potential XML injection. Validate and sanitize XML input.
+
+- id: SEC110
+  name: Path Traversal
+  description: Detects potential path traversal vulnerabilities
+  severity: high
+  category: security
+  tags: [injection, path-traversal, file-access]
+  languages: [javascript, typescript, python, go, java, php, ruby]
+  patterns:
+    regex: (readFile|writeFile|open|fopen)\s*\([^)]*\+.*\.\./
+  cwe: [CWE-22]
+  owasp: [A01_2021-Broken_Access_Control]
+  message: Path traversal vulnerability. Validate and sanitize file paths.
+
+- id: SEC111
+  name: Server-Side Template Injection
+  description: Detects potential SSTI vulnerabilities
+  severity: critical
+  category: security
+  tags: [injection, ssti, template]
+  languages: [javascript, typescript, python, java, ruby]
+  patterns:
+    regex: (render|renderString|compile)\s*\([^)]*\+
+  cwe: [CWE-94]
+  message: Potential template injection. Avoid concatenating user input in templates.
+
+- id: SEC112
+  name: Code Injection via Function Constructor
+  description: Detects use of Function constructor which can execute arbitrary code
+  severity: critical
+  category: security
+  tags: [injection, code-injection]
+  languages: [javascript, typescript]
+  patterns:
+    ast: Function constructor
+  cwe: [CWE-94]
+  message: Function constructor can execute arbitrary code. Avoid using it.
+
+- id: SEC113
+  name: setTimeout/setInterval with String
+  description: Detects setTimeout/setInterval with string argument
+  severity: high
+  category: security
+  tags: [injection, code-injection]
+  languages: [javascript, typescript]
+  patterns:
+    ast: setTimeout string
+  cwe: [CWE-94]
+  message: Avoid passing strings to setTimeout/setInterval. Use function references.
+
+- id: SEC114
+  name: document.write XSS
+  description: Detects use of document.write which can cause XSS
+  severity: high
+  category: security
+  tags: [injection, xss, dom]
+  languages: [javascript, typescript]
+  patterns:
+    ast: document.write
+  cwe: [CWE-79]
+  message: document.write can cause XSS. Use safer DOM manipulation methods.
+
+- id: SEC115
+  name: Header Injection
+  description: Detects potential HTTP header injection
+  severity: high
+  category: security
+  tags: [injection, header-injection, http]
+  languages: [javascript, typescript, python, go, java, php, ruby]
+  patterns:
+    regex: (setHeader|addHeader|header)\s*\([^)]*\+.*\n
+  cwe: [CWE-113]
+  message: Potential header injection. Sanitize input and remove newlines.
+
+- id: SEC116
+  name: Regex DOS
+  description: Detects potentially vulnerable regex patterns (ReDoS)
+  severity: medium
+  category: security
+  tags: [injection, redos, regex, dos]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: new RegExp\([^)]*(\+\*|\*\+|\{\d+,\}.*\*|\*.*\{\d+,\})
+  cwe: [CWE-1333]
+  message: Potential ReDoS vulnerability. Simplify regex pattern.
+
+- id: SEC117
+  name: SSRF via URL Fetch
+  description: Detects potential SSRF through fetch with user-controlled URLs
+  severity: high
+  category: security
+  tags: [injection, ssrf, http]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: (fetch|axios\.get|requests\.get|http\.Get)\s*\([^)]*\+
+  cwe: [CWE-918]
+  owasp: [A10_2021-Server-Side_Request_Forgery]
+  message: Potential SSRF. Validate and whitelist URLs before fetching.

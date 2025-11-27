@@ -1,0 +1,124 @@
+---
+# Quality Rules - Code Complexity
+# 10+ rules for detecting overly complex code
+
+- id: QUA001
+  name: Excessive Function Length
+  description: Detects functions that are too long (>50 lines)
+  severity: medium
+  category: quality
+  tags: [complexity, function-length, maintainability]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (function|def|func|public|private|protected)\s+\w+[^{]*{[\s\S]{1500,}?^}
+  message: Function exceeds 50 lines. Consider breaking it into smaller functions.
+
+- id: QUA002
+  name: High Cyclomatic Complexity
+  description: Detects functions with high cyclomatic complexity
+  severity: medium
+  category: quality
+  tags: [complexity, cyclomatic-complexity]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (if|else|while|for|case|catch|\?\s*:).*{[\s\S]*?(if|else|while|for|case|catch|\?\s*:).*{[\s\S]*?(if|else|while|for|case|catch|\?\s*:).*{[\s\S]*?(if|else|while|for|case|catch|\?\s*:)
+  message: High cyclomatic complexity detected. Simplify conditional logic.
+
+- id: QUA003
+  name: Deep Nesting
+  description: Detects deeply nested code blocks (>4 levels)
+  severity: medium
+  category: quality
+  tags: [complexity, nesting, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: \{\s*[^{}]*\{\s*[^{}]*\{\s*[^{}]*\{\s*[^{}]*\{
+  message: Deep nesting detected (>4 levels). Consider extracting to separate functions.
+
+- id: QUA004
+  name: Too Many Parameters
+  description: Detects functions with excessive parameters (>5)
+  severity: medium
+  category: quality
+  tags: [complexity, parameters, function-signature]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (function|def|func)\s+\w+\s*\([^)]*,\s*[^)]*,\s*[^)]*,\s*[^)]*,\s*[^)]*,\s*[^)]*
+  message: Function has too many parameters (>5). Consider using an options object.
+
+- id: QUA005
+  name: Long Ternary Chain
+  description: Detects chained ternary operators which hurt readability
+  severity: low
+  category: quality
+  tags: [complexity, ternary, readability]
+  languages: [javascript, typescript, java, php, csharp]
+  patterns:
+    regex: \?[^:]+:[^;]+\?[^:]+:
+  message: Chained ternary operators detected. Use if-else for better readability.
+
+- id: QUA006
+  name: Too Many Class Properties
+  description: Detects classes with too many properties (>10)
+  severity: medium
+  category: quality
+  tags: [complexity, class-design, oop]
+  languages: [javascript, typescript, python, java, csharp]
+  patterns:
+    regex: class\s+\w+[^{]*\{[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)[\s\S]*?(this\.|self\.|private|public|protected)
+  message: Class has too many properties (>10). Consider splitting into multiple classes.
+
+- id: QUA007
+  name: Long Switch Statement
+  description: Detects switch statements with too many cases (>10)
+  severity: medium
+  category: quality
+  tags: [complexity, switch, control-flow]
+  languages: [javascript, typescript, java, go, php, csharp]
+  patterns:
+    regex: switch\s*\([^)]*\)\s*\{([\s\S]*?case[\s\S]*?){11,}
+  message: Switch statement has too many cases (>10). Consider using a lookup object or strategy pattern.
+
+- id: QUA008
+  name: Complex Boolean Expression
+  description: Detects overly complex boolean expressions
+  severity: low
+  category: quality
+  tags: [complexity, boolean, logic]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (&&|\|\|).*?(&&|\|\|).*?(&&|\|\|).*?(&&|\|\|)
+  message: Complex boolean expression. Extract to well-named variables for clarity.
+
+- id: QUA009
+  name: Callback Hell
+  description: Detects deeply nested callbacks
+  severity: medium
+  category: quality
+  tags: [complexity, callbacks, async, javascript]
+  languages: [javascript, typescript]
+  patterns:
+    regex: function\s*\([^)]*\)\s*\{[\s\S]*?function\s*\([^)]*\)\s*\{[\s\S]*?function\s*\([^)]*\)\s*\{[\s\S]*?function\s*\([^)]*\)\s*\{
+  message: Callback hell detected. Use Promises or async/await.
+
+- id: QUA010
+  name: God Object
+  description: Detects classes with too many methods (>20)
+  severity: high
+  category: quality
+  tags: [complexity, class-design, god-object, oop]
+  languages: [javascript, typescript, python, java, csharp]
+  patterns:
+    regex: class\s+\w+[\s\S]*?\{([\s\S]*?(function|def|public|private|protected)\s+\w+[\s\S]*?){21,}
+  message: Class has too many methods (>20). This may be a God Object anti-pattern.
+
+- id: QUA011
+  name: Excessive File Length
+  description: Detects files that are too long (>500 lines)
+  severity: medium
+  category: quality
+  tags: [complexity, file-length, maintainability]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: ^(.*\n){501,}
+  message: File exceeds 500 lines. Consider splitting into multiple files.

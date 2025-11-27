@@ -1,0 +1,131 @@
+---
+# Quality Rules - Naming Conventions
+# 10+ rules for enforcing proper naming conventions
+
+- id: QUA201
+  name: Single Letter Variable
+  description: Detects single letter variable names outside loop contexts
+  severity: low
+  category: quality
+  tags: [naming, readability, variables]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (const|let|var|=)\s+[a-hj-z]\s*=(?!.*for\s*\()
+  message: Single letter variable name. Use descriptive names except for loop indices.
+
+- id: QUA202
+  name: Non-Descriptive Function Name
+  description: Detects function names that are too short (<3 chars)
+  severity: low
+  category: quality
+  tags: [naming, functions, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (function|def|func)\s+[a-z]{1,2}\s*\(
+  message: Function name too short. Use descriptive names (>=3 characters).
+
+- id: QUA203
+  name: Inconsistent Naming Case
+  description: Detects snake_case in JavaScript/TypeScript (should be camelCase)
+  severity: low
+  category: quality
+  tags: [naming, convention, javascript, typescript]
+  languages: [javascript, typescript]
+  patterns:
+    regex: (const|let|var|function)\s+[a-z]+_[a-z]+
+  conditions:
+    fileExclude:
+      - "**/*.test.*"
+      - "**/snake_case_file.ts"
+  message: Use camelCase for JavaScript/TypeScript identifiers, not snake_case.
+
+- id: QUA204
+  name: Uppercase Constant Not SCREAMING_SNAKE_CASE
+  description: Detects constants that should be SCREAMING_SNAKE_CASE
+  severity: low
+  category: quality
+  tags: [naming, constants, convention]
+  languages: [javascript, typescript, python, go, java]
+  patterns:
+    regex: const\s+[A-Z][a-z]+[A-Z][a-zA-Z]*\s*=\s*(?:['"]|[0-9])
+  message: Use SCREAMING_SNAKE_CASE for constants.
+
+- id: QUA205
+  name: Class Name Not PascalCase
+  description: Detects class names that don't follow PascalCase
+  severity: low
+  category: quality
+  tags: [naming, classes, convention]
+  languages: [javascript, typescript, python, go, java, csharp]
+  patterns:
+    regex: class\s+[a-z][a-zA-Z]*
+  message: Class names should use PascalCase.
+
+- id: QUA206
+  name: Boolean Variable Without Prefix
+  description: Detects boolean variables without is/has/should prefix
+  severity: low
+  category: quality
+  tags: [naming, booleans, readability]
+  languages: [javascript, typescript, python, java, csharp]
+  patterns:
+    regex: (const|let|var|boolean)\s+(?!is|has|should|can|will|did)[a-z]+\s*=\s*(true|false)
+  message: Boolean variables should use is/has/should/can/will prefixes.
+
+- id: QUA207
+  name: Abbreviation in Name
+  description: Detects unclear abbreviations in identifiers
+  severity: low
+  category: quality
+  tags: [naming, abbreviations, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (const|let|var|function|def)\s+\w*(btn|usr|ctx|cfg|tmp|msg|str|num|arr|obj|idx)\w*
+  message: Avoid unclear abbreviations. Use full words for better readability.
+
+- id: QUA208
+  name: Negated Boolean
+  description: Detects negated boolean names (not, no, disable)
+  severity: low
+  category: quality
+  tags: [naming, booleans, readability]
+  languages: [javascript, typescript, python, java, csharp]
+  patterns:
+    regex: (const|let|var|boolean)\s+(not|no|disable|isNot|hasNo)[A-Z]\w+
+  message: Avoid negated boolean names. Use positive form with negation operator.
+
+- id: QUA209
+  name: Hungarian Notation
+  description: Detects Hungarian notation which is discouraged in modern code
+  severity: low
+  category: quality
+  tags: [naming, convention, legacy]
+  languages: [javascript, typescript, java, csharp]
+  patterns:
+    regex: (const|let|var)\s+(str|int|bool|arr|obj|fn)[A-Z]\w+
+  message: Avoid Hungarian notation. Modern languages have type inference.
+
+- id: QUA210
+  name: Overly Long Name
+  description: Detects identifiers that are too long (>40 chars)
+  severity: low
+  category: quality
+  tags: [naming, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php, csharp]
+  patterns:
+    regex: (const|let|var|function|def|class)\s+[a-zA-Z_]{41,}
+  message: Identifier name too long (>40 chars). Simplify while keeping it descriptive.
+
+- id: QUA211
+  name: Number in Variable Name
+  description: Detects variables with numbers that might indicate poor naming
+  severity: low
+  category: quality
+  tags: [naming, variables, readability]
+  languages: [javascript, typescript, python, go, java, ruby, php]
+  patterns:
+    regex: (const|let|var)\s+\w+[0-9]\s*=
+  conditions:
+    fileExclude:
+      - "**/*.test.*"
+  message: Avoid numbers in variable names. Use descriptive names or arrays.

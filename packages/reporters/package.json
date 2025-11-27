@@ -1,0 +1,38 @@
+{
+  "name": "@omniaudit/reporters",
+  "version": "2.0.0",
+  "description": "Comprehensive reporting and output formats for OmniAudit",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --apply ."
+  },
+  "keywords": ["omniaudit", "reporters", "formats", "export"],
+  "author": "OmniAudit Team",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.22.4",
+    "marked": "^12.0.0",
+    "pdfkit": "^0.14.0",
+    "csv-stringify": "^6.4.5",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.5.3",
+    "@types/node": "^20.11.16",
+    "@types/pdfkit": "^0.13.4",
+    "tsup": "^8.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
