@@ -20,7 +20,7 @@
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "backend:dev": "cd backend && uvicorn src.omniaudit.api.main:app --reload",
     "backend:test": "cd backend && pytest tests/ -v",
-    "prepare": "husky install"
+    "prepare": "husky install || true"
   },
   "keywords": [
     "ai",
