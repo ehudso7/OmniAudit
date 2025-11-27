@@ -268,8 +268,8 @@ export class AgentOrchestrator extends EventEmitter {
   /**
    * Execute work items using agent pool in parallel
    *
-   * The agent pool's internal limiter controls concurrency (up to maxAgents),
-   * so we can safely use Promise.all to enable parallel processing.
+   * Uses Promise.allSettled to ensure all work items complete even if some fail.
+   * The agent pool's internal limiter controls concurrency (up to maxAgents).
    */
   private async executeWork(workItems: WorkItem[]): Promise<AnalysisResult[]> {
     // Mark all work items as processing
@@ -278,8 +278,8 @@ export class AgentOrchestrator extends EventEmitter {
       workItem.startedAt = new Date();
     }
 
-    // Execute all work items in parallel (pool's limiter controls concurrency)
-    const results = await Promise.all(
+    // Execute all work items in parallel using allSettled for resilience
+    const settledResults = await Promise.allSettled(
       workItems.map(async (workItem) => {
         const result = await this.agentPool.executeWork(workItem);
 
@@ -298,6 +298,27 @@ export class AgentOrchestrator extends EventEmitter {
         return result;
       }),
     );
+
+    // Extract results, creating error results for any rejected promises
+    const results: AnalysisResult[] = settledResults.map((settled, index) => {
+      if (settled.status === 'fulfilled') {
+        return settled.value;
+      }
+      // Handle unexpected rejections by creating an error result
+      const workItem = workItems[index];
+      this.state.failedItems.add(workItem.id);
+      const errorResult: AnalysisResult = {
+        agentId: 'unknown',
+        workItemId: workItem.id,
+        filePath: workItem.filePath,
+        findings: [],
+        duration: 0,
+        success: false,
+        error: settled.reason instanceof Error ? settled.reason.message : String(settled.reason),
+      };
+      this.state.results.set(workItem.id, errorResult);
+      return errorResult;
+    });
 
     return results;
   }

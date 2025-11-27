@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import { readFile, readdir, stat } from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import type { Rule } from './types';
@@ -17,7 +17,7 @@ export class RuleLoader {
    */
   async loadFile(filePath: string): Promise<Rule[]> {
     try {
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = await readFile(filePath, 'utf-8');
       const data = yaml.load(content);
 
       // Handle both single rule and array of rules
@@ -49,16 +49,16 @@ export class RuleLoader {
     const rules: Rule[] = [];
 
     try {
-      const files = fs.readdirSync(dirPath);
+      const files = await readdir(dirPath);
 
       for (const file of files) {
         const filePath = path.join(dirPath, file);
-        const stat = fs.statSync(filePath);
+        const fileStat = await stat(filePath);
 
-        if (stat.isDirectory() && recursive) {
+        if (fileStat.isDirectory() && recursive) {
           const dirRules = await this.loadDirectory(filePath, recursive);
           rules.push(...dirRules);
-        } else if (stat.isFile() && (file.endsWith('.yaml') || file.endsWith('.yml'))) {
+        } else if (fileStat.isFile() && (file.endsWith('.yaml') || file.endsWith('.yml'))) {
           const fileRules = await this.loadFile(filePath);
           rules.push(...fileRules);
         }
@@ -78,12 +78,12 @@ export class RuleLoader {
 
     for (const rulePath of paths) {
       try {
-        const stat = fs.statSync(rulePath);
+        const pathStat = await stat(rulePath);
 
-        if (stat.isDirectory()) {
+        if (pathStat.isDirectory()) {
           const rules = await this.loadDirectory(rulePath);
           allRules.push(...rules);
-        } else if (stat.isFile()) {
+        } else if (pathStat.isFile()) {
           const rules = await this.loadFile(rulePath);
           allRules.push(...rules);
         }

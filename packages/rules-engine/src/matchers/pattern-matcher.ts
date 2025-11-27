@@ -91,18 +91,37 @@ export class PatternMatcher implements Matcher {
   }
 
   /**
+   * Escape special regex characters in a string
+   */
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  /**
    * Convert Semgrep-like pattern to regex
+   *
+   * Handles metavariables like $VAR (single identifier) and $... (ellipsis for any code)
+   * Order of operations: escape first, then replace metavariables
    */
   private patternToRegex(pattern: string): RegExp {
-    // Handle metavariables ($X, $VAR, etc.)
-    let regexPattern = pattern
-      .replace(/\$\w+/g, '[\\w\\d_]+')
-      .replace(/\$\.\.\./g, '[\\s\\S]*?');
+    // Tokenize the pattern, preserving metavariables
+    // Match $... (ellipsis) or $WORD (identifier metavariable)
+    const metavarPattern = /(\$\.\.\.|\$\w+)/g;
+    const parts = pattern.split(metavarPattern);
 
-    // Escape special regex characters except those we want to keep
-    regexPattern = regexPattern
-      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      .replace(/\\\$X/g, '[\\w\\d_]+');
+    let regexPattern = '';
+    for (const part of parts) {
+      if (part === '$...') {
+        // Ellipsis matches any code (non-greedy)
+        regexPattern += '[\\s\\S]*?';
+      } else if (part.startsWith('$') && /^\$\w+$/.test(part)) {
+        // Named metavariable matches an identifier (\w already includes digits and underscore)
+        regexPattern += '\\w+';
+      } else {
+        // Regular text - escape special regex characters
+        regexPattern += this.escapeRegex(part);
+      }
+    }
 
     return new RegExp(regexPattern, 'gm');
   }

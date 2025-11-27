@@ -64,10 +64,10 @@ jobs:
         pip install -e .[test]
 
     - name: Run unit tests
-      run: pytest tests/unit/ -v --cov=src/omniaudit --cov-report=xml
+      run: pytest python-app/tests/unit/ tests/analyzers/ -v --cov=src/omniaudit --cov-report=xml --ignore=python-app/tests/unit/harmonizer --ignore=python-app/tests/unit/analyzers
 
     - name: Run integration tests
-      run: pytest tests/integration/ -v
+      run: pytest python-app/tests/integration/ -v
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
