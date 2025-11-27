@@ -13,10 +13,11 @@ src_path = project_root / "src"
 python_app_path = project_root / "python-app"
 
 # Add to Python path (use absolute paths)
-# Try python-app first (where the API is located), then src
-sys.path.insert(0, str(python_app_path.absolute()))
-sys.path.insert(0, str(src_path.absolute()))
+# Insert in reverse order since insert(0, ...) places at beginning
+# Final order will be: python_app_path, src_path, project_root
 sys.path.insert(0, str(project_root.absolute()))
+sys.path.insert(0, str(src_path.absolute()))
+sys.path.insert(0, str(python_app_path.absolute()))
 
 # Also try setting environment variable for good measure
 os.environ["PYTHONPATH"] = f"{python_app_path.absolute()}:{src_path.absolute()}:{project_root.absolute()}"
