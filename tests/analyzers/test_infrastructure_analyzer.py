@@ -4,7 +4,6 @@ import pytest
 from pathlib import Path
 from omniaudit.analyzers.infrastructure import InfrastructureAnalyzer, IaCTool
 from omniaudit.analyzers.infrastructure.scanners import TerraformScanner, KubernetesScanner, DockerScanner
-from omniaudit.analyzers.base import AnalyzerError
 
 
 class TestInfrastructureAnalyzer:
