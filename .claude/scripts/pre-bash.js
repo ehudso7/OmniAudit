@@ -64,8 +64,8 @@ function main() {
       }
     }
 
-    // Log command for audit trail
-    const logDir = path.join(process.cwd(), '.claude', 'logs');
+    // Log command for audit trail (use __dirname for consistent log location)
+    const logDir = path.join(__dirname, '..', 'logs');
     try {
       if (!fs.existsSync(logDir)) {
         fs.mkdirSync(logDir, { recursive: true });

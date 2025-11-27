@@ -115,8 +115,8 @@ export class PatternMatcher implements Matcher {
         // Ellipsis matches any code (non-greedy)
         regexPattern += '[\\s\\S]*?';
       } else if (part.startsWith('$') && /^\$\w+$/.test(part)) {
-        // Named metavariable matches an identifier
-        regexPattern += '[\\w\\d_]+';
+        // Named metavariable matches an identifier (\w already includes digits and underscore)
+        regexPattern += '\\w+';
       } else {
         // Regular text - escape special regex characters
         regexPattern += this.escapeRegex(part);

@@ -11,6 +11,10 @@ const MAX_MATCHES_PER_FILE = 1000;
  */
 const MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS = 500000; // 500KB
 
+/**
+ * Patterns that may cause ReDoS (unbounded quantifiers with lookahead/lookbehind)
+ * Detects: [^...]*  |  [\s\S]  |  [\S\s]  |  (?=  (?!  (?<
+ */
 const SLOW_PATTERN_INDICATORS = /\[\^[^\]]*\]\*|\[\\s\\S\]|\[\\S\\s\]|\(\?[=!<]/;
 
 /**
@@ -100,10 +104,10 @@ export class RegexMatcher implements Matcher {
           break;
         }
 
-        const startPos = this.getPosition(content, match.index);
+        const startPos = this.getPosition(contentToMatch, match.index);
         const endIndex = match.index + match[0].length;
-        const endPos = this.getPosition(content, endIndex);
-        const snippet = this.getSnippet(content, match.index, endIndex);
+        const endPos = this.getPosition(contentToMatch, endIndex);
+        const snippet = this.getSnippet(contentToMatch, match.index, endIndex);
 
         // Build message with captured groups
         let message = rule.message || rule.description;
