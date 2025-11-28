@@ -42,7 +42,7 @@
     "@upstash/redis": "^1.28.4",
     "@pinecone-database/pinecone": "^2.0.1",
     "@sentry/bun": "^7.99.0",
-    "@vercel/node": "^3.0.21",
+    "@vercel/node": "^5.1.16",
     "zod": "^3.22.4",
     "commander": "^12.0.0",
     "chalk": "^5.3.0",
