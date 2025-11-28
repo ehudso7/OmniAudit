@@ -4,7 +4,8 @@ import AuditRunner from './components/AuditRunner';
 import Dashboard from './components/Dashboard';
 import ExportPanel from './components/ExportPanel';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Use relative URLs in production, localhost only for development
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');

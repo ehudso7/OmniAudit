@@ -11,7 +11,7 @@ function AuditRunner({ apiUrl, onComplete }) {
   }
   return total;
 }`);
-  const [selectedSkills, setSelectedSkills] = useState(['code-quality', 'performance']);
+  const [selectedSkills, setSelectedSkills] = useState(['performance-optimizer-pro']);
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -25,7 +25,7 @@ function AuditRunner({ apiUrl, onComplete }) {
         },
         body: JSON.stringify({
           code: code,
-          skillIds: selectedSkills,
+          skills: selectedSkills,
           language: 'javascript',
         }),
       });
@@ -67,20 +67,26 @@ function AuditRunner({ apiUrl, onComplete }) {
         <div className='form-group'>
           <label>Skills to Apply</label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-            {['code-quality', 'performance', 'security', 'best-practices'].map((skill) => (
-              <label key={skill} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            {[
+              { id: 'performance-optimizer-pro', name: 'Performance' },
+              { id: 'security-auditor', name: 'Security' },
+              { id: 'react-best-practices', name: 'React Best Practices' },
+              { id: 'typescript-expert', name: 'TypeScript Expert' },
+              { id: 'architecture-advisor', name: 'Architecture' },
+            ].map((skill) => (
+              <label key={skill.id} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <input
                   type='checkbox'
-                  checked={selectedSkills.includes(skill)}
+                  checked={selectedSkills.includes(skill.id)}
                   onChange={(e) => {
                     if (e.target.checked) {
-                      setSelectedSkills([...selectedSkills, skill]);
+                      setSelectedSkills([...selectedSkills, skill.id]);
                     } else {
-                      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
+                      setSelectedSkills(selectedSkills.filter((s) => s !== skill.id));
                     }
                   }}
                 />
-                <span style={{ textTransform: 'capitalize' }}>{skill.replace('-', ' ')}</span>
+                <span>{skill.name}</span>
               </label>
             ))}
           </div>
