@@ -42,7 +42,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Otherwise return all skills
-    const skills = getAllBuiltinSkills();
+    const rawSkills = getAllBuiltinSkills();
+
+    // Transform skills to a simpler format for the frontend
+    const skills = rawSkills.map(skill => ({
+      id: skill.skill_id,
+      name: skill.metadata.name,
+      description: skill.metadata.description,
+      category: skill.metadata.category,
+      version: skill.version,
+      tags: skill.metadata.tags,
+      languages: skill.metadata.language,
+      frameworks: skill.metadata.framework,
+    }));
 
     return res.status(200).json({
       success: true,

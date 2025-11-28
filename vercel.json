@@ -2,6 +2,18 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/health.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/skills.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/analyze.ts",
+      "use": "@vercel/node"
+    },
+    {
       "src": "api/index.py",
       "use": "@vercel/python",
       "config": {
@@ -19,7 +31,19 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/health",
+      "dest": "api/health.ts"
+    },
+    {
+      "src": "/api/skills",
+      "dest": "api/skills.ts"
+    },
+    {
+      "src": "/api/analyze",
+      "dest": "api/analyze.ts"
+    },
+    {
+      "src": "/api/v1/(.*)",
       "dest": "api/index.py"
     },
     {
