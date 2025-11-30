@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { Anthropic } from '@anthropic-ai/sdk';
 import * as Sentry from '@sentry/bun';
 import { Redis } from '@upstash/redis';
@@ -123,7 +123,11 @@ export class OmniAuditSkillsEngine {
 
       const definition = JSON.parse(skillData.definition as string) as SkillDefinition;
       await this.registerSkill(definition);
-      skill = this.skills.get(skillId)!;
+      const registeredSkill = this.skills.get(skillId);
+      if (!registeredSkill) {
+        throw new Error(`Failed to register skill ${skillId}`);
+      }
+      skill = registeredSkill;
     }
 
     this.activeSkills.add(skillId);
@@ -188,7 +192,7 @@ export class OmniAuditSkillsEngine {
 
       // Apply severity filter if specified
       const filteredOptimizations = options.severityFilter
-        ? optimizations.filter((opt) => options.severityFilter!.includes(opt.severity))
+        ? optimizations.filter((opt) => options.severityFilter?.includes(opt.severity))
         : optimizations;
 
       // Apply max issues limit
@@ -828,8 +832,8 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
     ];
 
     for (const pattern of suggestionPatterns) {
-      let match;
-      while ((match = pattern.exec(analysis)) !== null) {
+      let match: RegExpExecArray | null = pattern.exec(analysis);
+      while (match !== null) {
         suggestions.push({
           id: crypto.randomUUID(),
           type: 'quality',
@@ -849,6 +853,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
           },
           category: 'ai-optimization',
         });
+        match = pattern.exec(analysis);
       }
     }
 

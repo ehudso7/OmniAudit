@@ -95,7 +95,18 @@
       "arrowParentheses": "always",
       "bracketSpacing": true,
       "bracketSameLine": false
-    }
+    },
+    "globals": [
+      "KVNamespace",
+      "R2Bucket",
+      "Queue",
+      "AnalyticsEngineDataset",
+      "DurableObjectNamespace",
+      "MessageBatch",
+      "DurableObjectState",
+      "ScheduledEvent",
+      "ExecutionContext"
+    ]
   },
   "json": {
     "formatter": {
