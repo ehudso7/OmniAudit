@@ -33,7 +33,10 @@ class JWTConfig:
     def __init__(self):
         self.secret_key = os.getenv("JWT_SECRET_KEY", "")
         self.algorithm = os.getenv("JWT_ALGORITHM", "HS256")
-        self.access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+        try:
+            self.access_token_expire_minutes = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+        except ValueError:
+            self.access_token_expire_minutes = 30
         self.issuer = os.getenv("JWT_ISSUER", "omniaudit")
         self.audience = os.getenv("JWT_AUDIENCE", "omniaudit-api")
 
@@ -236,8 +239,9 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         # Check if authentication is optional for this path
         is_optional = any(request.url.path.startswith(path) for path in self.OPTIONAL_AUTH_PATHS)
 
-        # In development mode, allow requests without auth but with a dev user
-        if os.getenv("ENVIRONMENT") not in ("production", "staging"):
+        # In development mode only, allow requests without auth but with a dev user
+        # Requires explicit opt-in via ENVIRONMENT=development
+        if os.getenv("ENVIRONMENT") == "development":
             # Still try to validate token if provided
             auth_header = request.headers.get("Authorization")
             if auth_header:
@@ -245,6 +249,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
                 if user:
                     request.state.user = user
                 else:
+                    logger.warning("Invalid token in dev mode, using dev_user fallback")
                     request.state.user = {"sub": "dev_user", "role": "developer", "dev_mode": True}
             else:
                 request.state.user = {"sub": "dev_user", "role": "developer", "dev_mode": True}
@@ -363,10 +368,7 @@ class RoleBasedAccessMiddleware(BaseHTTPMiddleware):
                 )
                 return JSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    content={
-                        "detail": "Insufficient permissions",
-                        "required_roles": required_roles,
-                    }
+                    content={"detail": "Insufficient permissions"}
                 )
 
         return await call_next(request)

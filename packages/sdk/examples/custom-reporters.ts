@@ -304,7 +304,7 @@ ${f.recommendation ? `\nRecommendation: ${escapeXml(f.recommendation)}` : ''}
 
         // Non-critical findings are treated as passed tests with warnings
         return `    <testcase classname="${escapeXml(className)}" name="${escapeXml(f.rule_id)}" time="${time}">
-      <system-out>${escapeXml(f.message)}</system-out>
+      <system-out>${escapeXml(f.description)}</system-out>
     </testcase>`;
       })
       .join('\n');

@@ -613,7 +613,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
 
       // Check if Claude API is configured when AI features are enabled
       if (aiFeatures.semantic_analysis || aiFeatures.auto_fix || aiFeatures.explanation_generation) {
-        if (!process.env.ANTHROPIC_API_KEY && !this.anthropic) {
+        if (!process.env.ANTHROPIC_API_KEY) {
           errors.push('Anthropic API key is required for AI features but not configured');
         }
       }
@@ -621,8 +621,8 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
 
     // 5. Check cache configuration
     if (definition.execution.cache_results) {
-      if (!this.cache) {
-        warnings.push('Caching is enabled but Redis is not configured');
+      if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+        warnings.push('Caching is enabled but Redis URL/token is not configured');
       }
     }
 
@@ -660,26 +660,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
   }
 
   private async checkAnalyzerAvailability(analyzerName: string): Promise<boolean> {
-    // List of built-in analyzers
-    const builtinAnalyzers = [
-      'eslint',
-      'typescript',
-      'security',
-      'complexity',
-      'duplication',
-      'performance',
-      'react',
-      'accessibility',
-      'dependency',
-      'style',
-    ];
-
-    // Check if it's a built-in analyzer
-    if (builtinAnalyzers.includes(analyzerName.toLowerCase())) {
-      return true;
-    }
-
-    // Check if it's a custom analyzer that can be loaded
+    // Check if the analyzer can be created by the factory
     try {
       const analyzer = AnalyzerFactory.createAnalyzer(analyzerName, {});
       return analyzer !== null;
@@ -689,23 +670,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
   }
 
   private async checkTransformerAvailability(transformerName: string): Promise<boolean> {
-    // List of built-in transformers
-    const builtinTransformers = [
-      'prettier',
-      'eslint-fix',
-      'typescript-fix',
-      'import-organizer',
-      'dead-code-remover',
-      'performance-optimizer',
-      'security-fix',
-    ];
-
-    // Check if it's a built-in transformer
-    if (builtinTransformers.includes(transformerName.toLowerCase())) {
-      return true;
-    }
-
-    // Check if it's a custom transformer that can be loaded
+    // Check if the transformer can be created by the factory
     try {
       const transformer = TransformerFactory.createTransformer(transformerName);
       return transformer !== null;
