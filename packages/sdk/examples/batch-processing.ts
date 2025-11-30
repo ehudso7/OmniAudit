@@ -42,6 +42,14 @@ async function runWithConcurrency<T, R>(
   fn: (item: T) => Promise<R>,
   concurrency: number
 ): Promise<R[]> {
+  if (items.length === 0) {
+    return [];
+  }
+
+  if (concurrency < 1) {
+    throw new Error(`concurrency must be at least 1, got: ${concurrency}`);
+  }
+
   const results: R[] = new Array(items.length);
   let nextIndex = 0;
 

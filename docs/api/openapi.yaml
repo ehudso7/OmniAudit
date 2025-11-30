@@ -630,7 +630,7 @@ components:
       properties:
         repositories:
           type: array
-          maxItems: 100
+          maxItems: 50
           items:
             type: object
             properties:
