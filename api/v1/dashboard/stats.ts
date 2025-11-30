@@ -44,21 +44,22 @@ interface DashboardStats {
   recent_reviews: RecentReview[];
 }
 
+// Demo activity data - single source of truth for review counts
+// Used by both generateActivityData() and generateDashboardStats()
+const DEMO_REVIEW_COUNTS = [1, 1, 0, 1, 1, 1, 1]; // Reviews per day for last 7 days
+
 // Generate activity data for the last 7 days
 function generateActivityData(): DayActivity[] {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const now = new Date();
   const activity: DayActivity[] = [];
 
-  // Demo activity data - simulates realistic usage patterns
-  const demoReviewCounts = [1, 1, 0, 1, 1, 1, 1]; // Reviews per day (total: 6)
-
   for (let i = 6; i >= 0; i--) {
     const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const dayName = days[date.getDay()];
     activity.push({
       day: dayName,
-      reviews: demoReviewCounts[6 - i]
+      reviews: DEMO_REVIEW_COUNTS[6 - i]
     });
   }
 
@@ -119,7 +120,8 @@ function generateRecentReviews(): RecentReview[] {
 }
 
 function generateDashboardStats(): DashboardStats {
-  const totalReviews = 6;
+  // Derive totalReviews from DEMO_REVIEW_COUNTS to maintain single source of truth
+  const totalReviews = DEMO_REVIEW_COUNTS.reduce((sum, count) => sum + count, 0);
   const issuesFound = 11;
   const securityIssues = 3;
   const performanceIssues = 3;
