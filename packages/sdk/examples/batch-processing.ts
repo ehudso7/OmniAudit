@@ -4,7 +4,7 @@
  * Demonstrates how to audit multiple projects efficiently using the SDK.
  */
 
-import { createClient, OmniAuditClient } from '@omniaudit/sdk';
+import { type OmniAuditClient, createClient } from '@omniaudit/sdk';
 import type { AuditResult, Finding } from '@omniaudit/sdk';
 
 interface Project {
@@ -40,7 +40,7 @@ interface BatchSummary {
 async function runWithConcurrency<T, R>(
   items: T[],
   fn: (item: T) => Promise<R>,
-  concurrency: number
+  concurrency: number,
 ): Promise<R[]> {
   if (items.length === 0) {
     return [];
@@ -61,10 +61,7 @@ async function runWithConcurrency<T, R>(
   };
 
   // Create worker pool with limited concurrency
-  const workers = Array.from(
-    { length: Math.min(concurrency, items.length) },
-    () => worker()
-  );
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker());
 
   await Promise.all(workers);
   return results;
@@ -99,7 +96,7 @@ class BatchAuditor {
 
           const duration = Date.now() - projectStart;
           console.log(
-            `[DONE]  ${project.name} - ${result.total_findings} findings in ${duration}ms`
+            `[DONE]  ${project.name} - ${result.total_findings} findings in ${duration}ms`,
           );
 
           return {
@@ -121,7 +118,7 @@ class BatchAuditor {
           };
         }
       },
-      this.concurrency
+      this.concurrency,
     );
 
     const totalDuration = Date.now() - startTime;
@@ -134,7 +131,7 @@ class BatchAuditor {
       totalFindings: results.reduce((sum, r) => sum + (r.result?.total_findings || 0), 0),
       criticalFindings: results.reduce(
         (sum, r) => sum + (r.result?.findings_by_severity.critical || 0),
-        0
+        0,
       ),
       highFindings: results.reduce((sum, r) => sum + (r.result?.findings_by_severity.high || 0), 0),
       totalDuration,
@@ -147,7 +144,7 @@ class BatchAuditor {
   // Export consolidated report
   async exportConsolidatedReport(
     summary: BatchSummary,
-    format: 'json' | 'csv' | 'sarif' = 'json'
+    format: 'json' | 'csv' | 'sarif' = 'json',
   ): Promise<string> {
     if (format === 'json') {
       return JSON.stringify(summary, null, 2);
@@ -173,10 +170,12 @@ class BatchAuditor {
               r.findings_by_severity.low,
               r.findings_by_severity.info,
               result.duration,
-            ].join(',')
+            ].join(','),
           );
         } else {
-          lines.push([result.project, result.status, 0, 0, 0, 0, 0, 0, 0, result.duration].join(','));
+          lines.push(
+            [result.project, result.status, 0, 0, 0, 0, 0, 0, 0, result.duration].join(','),
+          );
         }
       }
 
@@ -187,7 +186,7 @@ class BatchAuditor {
       // Consolidated SARIF report
       const allFindings: Finding[] = summary.results
         .filter((r) => r.result)
-        .flatMap((r) => r.result!.findings);
+        .flatMap((r) => r.result?.findings ?? []);
 
       return JSON.stringify(
         {
@@ -222,7 +221,7 @@ class BatchAuditor {
           ],
         },
         null,
-        2
+        2,
       );
     }
 
@@ -230,9 +229,7 @@ class BatchAuditor {
   }
 }
 
-function mapSeverityToSarif(
-  severity: string
-): 'error' | 'warning' | 'note' | 'none' {
+function mapSeverityToSarif(severity: string): 'error' | 'warning' | 'note' | 'none' {
   switch (severity) {
     case 'critical':
     case 'high':
@@ -247,7 +244,7 @@ function mapSeverityToSarif(
 }
 
 function printSummary(summary: BatchSummary) {
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('BATCH AUDIT SUMMARY');
   console.log('='.repeat(60));
   console.log(`Total projects: ${summary.total}`);
@@ -259,9 +256,7 @@ function printSummary(summary: BatchSummary) {
   console.log(`  High: ${summary.highFindings}`);
   console.log('');
   console.log(`Total duration: ${summary.totalDuration}ms`);
-  console.log(
-    `Average per project: ${Math.round(summary.totalDuration / summary.total)}ms`
-  );
+  console.log(`Average per project: ${Math.round(summary.totalDuration / summary.total)}ms`);
   console.log('='.repeat(60));
 
   // Project breakdown
@@ -278,7 +273,7 @@ function printSummary(summary: BatchSummary) {
       `${status} ${result.project.padEnd(30)} ` +
         `Findings: ${String(findings).padStart(4)} ` +
         `(C:${critical} H:${high}) ` +
-        `${result.duration}ms`
+        `${result.duration}ms`,
     );
 
     if (result.error) {
@@ -308,7 +303,7 @@ async function main() {
   const auditor = new BatchAuditor(
     process.env.OMNIAUDIT_API_URL || 'http://localhost:8000',
     process.env.OMNIAUDIT_API_KEY,
-    3 // Run 3 audits in parallel
+    3, // Run 3 audits in parallel
   );
 
   try {
@@ -318,19 +313,19 @@ async function main() {
     // Export reports
     console.log('\nExporting reports...');
 
-    const jsonReport = await auditor.exportConsolidatedReport(summary, 'json');
+    const _jsonReport = await auditor.exportConsolidatedReport(summary, 'json');
     console.log('JSON report generated');
 
-    const csvReport = await auditor.exportConsolidatedReport(summary, 'csv');
+    const _csvReport = await auditor.exportConsolidatedReport(summary, 'csv');
     console.log('CSV report generated');
 
-    const sarifReport = await auditor.exportConsolidatedReport(summary, 'sarif');
+    const _sarifReport = await auditor.exportConsolidatedReport(summary, 'sarif');
     console.log('SARIF report generated');
 
     // In a real implementation, write these to files
-    // fs.writeFileSync('audit-report.json', jsonReport);
-    // fs.writeFileSync('audit-report.csv', csvReport);
-    // fs.writeFileSync('audit-report.sarif', sarifReport);
+    // fs.writeFileSync('audit-report.json', _jsonReport);
+    // fs.writeFileSync('audit-report.csv', _csvReport);
+    // fs.writeFileSync('audit-report.sarif', _sarifReport);
 
     // Exit with error if there are critical findings
     if (summary.criticalFindings > 0) {

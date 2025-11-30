@@ -26,6 +26,30 @@ type Bindings = {
   RATE_LIMITER: DurableObjectNamespace;
 };
 
+interface ExecutionHistoryEntry {
+  success: boolean;
+  execution_time_ms: number;
+  error_type?: string;
+  error_message?: string;
+  language?: string;
+  timestamp: string;
+}
+
+interface AnalyticsEngineResult {
+  query_time_ms?: number;
+  data_points?: number;
+  message?: string;
+  error?: string;
+}
+
+interface QueueMessageBody {
+  jobId: string;
+  code: string;
+  language: string;
+  skills: string[];
+  options?: Record<string, unknown>;
+}
+
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Middleware
@@ -266,10 +290,14 @@ app.get('/api/v1/analytics/skills/:skillId', async (c) => {
 
     // Calculate statistics
     const totalExecutions = executionHistory.length;
-    const successfulExecutions = executionHistory.filter((e: any) => e.success).length;
+    const successfulExecutions = executionHistory.filter(
+      (e: ExecutionHistoryEntry) => e.success,
+    ).length;
     const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
 
-    const executionTimes = executionHistory.map((e: any) => e.execution_time_ms || 0);
+    const executionTimes = executionHistory.map(
+      (e: ExecutionHistoryEntry) => e.execution_time_ms || 0,
+    );
     const avgExecutionTime =
       executionTimes.length > 0
         ? executionTimes.reduce((a: number, b: number) => a + b, 0) / executionTimes.length
@@ -285,10 +313,10 @@ app.get('/api/v1/analytics/skills/:skillId', async (c) => {
     const p99 = getPercentile(sortedTimes, 99);
 
     // Calculate error rate and error breakdown
-    const errors = executionHistory.filter((e: any) => !e.success);
+    const errors = executionHistory.filter((e: ExecutionHistoryEntry) => !e.success);
     const errorRate = totalExecutions > 0 ? (errors.length / totalExecutions) * 100 : 0;
     const errorBreakdown = errors.reduce(
-      (acc: Record<string, number>, e: any) => {
+      (acc: Record<string, number>, e: ExecutionHistoryEntry) => {
         const errorType = e.error_type || 'unknown';
         acc[errorType] = (acc[errorType] || 0) + 1;
         return acc;
@@ -298,7 +326,7 @@ app.get('/api/v1/analytics/skills/:skillId', async (c) => {
 
     // Calculate usage by language
     const languageBreakdown = executionHistory.reduce(
-      (acc: Record<string, number>, e: any) => {
+      (acc: Record<string, number>, e: ExecutionHistoryEntry) => {
         const lang = e.language || 'unknown';
         acc[lang] = (acc[lang] || 0) + 1;
         return acc;
@@ -345,7 +373,7 @@ app.get('/api/v1/analytics/skills/:skillId', async (c) => {
       errors: {
         total: errors.length,
         breakdown: errorBreakdown,
-        recent: errors.slice(0, 5).map((e: any) => ({
+        recent: errors.slice(0, 5).map((e: ExecutionHistoryEntry) => ({
           timestamp: e.timestamp,
           error_type: e.error_type,
           error_message: e.error_message?.substring(0, 100),
@@ -371,23 +399,30 @@ app.get('/api/v1/analytics/skills/:skillId', async (c) => {
 app.get('/api/v1/analytics/summary', async (c) => {
   try {
     // Get overall platform analytics
-    const skills = ['performance-optimizer-pro', 'security-auditor-enterprise', 'react-best-practices'];
+    const skills = [
+      'performance-optimizer-pro',
+      'security-auditor-enterprise',
+      'react-best-practices',
+    ];
     const summaryPromises = skills.map(async (skillId) => {
       const history = await getExecutionHistory(c.env.CACHE, c.env.STORAGE, skillId, 100);
       return {
         skillId,
         executions: history.length,
-        success_rate: history.length > 0
-          ? (history.filter((e: any) => e.success).length / history.length) * 100
-          : 0,
+        success_rate:
+          history.length > 0
+            ? (history.filter((e: ExecutionHistoryEntry) => e.success).length / history.length) *
+              100
+            : 0,
       };
     });
 
     const skillStats = await Promise.all(summaryPromises);
     const totalExecutions = skillStats.reduce((sum, s) => sum + s.executions, 0);
-    const avgSuccessRate = skillStats.length > 0
-      ? skillStats.reduce((sum, s) => sum + s.success_rate, 0) / skillStats.length
-      : 0;
+    const avgSuccessRate =
+      skillStats.length > 0
+        ? skillStats.reduce((sum, s) => sum + s.success_rate, 0) / skillStats.length
+        : 0;
 
     return c.json({
       timestamp: new Date().toISOString(),
@@ -411,7 +446,7 @@ function parseTimeRange(range: string): number {
   const match = range.match(/^(\d+)([hdwm])$/);
   if (!match) return 7 * 24 * 60 * 60 * 1000; // Default 7 days
 
-  const value = parseInt(match[1], 10);
+  const value = Number.parseInt(match[1], 10);
   const unit = match[2];
 
   switch (unit) {
@@ -433,7 +468,7 @@ async function queryAnalyticsEngine(
   _skillId: string,
   _startTime: number,
   _endTime: number,
-): Promise<any> {
+): Promise<AnalyticsEngineResult> {
   // Note: Analytics Engine queries are typically done via SQL API
   // This is a simplified version that returns cached aggregates
 
@@ -455,7 +490,7 @@ async function getExecutionHistory(
   storage: R2Bucket,
   skillId: string,
   limit: number,
-): Promise<any[]> {
+): Promise<ExecutionHistoryEntry[]> {
   try {
     // Try to get from KV cache first
     const cacheKey = `executions:${skillId}:recent`;
@@ -468,7 +503,7 @@ async function getExecutionHistory(
     const storageKey = `analytics/${skillId}/history.json`;
     const object = await storage.get(storageKey);
     if (object) {
-      const data = (await object.json()) as any[];
+      const data = (await object.json()) as ExecutionHistoryEntry[];
       // Cache for 5 minutes
       await cache.put(cacheKey, JSON.stringify(data.slice(0, 1000)), { expirationTtl: 300 });
       return data.slice(0, limit);
@@ -487,7 +522,7 @@ function getPercentile(sortedArray: number[], percentile: number): number {
 }
 
 function buildTimeSeriesStats(
-  executions: any[],
+  executions: ExecutionHistoryEntry[],
   granularity: 'hour' | 'day',
   periods: number,
 ): Array<{ period: string; count: number; success_rate: number }> {
@@ -508,13 +543,14 @@ function buildTimeSeriesStats(
       periodEnd.setHours(0, 0, 0, 0);
     }
 
-    const periodExecutions = executions.filter((e: any) => {
+    const periodExecutions = executions.filter((e: ExecutionHistoryEntry) => {
       const execTime = new Date(e.timestamp).getTime();
       return execTime >= periodStart.getTime() && execTime < periodEnd.getTime();
     });
 
-    const successCount = periodExecutions.filter((e: any) => e.success).length;
-    const successRate = periodExecutions.length > 0 ? (successCount / periodExecutions.length) * 100 : 0;
+    const successCount = periodExecutions.filter((e: ExecutionHistoryEntry) => e.success).length;
+    const successRate =
+      periodExecutions.length > 0 ? (successCount / periodExecutions.length) * 100 : 0;
 
     stats.push({
       period: periodStart.toISOString(),
@@ -532,7 +568,7 @@ export default {
   fetch: app.fetch,
 
   // Queue consumer for async analysis
-  async queue(batch: MessageBatch<any>, env: Bindings): Promise<void> {
+  async queue(batch: MessageBatch<QueueMessageBody>, env: Bindings): Promise<void> {
     for (const message of batch.messages) {
       try {
         const { jobId, code, language, skills, options } = message.body;
