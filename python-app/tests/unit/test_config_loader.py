@@ -4,8 +4,8 @@ import pytest
 import yaml
 import json
 from pathlib import Path
-from src.omniaudit.core.config_loader import ConfigLoader
-from src.omniaudit.core.exceptions import ConfigurationError
+from omniaudit.core.config_loader import ConfigLoader
+from omniaudit.core.exceptions import ConfigurationError
 
 
 def test_config_loader_initialization():

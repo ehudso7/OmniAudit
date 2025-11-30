@@ -2,11 +2,11 @@
 
 import pytest
 from unittest.mock import Mock, patch
-from src.omniaudit.collectors.github_collector import GitHubCollector
-from src.omniaudit.collectors.base import ConfigurationError
+from omniaudit.collectors.github_collector import GitHubCollector
+from omniaudit.collectors.base import ConfigurationError
 
 
-@patch('src.omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
+@patch('omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
 def test_github_collector_properties():
     """Test collector properties."""
     config = {
@@ -20,14 +20,14 @@ def test_github_collector_properties():
     assert collector.version == "0.1.0"
 
 
-@patch('src.omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
+@patch('omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
 def test_github_collector_missing_fields():
     """Test error when required fields missing."""
     with pytest.raises(ConfigurationError, match="owner is required"):
         GitHubCollector({})
 
 
-@patch('src.omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
+@patch('omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
 def test_github_collector_missing_repo():
     """Test error when repo is missing."""
     config = {
@@ -39,7 +39,7 @@ def test_github_collector_missing_repo():
         GitHubCollector(config)
 
 
-@patch('src.omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
+@patch('omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
 def test_github_collector_empty_token():
     """Test error when token is empty."""
     config = {
@@ -52,12 +52,12 @@ def test_github_collector_empty_token():
         GitHubCollector(config)
 
 
-@patch('src.omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
+@patch('omniaudit.collectors.github_collector.REQUESTS_AVAILABLE', True)
 def test_github_collector_collect_success():
     """Test successful data collection."""
     import requests as real_requests
 
-    with patch('src.omniaudit.collectors.github_collector.requests.get') as mock_get:
+    with patch('omniaudit.collectors.github_collector.requests.get') as mock_get:
         # Mock API responses
         mock_response = Mock()
         mock_response.status_code = 200

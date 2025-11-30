@@ -162,9 +162,14 @@ class CodeQualityAnalyzer(BaseAnalyzer):
             function_count = 0
 
             for file_data in complexity_data.values():
+                # file_data should be a list of complexity items
+                if not isinstance(file_data, list):
+                    continue
                 for item in file_data:
-                    total_complexity += item.get("complexity", 0)
-                    function_count += 1
+                    # Each item should be a dict with complexity info
+                    if isinstance(item, dict) and "complexity" in item:
+                        total_complexity += item.get("complexity", 0)
+                        function_count += 1
 
             avg_complexity = (
                 total_complexity / function_count if function_count > 0 else 0

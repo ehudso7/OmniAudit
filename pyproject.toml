@@ -75,16 +75,16 @@ omniaudit = "omniaudit.cli:main"
 app = "omniaudit.api.main:app"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = {"" = "python-app"}
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["python-app"]
 
 [tool.setuptools.package-data]
 omniaudit = ["py.typed"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["python-app/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -134,7 +134,7 @@ module = "tests.*"
 ignore_errors = true
 
 [tool.coverage.run]
-source = ["src/omniaudit"]
+source = ["python-app/omniaudit"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]

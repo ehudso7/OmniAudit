@@ -4,7 +4,6 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { stat } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { ComplexityMetrics } from '../types/index.js';
 import { Language, type LanguageWeights } from './types.js';
@@ -114,7 +113,6 @@ export async function analyzeComplexity(
 ): Promise<ComplexityMetrics> {
   // Read file content
   const content = await readFile(filePath, 'utf-8');
-  const fileStats = await stat(filePath);
 
   // Detect language
   const language = detectLanguage(filePath);

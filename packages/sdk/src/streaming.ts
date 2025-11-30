@@ -5,13 +5,21 @@ import type { AuditRequest, AuditResult, AuditProgress, Finding, EventMap } from
  * Streaming audit client with event-based API
  */
 export class StreamingAuditClient extends EventEmitter<EventMap> {
-  private apiUrl: string;
-  private apiKey?: string;
+  private _apiUrl: string;
+  private _apiKey?: string;
 
   constructor(apiUrl: string, apiKey?: string) {
     super();
-    this.apiUrl = apiUrl;
-    this.apiKey = apiKey;
+    this._apiUrl = apiUrl;
+    this._apiKey = apiKey;
+  }
+
+  get apiUrl(): string {
+    return this._apiUrl;
+  }
+
+  get apiKey(): string | undefined {
+    return this._apiKey;
   }
 
   /**
@@ -136,7 +144,7 @@ export class StreamingAuditClient extends EventEmitter<EventMap> {
  * Create a streaming audit with convenience hooks
  */
 export function createStreamingAudit(
-  request: AuditRequest,
+  _request: AuditRequest,
   apiUrl: string,
   apiKey?: string
 ): StreamingAuditClient {

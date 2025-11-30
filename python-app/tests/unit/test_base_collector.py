@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime
-from src.omniaudit.collectors.base import (
+from omniaudit.collectors.base import (
     BaseCollector,
     CollectorError,
     ConfigurationError

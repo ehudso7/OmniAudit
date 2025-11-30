@@ -10,7 +10,7 @@ export class ASTMatcher implements Matcher {
   /**
    * Parse source code to AST
    */
-  private parseToAST(content: string, language?: string): t.File | null {
+  private parseToAST(content: string, _language?: string): t.File | null {
     try {
       const plugins: any[] = [
         'jsx',
@@ -186,7 +186,7 @@ export class ASTMatcher implements Matcher {
   /**
    * Check if node matches complex pattern
    */
-  private matchesPattern(node: any, pattern: string): boolean {
+  private matchesPattern(_node: any, _pattern: string): boolean {
     // For now, simple implementation
     // Could be extended to support more complex pattern matching
     return true;

@@ -2,8 +2,8 @@
 
 import pytest
 from pathlib import Path
-from src.omniaudit.analyzers.code_quality import CodeQualityAnalyzer
-from src.omniaudit.analyzers.base import AnalyzerError
+from omniaudit.analyzers.code_quality import CodeQualityAnalyzer
+from omniaudit.analyzers.base import AnalyzerError
 
 
 def test_analyzer_properties():

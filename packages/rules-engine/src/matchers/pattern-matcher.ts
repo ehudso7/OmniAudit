@@ -155,20 +155,6 @@ export class PatternMatcher implements Matcher {
     );
   }
 
-  /**
-   * Check if a match overlaps with another
-   */
-  private matchesOverlap(m1: Match, m2: Match): boolean {
-    if (m1.file !== m2.file) return false;
-
-    const m1End = m1.endLine || m1.line;
-    const m2End = m2.endLine || m2.line;
-
-    return (
-      (m1.line <= m2.line && m1End >= m2.line) ||
-      (m2.line <= m1.line && m2End >= m1.line)
-    );
-  }
 }
 
 export const patternMatcher = new PatternMatcher();

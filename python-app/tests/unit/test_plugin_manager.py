@@ -1,9 +1,9 @@
 """Unit tests for PluginManager."""
 
 import pytest
-from src.omniaudit.core.plugin_manager import PluginManager
-from src.omniaudit.core.exceptions import PluginError, PluginLoadError
-from src.omniaudit.collectors.git_collector import GitCollector
+from omniaudit.core.plugin_manager import PluginManager
+from omniaudit.core.exceptions import PluginError, PluginLoadError
+from omniaudit.collectors.git_collector import GitCollector
 
 
 def test_plugin_manager_initialization():
