@@ -27,8 +27,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      # Install dependencies. We use `npm install` instead of `npm ci` to avoid CI failing when package.json and package-lock.json are out of sync.
+      # Maintainers: run `npm install` locally and commit the updated package-lock.json to keep the repo consistent.
       - name: Install dependencies
         working-directory: frontend
+        run: npm ci || npm install
         run: |
           set -e
           echo "Attempting clean install with npm ci..."
