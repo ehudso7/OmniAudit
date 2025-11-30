@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Reporter, ReporterOptions, Finding } from '../types.js';
 
 // Notion database entry format
 // https://developers.notion.com/reference/page

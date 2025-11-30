@@ -3,7 +3,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import gradient from 'gradient-string';
-import boxen from 'boxen';
 import figlet from 'figlet';
 import { config } from 'dotenv';
 import {
@@ -139,7 +138,7 @@ program
   .command('compare <baseline> <current>')
   .description('Compare two audit results')
   .option('-f, --format <format>', 'Output format', 'table')
-  .action((baseline, current, options) => {
+  .action((baseline, current, _options) => {
     console.log(chalk.cyan(`\n📊 Comparing ${baseline} vs ${current}\n`));
     console.log(chalk.green('New issues: 5'));
     console.log(chalk.yellow('Fixed issues: 12'));
@@ -164,7 +163,7 @@ program
   .command('init')
   .description('Initialize OmniAudit in current directory')
   .option('-t, --template <name>', 'Project template', 'default')
-  .action(async (options) => {
+  .action(async (_options) => {
     showBanner();
     console.log(chalk.cyan('🚀 Initializing OmniAudit project...\n'));
     console.log(chalk.green('✅ Created omniaudit.config.yaml'));
@@ -181,7 +180,7 @@ program
   .option('--cache', 'Clean cache only')
   .option('--logs', 'Clean logs only')
   .option('--all', 'Clean everything')
-  .action((options) => {
+  .action((_options) => {
     console.log(chalk.cyan('🧹 Cleaning up...\n'));
     console.log(chalk.green('✅ Cache cleared'));
     console.log(chalk.green('✅ Temporary files removed'));

@@ -14,6 +14,17 @@ from omniaudit.analyzers.code_quality import CodeQualityAnalyzer
 from omniaudit.reporters import MarkdownReporter, JSONReporter
 
 
+def get_repo_root():
+    """Get the git repository root directory."""
+    # Navigate up from python-app to find the actual git repo
+    current = Path(__file__).resolve()
+    while current.parent != current:
+        if (current / '.git').exists():
+            return str(current)
+        current = current.parent
+    return '.'
+
+
 class TestFullAuditWorkflow:
     """Test complete audit workflow from collection to reporting."""
 
@@ -26,7 +37,7 @@ class TestFullAuditWorkflow:
     def test_git_collection(self):
         """Test Git collection."""
         collector = GitCollector({
-            'repo_path': '.',
+            'repo_path': get_repo_root(),
             'max_commits': 10
         })
 
@@ -42,7 +53,7 @@ class TestFullAuditWorkflow:
     def test_code_quality_analysis(self):
         """Test code quality analysis."""
         analyzer = CodeQualityAnalyzer({
-            'project_path': '.',
+            'project_path': get_repo_root(),
             'languages': ['python']
         })
 
@@ -58,7 +69,7 @@ class TestFullAuditWorkflow:
         """Test generating Markdown report."""
         # Collect data
         collector = GitCollector({
-            'repo_path': '.',
+            'repo_path': get_repo_root(),
             'max_commits': 10
         })
         git_result = collector.collect()
@@ -94,7 +105,7 @@ class TestFullAuditWorkflow:
 
         # Collect data
         collector = GitCollector({
-            'repo_path': '.',
+            'repo_path': get_repo_root(),
             'max_commits': 10
         })
         git_result = collector.collect()
@@ -153,7 +164,7 @@ class TestFullAuditWorkflow:
     def test_report_file_permissions(self, temp_output_dir):
         """Test that generated reports have correct permissions."""
         collector = GitCollector({
-            'repo_path': '.',
+            'repo_path': get_repo_root(),
             'max_commits': 5
         })
         git_result = collector.collect()

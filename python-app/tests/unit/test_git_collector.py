@@ -3,15 +3,15 @@
 import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
-from src.omniaudit.collectors.git_collector import GitCollector
-from src.omniaudit.collectors.base import ConfigurationError, DataCollectionError
+from omniaudit.collectors.git_collector import GitCollector
+from omniaudit.collectors.base import ConfigurationError, DataCollectionError
 
 
-@patch('src.omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
+@patch('omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
 def test_git_collector_properties():
     """Test collector properties."""
     # Mock valid repo path
-    with patch('src.omniaudit.collectors.git_collector.Path.exists', return_value=True):
+    with patch('omniaudit.collectors.git_collector.Path.exists', return_value=True):
         with patch('pathlib.Path.exists', return_value=True):
             config = {"repo_path": "/fake/repo"}
             collector = GitCollector(config)
@@ -20,25 +20,25 @@ def test_git_collector_properties():
             assert collector.version == "0.1.0"
 
 
-@patch('src.omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
+@patch('omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
 def test_git_collector_missing_repo_path():
     """Test error when repo_path is missing."""
     with pytest.raises(ConfigurationError, match="repo_path is required"):
         GitCollector({})
 
 
-@patch('src.omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
+@patch('omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
 def test_git_collector_nonexistent_path():
     """Test error when repo path doesn't exist."""
     with pytest.raises(ConfigurationError, match="does not exist"):
         GitCollector({"repo_path": "/nonexistent/path"})
 
 
-@patch('src.omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
+@patch('omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
 def test_git_collector_not_a_repo():
     """Test error when path is not a git repository."""
     # Create a mock Path class
-    with patch('src.omniaudit.collectors.git_collector.Path') as mock_path_cls:
+    with patch('omniaudit.collectors.git_collector.Path') as mock_path_cls:
         mock_path_instance = MagicMock()
         mock_path_cls.return_value = mock_path_instance
 
@@ -54,8 +54,8 @@ def test_git_collector_not_a_repo():
             GitCollector({"repo_path": "/not/a/repo"})
 
 
-@patch('src.omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
-@patch('src.omniaudit.collectors.git_collector.Repo')
+@patch('omniaudit.collectors.git_collector.GIT_AVAILABLE', True)
+@patch('omniaudit.collectors.git_collector.Repo')
 @patch('pathlib.Path.exists', return_value=True)
 def test_git_collector_collect_success(mock_path, mock_repo):
     """Test successful data collection."""

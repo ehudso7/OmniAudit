@@ -91,7 +91,7 @@ export class RuleValidator {
   /**
    * Validate conditions
    */
-  private validateConditions(rule: Rule, errors: string[], warnings: string[]): void {
+  private validateConditions(rule: Rule, _errors: string[], warnings: string[]): void {
     if (!rule.conditions) return;
 
     // Check for conflicting file patterns

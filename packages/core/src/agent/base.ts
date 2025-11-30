@@ -3,11 +3,10 @@
  * @module @omniaudit/core/agent/base
  */
 
-import { randomUUID } from 'node:crypto';
 import type { WorkItem, AnalysisResult, AgentState, Finding } from '../types/index.js';
 import { AgentStatus } from '../types/index.js';
 import type { IAgent, AgentContext } from './types.js';
-import { AgentLifecycle, LifecycleStage } from './lifecycle.js';
+import { AgentLifecycle } from './lifecycle.js';
 import {
   createProgressEvent,
   createErrorEvent,
@@ -320,7 +319,7 @@ export abstract class BaseAgent implements IAgent {
   /**
    * Custom reporting logic (override in subclass)
    */
-  protected async doReport(result: AnalysisResult): Promise<void> {
+  protected async doReport(_result: AnalysisResult): Promise<void> {
     // Override in subclass
   }
 

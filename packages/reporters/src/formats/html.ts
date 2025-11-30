@@ -221,7 +221,7 @@ export class HTMLReporter implements Reporter {
     `;
   }
 
-  async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {
+  async generate(result: AuditResult, _options?: ReporterOptions): Promise<string> {
     let html = `<!DOCTYPE html>
 <html lang="en">
 <head>

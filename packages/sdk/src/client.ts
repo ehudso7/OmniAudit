@@ -1,5 +1,4 @@
 import EventEmitter from 'eventemitter3';
-import { z } from 'zod';
 import type { SDKConfig, AuditRequest, AuditResult, Finding, Rule, EventMap, AuditProgress } from './types.js';
 
 export class OmniAuditClient extends EventEmitter<EventMap> {
@@ -147,7 +146,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
   /**
    * Get findings with filtering
    */
-  async getFindings(filters?: {
+  async getFindings(_filters?: {
     severity?: string[];
     category?: string[];
     file?: string;
@@ -198,7 +197,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
   /**
    * Get all available rules
    */
-  async getRules(filters?: { category?: string; enabled?: boolean }): Promise<Rule[]> {
+  async getRules(_filters?: { category?: string; enabled?: boolean }): Promise<Rule[]> {
     // Mock implementation
     const rules: Rule[] = [
       {
@@ -255,7 +254,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
   /**
    * Get audit history
    */
-  async getAuditHistory(limit = 10): Promise<AuditResult[]> {
+  async getAuditHistory(_limit = 10): Promise<AuditResult[]> {
     // Mock implementation
     return [];
   }
@@ -263,7 +262,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
   /**
    * Compare two audits
    */
-  async compareAudits(baselineId: string, currentId: string): Promise<{
+  async compareAudits(_baselineId: string, _currentId: string): Promise<{
     new: Finding[];
     fixed: Finding[];
     unchanged: Finding[];
@@ -279,7 +278,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
   /**
    * Get statistics
    */
-  async getStatistics(period = 30): Promise<{
+  async getStatistics(_period = 30): Promise<{
     totalAudits: number;
     totalFindings: number;
     fixedIssues: number;
@@ -306,9 +305,9 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
   }
 
   /**
-   * Make an HTTP request to the API
+   * Make an HTTP request to the API (for future real API implementation)
    */
-  private async request<T>(
+  protected async _request<T>(
     endpoint: string,
     options: {
       method?: string;
