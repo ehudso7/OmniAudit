@@ -262,6 +262,32 @@ try {
 }
 ```
 
+## Examples
+
+See the [examples](./examples) directory for complete working examples:
+
+- **[basic-audit.ts](./examples/basic-audit.ts)** - Simple audit with Promise API
+- **[streaming-audit.ts](./examples/streaming-audit.ts)** - Real-time progress tracking with AsyncGenerator, EventEmitter, and Hooks
+- **[react-integration.tsx](./examples/react-integration.tsx)** - Full React integration with custom hooks and components
+- **[ci-integration.ts](./examples/ci-integration.ts)** - GitHub Actions and GitLab CI integration with quality gates
+- **[batch-processing.ts](./examples/batch-processing.ts)** - Auditing multiple projects with concurrency control
+- **[custom-reporters.ts](./examples/custom-reporters.ts)** - Creating custom output formats (Markdown, HTML, JUnit, Slack, GitHub)
+
+### Running Examples
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run an example
+npx tsx examples/basic-audit.ts
+
+# With environment variables
+OMNIAUDIT_API_URL=https://api.omniaudit.dev \
+OMNIAUDIT_API_KEY=sk-your-key \
+npx tsx examples/streaming-audit.ts
+```
+
 ## License
 
 MIT

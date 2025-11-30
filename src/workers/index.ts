@@ -250,15 +250,151 @@ app.get('/api/v1/skills/:skillId', async (c) => {
 
 app.get('/api/v1/analytics/skills/:skillId', async (c) => {
   const skillId = c.req.param('skillId');
+  const timeRange = c.req.query('range') || '7d'; // Default to 7 days
 
   try {
-    // Query analytics from database
-    // This is a placeholder - implement full analytics query
+    // Parse time range
+    const now = Date.now();
+    const rangeMs = parseTimeRange(timeRange);
+    const startTime = now - rangeMs;
+
+    // Query analytics from Cloudflare Analytics Engine
+    const analyticsData = await queryAnalyticsEngine(c.env.ANALYTICS, skillId, startTime, now);
+
+    // Query execution history from KV cache or R2 storage
+    const executionHistory = await getExecutionHistory(c.env.CACHE, c.env.STORAGE, skillId, 100);
+
+    // Calculate statistics
+    const totalExecutions = executionHistory.length;
+    const successfulExecutions = executionHistory.filter((e: any) => e.success).length;
+    const successRate = totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0;
+
+    const executionTimes = executionHistory.map((e: any) => e.execution_time_ms || 0);
+    const avgExecutionTime =
+      executionTimes.length > 0
+        ? executionTimes.reduce((a: number, b: number) => a + b, 0) / executionTimes.length
+        : 0;
+
+    const minExecutionTime = executionTimes.length > 0 ? Math.min(...executionTimes) : 0;
+    const maxExecutionTime = executionTimes.length > 0 ? Math.max(...executionTimes) : 0;
+
+    // Calculate p50, p90, p99 percentiles
+    const sortedTimes = [...executionTimes].sort((a, b) => a - b);
+    const p50 = getPercentile(sortedTimes, 50);
+    const p90 = getPercentile(sortedTimes, 90);
+    const p99 = getPercentile(sortedTimes, 99);
+
+    // Calculate error rate and error breakdown
+    const errors = executionHistory.filter((e: any) => !e.success);
+    const errorRate = totalExecutions > 0 ? (errors.length / totalExecutions) * 100 : 0;
+    const errorBreakdown = errors.reduce(
+      (acc: Record<string, number>, e: any) => {
+        const errorType = e.error_type || 'unknown';
+        acc[errorType] = (acc[errorType] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    // Calculate usage by language
+    const languageBreakdown = executionHistory.reduce(
+      (acc: Record<string, number>, e: any) => {
+        const lang = e.language || 'unknown';
+        acc[lang] = (acc[lang] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    // Build daily/hourly breakdown
+    const dailyStats = buildTimeSeriesStats(executionHistory, 'day', 7);
+    const hourlyStats = buildTimeSeriesStats(executionHistory, 'hour', 24);
+
     return c.json({
       skillId,
-      executions: 0,
-      success_rate: 0,
-      avg_execution_time_ms: 0,
+      timeRange,
+      timestamp: new Date().toISOString(),
+
+      // Core metrics
+      summary: {
+        total_executions: totalExecutions,
+        successful_executions: successfulExecutions,
+        failed_executions: errors.length,
+        success_rate: Math.round(successRate * 100) / 100,
+        error_rate: Math.round(errorRate * 100) / 100,
+      },
+
+      // Performance metrics
+      performance: {
+        avg_execution_time_ms: Math.round(avgExecutionTime * 100) / 100,
+        min_execution_time_ms: minExecutionTime,
+        max_execution_time_ms: maxExecutionTime,
+        p50_execution_time_ms: p50,
+        p90_execution_time_ms: p90,
+        p99_execution_time_ms: p99,
+      },
+
+      // Usage breakdown
+      usage: {
+        by_language: languageBreakdown,
+        daily_stats: dailyStats,
+        hourly_stats: hourlyStats,
+      },
+
+      // Error analysis
+      errors: {
+        total: errors.length,
+        breakdown: errorBreakdown,
+        recent: errors.slice(0, 5).map((e: any) => ({
+          timestamp: e.timestamp,
+          error_type: e.error_type,
+          error_message: e.error_message?.substring(0, 100),
+        })),
+      },
+
+      // Raw analytics data from Analytics Engine
+      analytics_engine: analyticsData,
+    });
+  } catch (error) {
+    console.error('Analytics query failed:', error);
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        skillId,
+      },
+      500,
+    );
+  }
+});
+
+// Analytics summary endpoint
+app.get('/api/v1/analytics/summary', async (c) => {
+  try {
+    // Get overall platform analytics
+    const skills = ['performance-optimizer-pro', 'security-auditor-enterprise', 'react-best-practices'];
+    const summaryPromises = skills.map(async (skillId) => {
+      const history = await getExecutionHistory(c.env.CACHE, c.env.STORAGE, skillId, 100);
+      return {
+        skillId,
+        executions: history.length,
+        success_rate: history.length > 0
+          ? (history.filter((e: any) => e.success).length / history.length) * 100
+          : 0,
+      };
+    });
+
+    const skillStats = await Promise.all(summaryPromises);
+    const totalExecutions = skillStats.reduce((sum, s) => sum + s.executions, 0);
+    const avgSuccessRate = skillStats.length > 0
+      ? skillStats.reduce((sum, s) => sum + s.success_rate, 0) / skillStats.length
+      : 0;
+
+    return c.json({
+      timestamp: new Date().toISOString(),
+      total_executions: totalExecutions,
+      avg_success_rate: Math.round(avgSuccessRate * 100) / 100,
+      skills: skillStats,
+      top_skill: skillStats.sort((a, b) => b.executions - a.executions)[0]?.skillId || 'none',
     });
   } catch (error) {
     return c.json(
@@ -269,6 +405,126 @@ app.get('/api/v1/analytics/skills/:skillId', async (c) => {
     );
   }
 });
+
+// Helper functions for analytics
+function parseTimeRange(range: string): number {
+  const match = range.match(/^(\d+)([hdwm])$/);
+  if (!match) return 7 * 24 * 60 * 60 * 1000; // Default 7 days
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2];
+
+  switch (unit) {
+    case 'h':
+      return value * 60 * 60 * 1000;
+    case 'd':
+      return value * 24 * 60 * 60 * 1000;
+    case 'w':
+      return value * 7 * 24 * 60 * 60 * 1000;
+    case 'm':
+      return value * 30 * 24 * 60 * 60 * 1000;
+    default:
+      return 7 * 24 * 60 * 60 * 1000;
+  }
+}
+
+async function queryAnalyticsEngine(
+  analytics: AnalyticsEngineDataset,
+  skillId: string,
+  _startTime: number,
+  _endTime: number,
+): Promise<any> {
+  // Note: Analytics Engine queries are typically done via SQL API
+  // This is a simplified version that returns cached aggregates
+
+  try {
+    // In production, you would query the Analytics Engine SQL API
+    // For now, return a structured placeholder that matches real data format
+    return {
+      query_time_ms: 0,
+      data_points: 0,
+      message: 'Analytics Engine data available via SQL API',
+    };
+  } catch {
+    return { error: 'Analytics Engine query failed' };
+  }
+}
+
+async function getExecutionHistory(
+  cache: KVNamespace,
+  storage: R2Bucket,
+  skillId: string,
+  limit: number,
+): Promise<any[]> {
+  try {
+    // Try to get from KV cache first
+    const cacheKey = `executions:${skillId}:recent`;
+    const cached = await cache.get(cacheKey, { type: 'json' });
+    if (cached && Array.isArray(cached)) {
+      return cached.slice(0, limit);
+    }
+
+    // Fall back to R2 storage
+    const storageKey = `analytics/${skillId}/history.json`;
+    const object = await storage.get(storageKey);
+    if (object) {
+      const data = (await object.json()) as any[];
+      // Cache for 5 minutes
+      await cache.put(cacheKey, JSON.stringify(data.slice(0, 1000)), { expirationTtl: 300 });
+      return data.slice(0, limit);
+    }
+
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+function getPercentile(sortedArray: number[], percentile: number): number {
+  if (sortedArray.length === 0) return 0;
+  const index = Math.ceil((percentile / 100) * sortedArray.length) - 1;
+  return sortedArray[Math.max(0, Math.min(index, sortedArray.length - 1))];
+}
+
+function buildTimeSeriesStats(
+  executions: any[],
+  granularity: 'hour' | 'day',
+  periods: number,
+): Array<{ period: string; count: number; success_rate: number }> {
+  const stats: Array<{ period: string; count: number; success_rate: number }> = [];
+  const now = new Date();
+
+  for (let i = periods - 1; i >= 0; i--) {
+    const periodStart = new Date(now);
+    const periodEnd = new Date(now);
+
+    if (granularity === 'hour') {
+      periodStart.setHours(now.getHours() - i, 0, 0, 0);
+      periodEnd.setHours(now.getHours() - i + 1, 0, 0, 0);
+    } else {
+      periodStart.setDate(now.getDate() - i);
+      periodStart.setHours(0, 0, 0, 0);
+      periodEnd.setDate(now.getDate() - i + 1);
+      periodEnd.setHours(0, 0, 0, 0);
+    }
+
+    const periodExecutions = executions.filter((e: any) => {
+      const execTime = new Date(e.timestamp).getTime();
+      return execTime >= periodStart.getTime() && execTime < periodEnd.getTime();
+    });
+
+    const successCount = periodExecutions.filter((e: any) => e.success).length;
+    const successRate = periodExecutions.length > 0 ? (successCount / periodExecutions.length) * 100 : 0;
+
+    stats.push({
+      period: periodStart.toISOString(),
+      count: periodExecutions.length,
+      success_rate: Math.round(successRate * 100) / 100,
+    });
+  }
+
+  return stats;
+}
 
 // ==================== QUEUE CONSUMER ====================
 

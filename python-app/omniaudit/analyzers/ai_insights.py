@@ -59,6 +59,7 @@ class AIInsightsAnalyzer(BaseAnalyzer):
         super().__init__(config)
         self._client: Optional[Anthropic] = None
         self._cache: Dict[str, Any] = {}  # Simple in-memory cache for now
+        self._last_token_usage: Dict[str, int] = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
         if ANTHROPIC_AVAILABLE and self._is_enabled():
             self._initialize_client()
@@ -177,12 +178,19 @@ class AIInsightsAnalyzer(BaseAnalyzer):
             insights_result = self._analyze_with_ai(data)
             duration = (datetime.utcnow() - start_time).total_seconds()
 
-            # Create metadata
+            # Create metadata with actual token usage
+            tokens_used = self._last_token_usage.get("total_tokens", 0)
+            # Calculate approximate cost (based on Claude Sonnet 4.5 pricing)
+            # Input: $3/1M tokens, Output: $15/1M tokens
+            input_tokens = self._last_token_usage.get("input_tokens", 0)
+            output_tokens = self._last_token_usage.get("output_tokens", 0)
+            cost_usd = (input_tokens * 3.0 / 1_000_000) + (output_tokens * 15.0 / 1_000_000)
+
             metadata = AIAnalysisMetadata(
                 model_version=self._get_model(),
                 analysis_duration_seconds=duration,
-                tokens_used=0,  # TODO: Extract from API response
-                cost_usd=None,  # TODO: Calculate based on tokens
+                tokens_used=tokens_used,
+                cost_usd=round(cost_usd, 6) if tokens_used > 0 else None,
                 cache_hit=False,
                 structured_output_used=True,
             )
@@ -257,6 +265,16 @@ class AIInsightsAnalyzer(BaseAnalyzer):
                     }
                 ]
             )
+
+            # Extract token usage from API response
+            if hasattr(response, 'usage'):
+                self._last_token_usage = {
+                    "input_tokens": getattr(response.usage, 'input_tokens', 0),
+                    "output_tokens": getattr(response.usage, 'output_tokens', 0),
+                    "total_tokens": getattr(response.usage, 'input_tokens', 0) + getattr(response.usage, 'output_tokens', 0),
+                }
+            else:
+                self._last_token_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
             # The parsed response is guaranteed to be valid AIInsightsResult
             return response.parsed_output
@@ -443,6 +461,22 @@ Be specific, actionable, and honest in your assessment. Use the structured outpu
             "cache_enabled": self.config.get("enable_cache", True),
         }
 
+    def get_token_usage(self) -> Dict[str, int]:
+        """Get the token usage from the last API call."""
+        return self._last_token_usage.copy()
+
+    def get_estimated_cost(self) -> float:
+        """
+        Get estimated cost of the last API call in USD.
+
+        Pricing based on Claude Sonnet 4.5:
+        - Input: $3 per million tokens
+        - Output: $15 per million tokens
+        """
+        input_tokens = self._last_token_usage.get("input_tokens", 0)
+        output_tokens = self._last_token_usage.get("output_tokens", 0)
+        return (input_tokens * 3.0 / 1_000_000) + (output_tokens * 15.0 / 1_000_000)
+
 
 # Example usage and integration pattern
 def create_ai_insights_analyzer(
@@ -573,11 +607,17 @@ def warm_up_ai_schemas(api_key: Optional[str] = None) -> bool:
             enhanced_result = self._analyze_enhanced_with_ai(data)
             duration = (datetime.utcnow() - start_time).total_seconds()
 
+            # Create metadata with actual token usage
+            tokens_used = self._last_token_usage.get("total_tokens", 0)
+            input_tokens = self._last_token_usage.get("input_tokens", 0)
+            output_tokens = self._last_token_usage.get("output_tokens", 0)
+            cost_usd = (input_tokens * 3.0 / 1_000_000) + (output_tokens * 15.0 / 1_000_000)
+
             metadata = AIAnalysisMetadata(
                 model_version=self._get_model(),
                 analysis_duration_seconds=duration,
-                tokens_used=0,  # TODO: Extract from API response
-                cost_usd=None,
+                tokens_used=tokens_used,
+                cost_usd=round(cost_usd, 6) if tokens_used > 0 else None,
                 cache_hit=False,
                 structured_output_used=True,
             )
@@ -621,6 +661,16 @@ def warm_up_ai_schemas(api_key: Optional[str] = None) -> bool:
                 response_model=EnhancedAIInsightsResult,
                 messages=[{"role": "user", "content": prompt}]
             )
+
+            # Extract token usage from API response
+            if hasattr(response, 'usage'):
+                self._last_token_usage = {
+                    "input_tokens": getattr(response.usage, 'input_tokens', 0),
+                    "output_tokens": getattr(response.usage, 'output_tokens', 0),
+                    "total_tokens": getattr(response.usage, 'input_tokens', 0) + getattr(response.usage, 'output_tokens', 0),
+                }
+            else:
+                self._last_token_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
             return response.parsed_output
 
