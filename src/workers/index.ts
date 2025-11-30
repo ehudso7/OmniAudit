@@ -429,8 +429,8 @@ function parseTimeRange(range: string): number {
 }
 
 async function queryAnalyticsEngine(
-  analytics: AnalyticsEngineDataset,
-  skillId: string,
+  _analytics: AnalyticsEngineDataset,
+  _skillId: string,
   _startTime: number,
   _endTime: number,
 ): Promise<any> {
