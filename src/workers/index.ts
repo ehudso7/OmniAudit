@@ -48,6 +48,7 @@ interface QueueMessageBody {
   language: string;
   skills: string[];
   options?: Record<string, unknown>;
+  timestamp?: number;
 }
 
 const app = new Hono<{ Bindings: Bindings }>();
