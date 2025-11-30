@@ -8,8 +8,6 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel
-import json
-import os
 import uuid
 
 router = APIRouter(prefix="/api/v1", tags=["reviews"])
@@ -18,20 +16,11 @@ router = APIRouter(prefix="/api/v1", tags=["reviews"])
 # In-memory storage (would be database in production)
 REVIEWS_STORE: List[Dict[str, Any]] = []
 REPOSITORIES_STORE: List[Dict[str, Any]] = []
-STATS_CACHE: Dict[str, Any] = {}
-
-
-class Repository(BaseModel):
-    owner: str
-    name: str
-    full_name: str
-    url: str
 
 
 class ConnectRepoRequest(BaseModel):
     owner: str
     repo: str
-    token: Optional[str] = None
 
 
 # Initialize with some realistic demo data
@@ -145,10 +134,10 @@ def init_demo_data():
 
     if not REPOSITORIES_STORE:
         REPOSITORIES_STORE = [
-            {"id": "1", "owner": "acme", "name": "frontend", "full_name": "acme/frontend", "url": "https://github.com/acme/frontend", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
-            {"id": "2", "owner": "acme", "name": "api-server", "full_name": "acme/api-server", "url": "https://github.com/acme/api-server", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
-            {"id": "3", "owner": "acme", "name": "mobile-app", "full_name": "acme/mobile-app", "url": "https://github.com/acme/mobile-app", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
-            {"id": "4", "owner": "acme", "name": "backend", "full_name": "acme/backend", "url": "https://github.com/acme/backend", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
+            {"id": str(uuid.uuid4()), "owner": "acme", "name": "frontend", "full_name": "acme/frontend", "url": "https://github.com/acme/frontend", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
+            {"id": str(uuid.uuid4()), "owner": "acme", "name": "api-server", "full_name": "acme/api-server", "url": "https://github.com/acme/api-server", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
+            {"id": str(uuid.uuid4()), "owner": "acme", "name": "mobile-app", "full_name": "acme/mobile-app", "url": "https://github.com/acme/mobile-app", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
+            {"id": str(uuid.uuid4()), "owner": "acme", "name": "backend", "full_name": "acme/backend", "url": "https://github.com/acme/backend", "connected_at": datetime.utcnow().isoformat() + "Z", "status": "active"},
         ]
 
 
@@ -159,7 +148,7 @@ init_demo_data()
 @router.get("/reviews")
 async def get_reviews(
     repo: Optional[str] = Query(None, description="Filter by repository"),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    action: Optional[str] = Query(None, description="Filter by action (APPROVE, REQUEST_CHANGES, COMMENT)"),
     limit: int = Query(50, le=100),
     offset: int = Query(0)
 ) -> Dict[str, Any]:
@@ -169,8 +158,8 @@ async def get_reviews(
     # Apply filters
     if repo:
         reviews = [r for r in reviews if r["repo"] == repo]
-    if status:
-        reviews = [r for r in reviews if r["action"].lower() == status.lower()]
+    if action:
+        reviews = [r for r in reviews if r["action"].lower() == action.lower()]
 
     # Sort by reviewed_at descending
     reviews.sort(key=lambda x: x["reviewed_at"], reverse=True)
@@ -187,15 +176,7 @@ async def get_reviews(
     }
 
 
-@router.get("/reviews/{review_id}")
-async def get_review(review_id: str) -> Dict[str, Any]:
-    """Get a specific PR review by ID."""
-    for review in REVIEWS_STORE:
-        if review["id"] == review_id:
-            return {"review": review}
-    raise HTTPException(status_code=404, detail="Review not found")
-
-
+# IMPORTANT: Static route must come BEFORE parameterized route
 @router.get("/reviews/stats")
 async def get_review_stats() -> Dict[str, Any]:
     """Get review statistics."""
@@ -240,6 +221,15 @@ async def get_review_stats() -> Dict[str, Any]:
     }
 
 
+@router.get("/reviews/{review_id}")
+async def get_review(review_id: str) -> Dict[str, Any]:
+    """Get a specific PR review by ID."""
+    for review in REVIEWS_STORE:
+        if review["id"] == review_id:
+            return {"review": review}
+    raise HTTPException(status_code=404, detail="Review not found")
+
+
 @router.get("/repositories")
 async def get_repositories() -> Dict[str, Any]:
     """Get connected repositories."""
@@ -277,8 +267,6 @@ async def connect_repository(request: ConnectRepoRequest) -> Dict[str, Any]:
 @router.delete("/repositories/{repo_id}")
 async def disconnect_repository(repo_id: str) -> Dict[str, Any]:
     """Disconnect a repository."""
-    global REPOSITORIES_STORE
-
     for i, repo in enumerate(REPOSITORIES_STORE):
         if repo["id"] == repo_id:
             removed = REPOSITORIES_STORE.pop(i)
@@ -318,10 +306,13 @@ async def get_dashboard_stats() -> Dict[str, Any]:
 
     top_repos = sorted(repo_counts.items(), key=lambda x: x[1], reverse=True)[:5]
 
+    # Sort reviews by date before slicing for recent_reviews
+    sorted_reviews = sorted(REVIEWS_STORE, key=lambda x: x["reviewed_at"], reverse=True)
+
     return {
         "stats": review_stats,
         "activity": activity,
         "issues_breakdown": issues_breakdown,
         "top_repositories": [{"name": r[0], "reviews": r[1]} for r in top_repos],
-        "recent_reviews": REVIEWS_STORE[:5]
+        "recent_reviews": sorted_reviews[:5]
     }

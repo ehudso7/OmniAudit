@@ -261,8 +261,8 @@ async def analyze_code(request: AnalyzeRequest):
                 })
                 results["summary"]["quality"] += 1
                 results["summary"]["total_issues"] += 1
-    except Exception:
-        pass  # Quality analysis optional
+    except Exception as e:
+        logger.warning(f"Quality analysis failed: {e}")  # Log but continue
 
     # Calculate score
     total = results["summary"]["total_issues"]
