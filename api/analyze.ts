@@ -143,7 +143,7 @@ const QUALITY_PATTERNS = [
 ];
 
 function findLineNumber(code: string, match: RegExpMatchArray): number {
-  if (!match.index) return 0;
+  if (match.index == null) return 0;
   const beforeMatch = code.substring(0, match.index);
   return (beforeMatch.match(/\n/g) || []).length + 1;
 }
