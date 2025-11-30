@@ -26,10 +26,12 @@ import { SkillDefinitionSchema } from '../types/index';
 export class OmniAuditSkillsEngine {
   private anthropic: Anthropic;
   private cache: Redis;
+  private config: EngineConfig;
   private skills: Map<string, LoadedSkill> = new Map();
   private activeSkills: Set<string> = new Set();
 
   constructor(config: EngineConfig) {
+    this.config = config;
     this.anthropic = new Anthropic({
       apiKey: config.anthropicApiKey,
     });
@@ -582,27 +584,11 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
     }
 
     // 3. Check if dependent skills are registered
-    if (definition.dependencies?.skills) {
-      for (const skillDep of definition.dependencies.skills) {
-        const skill = this.skills.get(skillDep.skill_id);
+    if (definition.dependencies?.other_skills) {
+      for (const skillId of definition.dependencies.other_skills) {
+        const skill = this.skills.get(skillId);
         if (!skill) {
-          if (skillDep.optional) {
-            warnings.push(`Optional skill dependency '${skillDep.skill_id}' is not registered`);
-          } else {
-            errors.push(`Required skill dependency '${skillDep.skill_id}' is not registered`);
-          }
-        } else if (skillDep.min_version) {
-          // Check version compatibility
-          const isCompatible = this.checkVersionCompatibility(
-            skill.definition.version,
-            skillDep.min_version,
-          );
-          if (!isCompatible) {
-            errors.push(
-              `Skill '${skillDep.skill_id}' version ${skill.definition.version} ` +
-                `does not meet minimum requirement ${skillDep.min_version}`,
-            );
-          }
+          errors.push(`Required skill dependency '${skillId}' is not registered`);
         }
       }
     }
@@ -612,8 +598,8 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
       const aiFeatures = definition.capabilities.ai_features;
 
       // Check if Claude API is configured when AI features are enabled
-      if (aiFeatures.semantic_analysis || aiFeatures.auto_fix || aiFeatures.explanation_generation) {
-        if (!process.env.ANTHROPIC_API_KEY) {
+      if (aiFeatures.code_generation || aiFeatures.auto_fix || aiFeatures.explanation) {
+        if (!this.config.anthropicApiKey) {
           errors.push('Anthropic API key is required for AI features but not configured');
         }
       }
@@ -621,7 +607,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
 
     // 5. Check cache configuration
     if (definition.execution.cache_results) {
-      if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      if (!this.config.upstashUrl || !this.config.upstashToken) {
         warnings.push('Caching is enabled but Redis URL/token is not configured');
       }
     }
@@ -677,30 +663,6 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
     } catch {
       return false;
     }
-  }
-
-  private checkVersionCompatibility(currentVersion: string, requiredMinVersion: string): boolean {
-    // Parse semantic versions
-    const current = this.parseVersion(currentVersion);
-    const required = this.parseVersion(requiredMinVersion);
-
-    // Compare versions (major.minor.patch)
-    if (current.major > required.major) return true;
-    if (current.major < required.major) return false;
-
-    if (current.minor > required.minor) return true;
-    if (current.minor < required.minor) return false;
-
-    return current.patch >= required.patch;
-  }
-
-  private parseVersion(version: string): { major: number; minor: number; patch: number } {
-    const parts = version.replace(/^v/, '').split('.');
-    return {
-      major: parseInt(parts[0] || '0', 10),
-      minor: parseInt(parts[1] || '0', 10),
-      patch: parseInt(parts[2] || '0', 10),
-    };
   }
 
   private async initializeAnalyzers(
