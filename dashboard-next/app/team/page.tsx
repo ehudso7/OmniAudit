@@ -45,7 +45,7 @@ export default function TeamPage() {
       developer: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
       viewer: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
     };
-    return <Badge className={styles[role]}>{role}</Badge>;
+    return <Badge className={styles[role] || styles.viewer}>{role}</Badge>;
   };
 
   return (

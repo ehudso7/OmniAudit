@@ -188,10 +188,15 @@ class DependencyAnalyzer(BaseAnalyzer):
         report.summary = self._create_summary(report, dependencies)
         timing_breakdown["create_summary"] = round(time.perf_counter() - summary_start, 4)
 
-        # Calculate total duration
+        # Add risk assessment (included in total duration and timing breakdown)
+        risk_start = time.perf_counter()
+        risk_assessment = self._assess_risk(report)
+        timing_breakdown["risk_assessment"] = round(time.perf_counter() - risk_start, 4)
+
+        # Calculate total duration *after* all analysis work is complete
         total_duration = round(time.perf_counter() - analysis_start_time, 4)
 
-        # Add metadata with timing information
+        # Add metadata with timing information (including risk timing)
         report.metadata = {
             "project_path": str(project_path),
             "scanners_used": self._get_enabled_scanners(),
@@ -200,13 +205,9 @@ class DependencyAnalyzer(BaseAnalyzer):
             "dependencies_per_second": round(len(dependencies) / max(total_duration, 0.001), 2),
         }
 
-        # Convert to dict
+        # Convert to dict and attach risk assessment
         report_dict = report.dict()
-
-        # Add risk assessment
-        risk_start = time.perf_counter()
-        report_dict["risk_assessment"] = self._assess_risk(report)
-        timing_breakdown["risk_assessment"] = round(time.perf_counter() - risk_start, 4)
+        report_dict["risk_assessment"] = risk_assessment
 
         # Log performance summary
         logger.info(

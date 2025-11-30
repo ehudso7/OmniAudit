@@ -317,7 +317,7 @@ async def process_batch_audit(job_id: str, request: BatchAuditRequest):
             duration = (datetime.now() - start_time).total_seconds()
             results[repo_name] = {
                 "status": "failed",
-                "error": str(e),
+                "error": "An error occurred while processing this repository. Check server logs for details.",
                 "duration_seconds": round(duration, 2),
             }
             failed += 1

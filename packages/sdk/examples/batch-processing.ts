@@ -36,36 +36,29 @@ interface BatchSummary {
 }
 
 // Run audits in parallel with concurrency limit
+// Maintains input order and handles errors properly
 async function runWithConcurrency<T, R>(
   items: T[],
   fn: (item: T) => Promise<R>,
   concurrency: number
 ): Promise<R[]> {
-  const results: R[] = [];
-  const executing: Promise<void>[] = [];
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
 
-  for (const item of items) {
-    const p = fn(item).then((result) => {
-      results.push(result);
-    });
-
-    executing.push(p as Promise<void>);
-
-    if (executing.length >= concurrency) {
-      await Promise.race(executing);
-      // Remove settled promises
-      for (let i = executing.length - 1; i >= 0; i--) {
-        const p = executing[i];
-        // Check if settled by racing with an immediately resolved promise
-        const settled = await Promise.race([p.then(() => true), Promise.resolve(false)]);
-        if (settled) {
-          executing.splice(i, 1);
-        }
-      }
+  const worker = async (): Promise<void> => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex++;
+      results[currentIndex] = await fn(items[currentIndex]);
     }
-  }
+  };
 
-  await Promise.all(executing);
+  // Create worker pool with limited concurrency
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    () => worker()
+  );
+
+  await Promise.all(workers);
   return results;
 }
 
