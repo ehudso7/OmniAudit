@@ -12,6 +12,8 @@ from typing import Dict, Any, Optional
 import os
 
 from ..utils.logger import get_logger
+from ..services.github_service import GitHubService
+from ..services.pr_analyzer import PRAnalyzer
 
 logger = get_logger(__name__)
 
@@ -49,29 +51,82 @@ def verify_github_signature(payload_body: bytes, signature_header: str, secret: 
         return False
 
 
+async def process_pull_request(payload: Dict[str, Any]):
+    """Process pull request events - run OmniAudit analysis."""
+    action = payload.get("action")
+
+    # Only analyze on open, synchronize (new commits), or reopened
+    if action not in ["opened", "synchronize", "reopened"]:
+        logger.info(f"Skipping PR action: {action}")
+        return
+
+    pr = payload.get("pull_request", {})
+    repo = payload.get("repository", {})
+
+    owner = repo.get("owner", {}).get("login")
+    repo_name = repo.get("name")
+    pr_number = pr.get("number")
+    head_sha = pr.get("head", {}).get("sha")
+
+    if not all([owner, repo_name, pr_number]):
+        logger.error("Missing required PR information")
+        return
+
+    logger.info(f"🔍 Analyzing PR {owner}/{repo_name}#{pr_number}")
+
+    try:
+        # Initialize services
+        token = os.environ.get("GITHUB_TOKEN")
+        if not token:
+            logger.error("GITHUB_TOKEN not configured")
+            return
+
+        github = GitHubService(token=token)
+        analyzer = PRAnalyzer(github)
+
+        # Run analysis
+        result = await analyzer.analyze_pr(owner, repo_name, pr_number)
+
+        # Post review
+        await github.create_review(owner, repo_name, pr_number, result)
+
+        # Create check run if we have the SHA
+        if head_sha:
+            try:
+                await github.create_check_run(owner, repo_name, head_sha, result)
+            except Exception as e:
+                logger.warning(f"Could not create check run: {e}")
+
+        logger.info(f"✅ Posted review on {owner}/{repo_name}#{pr_number}: {result.issues_found} issues")
+
+        await github.close()
+
+    except Exception as e:
+        logger.error(f"Failed to analyze PR: {e}")
+
+
 async def process_github_webhook(event: str, payload: Dict[str, Any]):
     """Process GitHub webhook events in background."""
     try:
         logger.info(f"Processing GitHub webhook event: {event}")
 
-        if event == "push":
+        if event == "pull_request":
+            await process_pull_request(payload)
+
+        elif event == "push":
             # Handle push events
             repo_name = payload.get("repository", {}).get("full_name")
             commits = payload.get("commits", [])
             logger.info(f"Push to {repo_name}: {len(commits)} commits")
+            # Future: Trigger scheduled full-repo audits
 
-            # TODO: Trigger audit on push
-            # from ..collectors.git_collector import GitCollector
-            # collector = GitCollector({"repo_path": clone_url})
-            # result = collector.collect()
-
-        elif event == "pull_request":
-            # Handle PR events
+        elif event == "installation":
+            # Handle GitHub App installation
             action = payload.get("action")
-            pr_number = payload.get("pull_request", {}).get("number")
-            logger.info(f"Pull request {pr_number}: {action}")
-
-            # TODO: Run audit on PR
+            installation_id = payload.get("installation", {}).get("id")
+            account = payload.get("installation", {}).get("account", {}).get("login")
+            logger.info(f"GitHub App {action} for {account} (installation: {installation_id})")
+            # Future: Store installation, send welcome message
 
         logger.info(f"Successfully processed {event} webhook")
 
