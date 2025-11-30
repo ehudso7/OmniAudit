@@ -51,7 +51,7 @@ function generateActivityData(): DayActivity[] {
   const activity: DayActivity[] = [];
 
   // Demo activity data - simulates realistic usage patterns
-  const demoReviewCounts = [1, 3, 2, 4, 2, 3, 1]; // Reviews per day
+  const demoReviewCounts = [1, 1, 0, 1, 1, 1, 1]; // Reviews per day (total: 6)
 
   for (let i = 6; i >= 0; i--) {
     const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
