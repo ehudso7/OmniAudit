@@ -63,7 +63,7 @@ export default function RulesPage() {
       medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
       low: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
     };
-    return <Badge className={styles[severity]}>{severity}</Badge>;
+    return <Badge className={styles[severity] || styles.low}>{severity}</Badge>;
   };
 
   return (
