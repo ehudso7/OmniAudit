@@ -563,7 +563,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
     if (definition.capabilities.analyzers) {
       for (const analyzer of definition.capabilities.analyzers) {
         if (analyzer.enabled) {
-          const isAvailable = await this.checkAnalyzerAvailability(analyzer.name);
+          const isAvailable = this.checkAnalyzerAvailability(analyzer.name);
           if (!isAvailable) {
             errors.push(`Required analyzer '${analyzer.name}' is not available`);
           }
@@ -574,7 +574,7 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
     // 2. Check if required transformers are available
     if (definition.capabilities.transformers) {
       for (const transformer of definition.capabilities.transformers) {
-        const isAvailable = await this.checkTransformerAvailability(transformer.name);
+        const isAvailable = this.checkTransformerAvailability(transformer.name);
         if (!isAvailable) {
           errors.push(`Required transformer '${transformer.name}' is not available`);
         }
@@ -659,21 +659,21 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
     }
   }
 
-  private async checkAnalyzerAvailability(analyzerName: string): Promise<boolean> {
+  private checkAnalyzerAvailability(analyzerName: string): boolean {
     // Check if the analyzer can be created by the factory
     try {
-      const analyzer = AnalyzerFactory.createAnalyzer(analyzerName, {});
-      return analyzer !== null;
+      AnalyzerFactory.createAnalyzer(analyzerName, {});
+      return true;
     } catch {
       return false;
     }
   }
 
-  private async checkTransformerAvailability(transformerName: string): Promise<boolean> {
+  private checkTransformerAvailability(transformerName: string): boolean {
     // Check if the transformer can be created by the factory
     try {
-      const transformer = TransformerFactory.createTransformer(transformerName);
-      return transformer !== null;
+      TransformerFactory.createTransformer(transformerName);
+      return true;
     } catch {
       return false;
     }
