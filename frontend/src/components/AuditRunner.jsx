@@ -109,7 +109,7 @@ function AuditRunner({ apiUrl, onComplete }) {
     if (code.includes('interface ') || code.includes(': string') || code.includes(': number')) {
       return 'typescript';
     }
-    if (code.includes('def ') || code.includes('import ') && code.includes(':')) {
+    if (code.includes('def ') || (code.includes('import ') && code.includes(':'))) {
       return 'python';
     }
     return 'javascript';
