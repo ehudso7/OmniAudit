@@ -14,7 +14,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('reviews');
   const [apiStatus, setApiStatus] = useState(null);
   const [auditResults, setAuditResults] = useState(null);
-  const [isConnected, setIsConnected] = useState(true); // Demo: assume connected
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     // Check API health
@@ -86,7 +86,7 @@ function App() {
           onClick={() => setActiveTab('connect')}
           aria-current={activeTab === 'connect' ? 'page' : undefined}
         >
-          🔗 Connect
+          {isConnected ? '✅ Connected' : '🔗 Connect'}
         </button>
         <button
           type='button'

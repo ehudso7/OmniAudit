@@ -7,9 +7,24 @@ function GitHubConnect({ apiUrl, onConnect }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleConnect = () => {
-    // Redirect to GitHub App installation
-    window.location.href = GITHUB_APP_URL;
+  const handleConnect = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Check webhook status before redirecting
+      const response = await fetch(`${apiUrl}/api/v1/webhooks/status`);
+      if (response.ok) {
+        onConnect?.();
+      }
+    } catch (err) {
+      setError('Could not verify connection. Redirecting to GitHub...');
+    }
+
+    // Redirect to GitHub App installation regardless
+    setTimeout(() => {
+      window.location.href = GITHUB_APP_URL;
+    }, 500);
   };
 
   return (
