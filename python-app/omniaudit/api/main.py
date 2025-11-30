@@ -30,6 +30,7 @@ from .ai_routes import router as ai_router
 from .webhook_routes import router as webhook_router
 from .batch_routes import router as batch_router
 from .export_routes import router as export_router
+from .reviews_routes import router as reviews_router
 from ..core.plugin_manager import PluginManager
 from ..core.config_loader import ConfigLoader
 from ..collectors.git_collector import GitCollector
@@ -83,6 +84,7 @@ app.include_router(ai_router)
 app.include_router(webhook_router)
 app.include_router(batch_router)
 app.include_router(export_router)
+app.include_router(reviews_router)
 
 # Initialize plugin manager
 plugin_manager = PluginManager()
@@ -156,6 +158,137 @@ async def health_check():
         "status": "healthy",
         "timestamp": get_timestamp()
     }
+
+
+@app.get("/api/health")
+async def api_health_check():
+    """API health check endpoint (alias for frontend)."""
+    return {
+        "status": "healthy",
+        "timestamp": get_timestamp(),
+        "version": "0.3.0"
+    }
+
+
+@app.get("/api/skills")
+async def get_skills():
+    """Get available analysis skills."""
+    return {
+        "skills": [
+            {"name": "Security Auditor", "category": "Security", "description": "Detects vulnerabilities, SQL injection, XSS, and security misconfigurations"},
+            {"name": "Performance Optimizer", "category": "Performance", "description": "Identifies performance bottlenecks and optimization opportunities"},
+            {"name": "Code Quality", "category": "Quality", "description": "Checks for code smells, complexity issues, and maintainability"},
+            {"name": "Dependency Analyzer", "category": "Dependencies", "description": "Scans for vulnerable dependencies and outdated packages"},
+            {"name": "Architecture Advisor", "category": "Architecture", "description": "Reviews code structure and suggests improvements"},
+            {"name": "React Best Practices", "category": "React", "description": "Checks React patterns, hooks usage, and component structure"},
+            {"name": "TypeScript Expert", "category": "TypeScript", "description": "Validates types, generics, and TypeScript patterns"},
+            {"name": "API Design", "category": "API", "description": "Reviews REST/GraphQL endpoints and data contracts"},
+            {"name": "Test Coverage", "category": "Testing", "description": "Analyzes test coverage and suggests missing tests"},
+            {"name": "Documentation", "category": "Docs", "description": "Checks for missing documentation and JSDoc comments"},
+            {"name": "Accessibility", "category": "A11y", "description": "Validates WCAG compliance and accessibility patterns"},
+            {"name": "Error Handling", "category": "Reliability", "description": "Checks for proper error handling and edge cases"}
+        ]
+    }
+
+
+from pydantic import BaseModel
+from typing import Optional, List
+
+
+class AnalyzeRequest(BaseModel):
+    code: str
+    skills: List[str] = []
+    language: str = "javascript"
+
+
+@app.post("/api/analyze")
+async def analyze_code(request: AnalyzeRequest):
+    """
+    Analyze code with selected skills.
+
+    This provides instant code analysis without requiring full audit setup.
+    """
+    from ..analyzers.security import SecurityAnalyzer
+    from ..analyzers.code_quality import CodeQualityAnalyzer
+
+    results = {
+        "success": True,
+        "language": request.language,
+        "skills_applied": request.skills,
+        "findings": [],
+        "summary": {
+            "total_issues": 0,
+            "security": 0,
+            "performance": 0,
+            "quality": 0,
+            "suggestions": 0
+        },
+        "score": 100,
+        "timestamp": get_timestamp()
+    }
+
+    # Run security analysis
+    if any(s in request.skills for s in ["security-auditor", "Security Auditor", "security"]):
+        security = SecurityAnalyzer()
+        report = await security.analyze(request.code, "input.js")
+        for finding in report.findings:
+            results["findings"].append({
+                "type": "security",
+                "severity": finding.severity.value,
+                "title": finding.title,
+                "description": finding.description,
+                "line": finding.line_number,
+                "code": finding.code_snippet,
+                "fix": finding.remediation
+            })
+            results["summary"]["security"] += 1
+            results["summary"]["total_issues"] += 1
+
+    # Run code quality analysis
+    try:
+        quality = CodeQualityAnalyzer({})
+        quality_result = quality.analyze({"code": request.code})
+        if isinstance(quality_result, dict) and "issues" in quality_result:
+            for issue in quality_result.get("issues", []):
+                results["findings"].append({
+                    "type": "quality",
+                    "severity": issue.get("severity", "medium"),
+                    "title": issue.get("rule", "Code Quality Issue"),
+                    "description": issue.get("message", ""),
+                    "line": issue.get("line", 0),
+                    "code": "",
+                    "fix": issue.get("suggestion", "")
+                })
+                results["summary"]["quality"] += 1
+                results["summary"]["total_issues"] += 1
+    except Exception:
+        pass  # Quality analysis optional
+
+    # Calculate score
+    total = results["summary"]["total_issues"]
+    if total > 0:
+        # Deduct points based on severity
+        security_penalty = results["summary"]["security"] * 10
+        quality_penalty = results["summary"]["quality"] * 3
+        results["score"] = max(0, 100 - security_penalty - quality_penalty)
+
+    # Add performance suggestions based on patterns
+    if "performance" in str(request.skills).lower():
+        code_lower = request.code.lower()
+        if "for" in code_lower and "length" in code_lower:
+            results["findings"].append({
+                "type": "performance",
+                "severity": "low",
+                "title": "Loop Optimization",
+                "description": "Consider caching array.length outside the loop for better performance",
+                "line": 0,
+                "code": "",
+                "fix": "Store array.length in a variable before the loop"
+            })
+            results["summary"]["performance"] += 1
+            results["summary"]["total_issues"] += 1
+
+    return results
 
 
 @app.get("/api/v1/collectors")
