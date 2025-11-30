@@ -121,17 +121,30 @@ class DependencyAnalyzer(BaseAnalyzer):
         Returns:
             Dependency analysis results
         """
+        import time
+
+        # Start overall timing
+        analysis_start_time = time.perf_counter()
+        timing_breakdown: Dict[str, float] = {}
+
         project_path = Path(self.config["project_path"])
 
-        # Detect package managers and parse dependencies
+        # Time dependency parsing
+        parse_start = time.perf_counter()
         dependencies = self._parse_dependencies(project_path)
+        timing_breakdown["parse_dependencies"] = round(time.perf_counter() - parse_start, 4)
 
         if not dependencies:
+            total_duration = round(time.perf_counter() - analysis_start_time, 4)
             return self._create_response(
                 {
                     "message": "No dependencies found",
                     "dependencies": [],
                     "summary": {"total_dependencies": 0},
+                    "timing": {
+                        "total_seconds": total_duration,
+                        "breakdown": timing_breakdown,
+                    },
                 }
             )
 
@@ -148,35 +161,63 @@ class DependencyAnalyzer(BaseAnalyzer):
             direct_dependencies=len([d for d in dependencies if d.is_direct]),
         )
 
-        # Run scans based on configuration
+        # Run scans based on configuration with timing
         if self.config.get("check_vulnerabilities", True):
+            vuln_start = time.perf_counter()
             report.vulnerabilities = self.cve_scanner.scan_dependencies_sync(dependencies)
+            timing_breakdown["vulnerability_scan"] = round(time.perf_counter() - vuln_start, 4)
 
         if self.config.get("check_licenses", True):
+            license_start = time.perf_counter()
             report.license_issues = self.license_scanner.scan_dependencies(dependencies)
+            timing_breakdown["license_scan"] = round(time.perf_counter() - license_start, 4)
 
         if self.config.get("check_outdated", True):
+            outdated_start = time.perf_counter()
             outdated, typosquatting = self.outdated_scanner.scan_dependencies_sync(dependencies)
             report.outdated_packages = outdated
+            timing_breakdown["outdated_scan"] = round(time.perf_counter() - outdated_start, 4)
 
             if self.config.get("check_typosquatting", True):
+                typo_start = time.perf_counter()
                 report.typosquatting_matches = typosquatting
+                timing_breakdown["typosquatting_scan"] = round(time.perf_counter() - typo_start, 4)
 
-        # Create summary
+        # Time summary creation
+        summary_start = time.perf_counter()
         report.summary = self._create_summary(report, dependencies)
+        timing_breakdown["create_summary"] = round(time.perf_counter() - summary_start, 4)
 
-        # Add metadata
+        # Calculate total duration
+        total_duration = round(time.perf_counter() - analysis_start_time, 4)
+
+        # Add metadata with timing information
         report.metadata = {
             "project_path": str(project_path),
             "scanners_used": self._get_enabled_scanners(),
-            "scan_duration_seconds": 0,  # TODO: Add timing
+            "scan_duration_seconds": total_duration,
+            "timing_breakdown": timing_breakdown,
+            "dependencies_per_second": round(len(dependencies) / max(total_duration, 0.001), 2),
         }
 
         # Convert to dict
         report_dict = report.dict()
 
         # Add risk assessment
+        risk_start = time.perf_counter()
         report_dict["risk_assessment"] = self._assess_risk(report)
+        timing_breakdown["risk_assessment"] = round(time.perf_counter() - risk_start, 4)
+
+        # Log performance summary
+        logger.info(
+            f"Dependency analysis completed in {total_duration:.3f}s",
+            extra={
+                "scan_id": scan_id,
+                "total_dependencies": len(dependencies),
+                "total_duration_seconds": total_duration,
+                "timing_breakdown": timing_breakdown,
+            }
+        )
 
         return self._create_response(report_dict)
 

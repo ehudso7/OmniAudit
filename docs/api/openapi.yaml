@@ -1,0 +1,721 @@
+openapi: 3.1.0
+info:
+  title: OmniAudit API
+  description: |
+    Enterprise-Grade Universal AI Coding Optimization Framework API.
+
+    OmniAudit provides comprehensive code analysis capabilities including:
+    - Security vulnerability detection
+    - Code quality analysis
+    - Performance optimization suggestions
+    - Dependency vulnerability scanning
+    - AI-powered insights and recommendations
+
+    ## Authentication
+    All API endpoints require authentication using Bearer tokens.
+    Include your API key in the Authorization header:
+    ```
+    Authorization: Bearer sk-your-api-key
+    ```
+
+    ## Rate Limiting
+    - Standard tier: 1000 requests/hour
+    - Professional tier: 5000 requests/hour
+    - Enterprise tier: Unlimited
+
+    ## Webhooks
+    Subscribe to events to receive real-time notifications about audit completions,
+    critical findings, and more.
+
+  version: 2.0.0
+  contact:
+    name: OmniAudit Support
+    url: https://omniaudit.dev/support
+    email: support@omniaudit.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.omniaudit.dev/v1
+    description: Production API
+  - url: https://staging-api.omniaudit.dev/v1
+    description: Staging API
+  - url: http://localhost:8000/api/v1
+    description: Local development
+
+tags:
+  - name: Audits
+    description: Code audit operations
+  - name: Findings
+    description: Audit findings management
+  - name: Reviews
+    description: Pull request review operations
+  - name: Reports
+    description: Report generation and export
+  - name: AI
+    description: AI-powered analysis endpoints
+  - name: Rules
+    description: Rule management
+  - name: Analytics
+    description: Usage and metrics analytics
+  - name: Webhooks
+    description: Webhook configuration
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check API health status
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /audit:
+    post:
+      summary: Create new audit
+      description: Submit a new code audit request
+      operationId: createAudit
+      tags:
+        - Audits
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditRequest'
+      responses:
+        '201':
+          description: Audit created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /audit/{auditId}:
+    get:
+      summary: Get audit status
+      description: Retrieve the status and results of an audit
+      operationId: getAudit
+      tags:
+        - Audits
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AuditId'
+      responses:
+        '200':
+          description: Audit details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /findings:
+    get:
+      summary: List findings
+      description: Retrieve audit findings with filtering and pagination
+      operationId: listFindings
+      tags:
+        - Findings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: audit_id
+          in: query
+          schema:
+            type: string
+          description: Filter by audit ID
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low, info]
+          description: Filter by severity
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [security, performance, quality, accessibility, best-practices]
+          description: Filter by category
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: List of findings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindingsResponse'
+
+  /findings/{findingId}:
+    get:
+      summary: Get finding details
+      description: Retrieve details for a specific finding
+      operationId: getFinding
+      tags:
+        - Findings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: findingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Finding details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Finding'
+
+  /reviews:
+    post:
+      summary: Create PR review
+      description: Submit a pull request for AI-powered review
+      operationId: createReview
+      tags:
+        - Reviews
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+      responses:
+        '200':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+
+  /ai/insights:
+    post:
+      summary: Get AI insights
+      description: Get AI-powered code analysis insights
+      operationId: getAIInsights
+      tags:
+        - AI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIInsightsRequest'
+      responses:
+        '200':
+          description: AI insights
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIInsightsResponse'
+
+  /reports:
+    post:
+      summary: Generate report
+      description: Generate an audit report in various formats
+      operationId: generateReport
+      tags:
+        - Reports
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+      responses:
+        '200':
+          description: Report generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+
+  /batch/audit:
+    post:
+      summary: Create batch audit
+      description: Submit multiple repositories for batch analysis
+      operationId: createBatchAudit
+      tags:
+        - Audits
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchAuditRequest'
+      responses:
+        '202':
+          description: Batch audit queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchAuditResponse'
+
+  /analytics/summary:
+    get:
+      summary: Get analytics summary
+      description: Retrieve overall analytics summary
+      operationId: getAnalyticsSummary
+      tags:
+        - Analytics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+
+  /webhooks:
+    post:
+      summary: Create webhook
+      description: Configure a new webhook endpoint
+      operationId: createWebhook
+      tags:
+        - Webhooks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '201':
+          description: Webhook created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: API key authentication
+
+  parameters:
+    AuditId:
+      name: auditId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique audit identifier
+
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+      description: Page number for pagination
+
+    PageSize:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+      description: Items per page
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    AuditRequest:
+      type: object
+      required:
+        - project_path
+      properties:
+        project_path:
+          type: string
+          description: Path to the project to audit
+        analyzers:
+          type: array
+          items:
+            type: string
+            enum: [security, quality, performance, dependencies, accessibility]
+          description: Analyzers to run
+        config:
+          type: object
+          properties:
+            severity_filter:
+              type: array
+              items:
+                type: string
+            max_findings:
+              type: integer
+            include_suggestions:
+              type: boolean
+
+    AuditResponse:
+      type: object
+      properties:
+        audit_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        created_at:
+          type: string
+          format: date-time
+
+    AuditDetails:
+      allOf:
+        - $ref: '#/components/schemas/AuditResponse'
+        - type: object
+          properties:
+            completed_at:
+              type: string
+              format: date-time
+            duration_ms:
+              type: integer
+            findings_count:
+              type: integer
+            findings_by_severity:
+              type: object
+              properties:
+                critical:
+                  type: integer
+                high:
+                  type: integer
+                medium:
+                  type: integer
+                low:
+                  type: integer
+                info:
+                  type: integer
+
+    Finding:
+      type: object
+      properties:
+        id:
+          type: string
+        rule_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low, info]
+        category:
+          type: string
+        file:
+          type: string
+        line:
+          type: integer
+        column:
+          type: integer
+        code_snippet:
+          type: string
+        recommendation:
+          type: string
+        cwe:
+          type: array
+          items:
+            type: string
+        owasp:
+          type: array
+          items:
+            type: string
+
+    FindingsResponse:
+      type: object
+      properties:
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+
+    ReviewRequest:
+      type: object
+      required:
+        - repo
+        - pr_number
+      properties:
+        repo:
+          type: string
+          description: Repository in owner/name format
+        pr_number:
+          type: integer
+        base_branch:
+          type: string
+        head_branch:
+          type: string
+
+    ReviewResponse:
+      type: object
+      properties:
+        review_id:
+          type: string
+        status:
+          type: string
+        pr_number:
+          type: integer
+        findings_count:
+          type: integer
+        action:
+          type: string
+          enum: [APPROVE, REQUEST_CHANGES, COMMENT]
+
+    AIInsightsRequest:
+      type: object
+      required:
+        - code
+        - language
+      properties:
+        code:
+          type: string
+        language:
+          type: string
+        context:
+          type: string
+        focus_areas:
+          type: array
+          items:
+            type: string
+
+    AIInsightsResponse:
+      type: object
+      properties:
+        insights:
+          type: object
+          properties:
+            security_score:
+              type: integer
+            quality_score:
+              type: integer
+            findings:
+              type: array
+              items:
+                $ref: '#/components/schemas/Finding'
+            recommendations:
+              type: array
+              items:
+                type: string
+        tokens_used:
+          type: integer
+        cost_usd:
+          type: number
+
+    ReportRequest:
+      type: object
+      required:
+        - audit_id
+        - format
+      properties:
+        audit_id:
+          type: string
+        format:
+          type: string
+          enum: [pdf, html, json, sarif, markdown, csv]
+        include_remediation:
+          type: boolean
+        include_code_snippets:
+          type: boolean
+
+    ReportResponse:
+      type: object
+      properties:
+        report_id:
+          type: string
+        format:
+          type: string
+        download_url:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    BatchAuditRequest:
+      type: object
+      required:
+        - repositories
+      properties:
+        repositories:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              path:
+                type: string
+              url:
+                type: string
+        analyzers:
+          type: array
+          items:
+            type: string
+
+    BatchAuditResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+        total_repos:
+          type: integer
+        status:
+          type: string
+          enum: [queued, running, completed]
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        total_audits:
+          type: integer
+        total_findings:
+          type: integer
+        avg_audit_time_ms:
+          type: number
+        findings_by_severity:
+          type: object
+        top_categories:
+          type: array
+          items:
+            type: object
+
+    WebhookRequest:
+      type: object
+      required:
+        - url
+        - events
+      properties:
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+            enum:
+              - audit.started
+              - audit.completed
+              - audit.failed
+              - finding.created
+              - finding.critical
+        secret:
+          type: string
+
+    WebhookResponse:
+      type: object
+      properties:
+        webhook_id:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, inactive]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: object

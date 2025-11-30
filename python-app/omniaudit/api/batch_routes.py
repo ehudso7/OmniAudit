@@ -4,6 +4,9 @@ Batch Operations API Routes
 Endpoints for batch processing multiple repositories or audits.
 """
 
+import asyncio
+import os
+from pathlib import Path
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
@@ -11,6 +14,9 @@ import uuid
 from datetime import datetime, timedelta
 
 from ..utils.logger import get_logger
+from ..analyzers import SecurityAnalyzer, DependencyAnalyzer
+from ..analyzers.ai_insights import AIInsightsAnalyzer
+from ..analyzers.code_quality import CodeQualityAnalyzer
 
 logger = get_logger(__name__)
 
@@ -99,6 +105,92 @@ class BatchJobStatus(BaseModel):
     results: Dict[str, Any] = {}
 
 
+def run_analyzer(analyzer_name: str, config: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+    """Run a specific analyzer and return results."""
+    try:
+        if analyzer_name == "security":
+            analyzer = SecurityAnalyzer(config)
+        elif analyzer_name == "dependency":
+            analyzer = DependencyAnalyzer(config)
+        elif analyzer_name == "code_quality":
+            analyzer = CodeQualityAnalyzer(config)
+        elif analyzer_name == "ai_insights":
+            analyzer = AIInsightsAnalyzer(config)
+        else:
+            return {"error": f"Unknown analyzer: {analyzer_name}"}
+
+        return analyzer.analyze(data)
+    except Exception as e:
+        logger.error(f"Analyzer {analyzer_name} failed: {e}")
+        return {"error": str(e), "analyzer": analyzer_name}
+
+
+def collect_files_from_path(project_path: Path) -> List[Dict[str, Any]]:
+    """Collect file information from a project path."""
+    files = []
+    supported_extensions = {
+        ".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".go", ".rs",
+        ".rb", ".php", ".c", ".cpp", ".h", ".hpp", ".cs", ".kt",
+        ".yaml", ".yml", ".json", ".toml"
+    }
+
+    try:
+        for file_path in project_path.rglob("*"):
+            if file_path.is_file() and file_path.suffix in supported_extensions:
+                # Skip common non-source directories
+                if any(part.startswith(".") or part in {"node_modules", "venv", "__pycache__", "dist", "build"}
+                       for part in file_path.parts):
+                    continue
+
+                try:
+                    stat = file_path.stat()
+                    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                        lines = len(content.split("\n"))
+
+                    files.append({
+                        "path": str(file_path.relative_to(project_path)),
+                        "absolute_path": str(file_path),
+                        "lines": lines,
+                        "size": stat.st_size,
+                        "language": get_language_from_extension(file_path.suffix),
+                        "content": content[:10000] if len(content) > 10000 else content,  # Limit content
+                    })
+                except Exception as e:
+                    logger.warning(f"Failed to read file {file_path}: {e}")
+    except Exception as e:
+        logger.error(f"Failed to collect files from {project_path}: {e}")
+
+    return files
+
+
+def get_language_from_extension(ext: str) -> str:
+    """Map file extension to language name."""
+    mapping = {
+        ".py": "python",
+        ".js": "javascript",
+        ".ts": "typescript",
+        ".tsx": "typescript",
+        ".jsx": "javascript",
+        ".java": "java",
+        ".go": "go",
+        ".rs": "rust",
+        ".rb": "ruby",
+        ".php": "php",
+        ".c": "c",
+        ".cpp": "cpp",
+        ".h": "c",
+        ".hpp": "cpp",
+        ".cs": "csharp",
+        ".kt": "kotlin",
+        ".yaml": "yaml",
+        ".yml": "yaml",
+        ".json": "json",
+        ".toml": "toml",
+    }
+    return mapping.get(ext.lower(), "unknown")
+
+
 async def process_batch_audit(job_id: str, request: BatchAuditRequest):
     """Process batch audit in background."""
     job = batch_jobs[job_id]
@@ -109,22 +201,125 @@ async def process_batch_audit(job_id: str, request: BatchAuditRequest):
     failed = 0
 
     for idx, repo_config in enumerate(request.repositories):
-        try:
-            logger.info(f"Processing repository {idx + 1}/{len(request.repositories)}")
+        repo_name = repo_config.get("name", f"repo_{idx}")
+        start_time = datetime.now()
 
-            # TODO: Actually run audit
-            # For now, simulate
-            repo_name = repo_config.get("name", f"repo_{idx}")
+        try:
+            logger.info(f"Processing repository {idx + 1}/{len(request.repositories)}: {repo_name}")
+
+            # Get project path from config
+            project_path = repo_config.get("path") or repo_config.get("url")
+
+            if not project_path:
+                raise ValueError("Repository must have 'path' or 'url' specified")
+
+            # If it's a local path, verify it exists
+            if os.path.isdir(project_path):
+                path = Path(project_path)
+            else:
+                # For remote URLs, we would need to clone first
+                # For now, we'll just note that cloning is needed
+                results[repo_name] = {
+                    "status": "skipped",
+                    "message": "Remote repositories not supported in this version. Please provide a local path.",
+                    "duration_seconds": 0,
+                }
+                failed += 1
+                job["completed_items"] = completed
+                job["failed_items"] = failed
+                job["results"] = results
+                continue
+
+            # Collect files from the repository
+            files = collect_files_from_path(path)
+
+            if not files:
+                results[repo_name] = {
+                    "status": "warning",
+                    "message": "No supported files found in repository",
+                    "duration_seconds": 0,
+                }
+                completed += 1
+                job["completed_items"] = completed
+                job["failed_items"] = failed
+                job["results"] = results
+                continue
+
+            # Build analysis data
+            analysis_data = {
+                "project_path": str(path),
+                "project_name": repo_name,
+                "files": files,
+                "metrics": {
+                    "total_files": len(files),
+                    "total_lines": sum(f.get("lines", 0) for f in files),
+                },
+                "language_breakdown": {},
+            }
+
+            # Calculate language breakdown
+            for file in files:
+                lang = file.get("language", "unknown")
+                if lang not in analysis_data["language_breakdown"]:
+                    analysis_data["language_breakdown"][lang] = 0
+                analysis_data["language_breakdown"][lang] += 1
+
+            # Run requested analyzers
+            analyzer_results = {}
+            analyzers_to_run = request.analyzers if request.analyzers else ["security", "code_quality"]
+
+            for analyzer_name in analyzers_to_run:
+                analyzer_config = {
+                    "project_path": str(path),
+                    "project_name": repo_name,
+                    **repo_config.get("analyzer_config", {}),
+                }
+
+                logger.info(f"Running {analyzer_name} analyzer on {repo_name}")
+                result = run_analyzer(analyzer_name, analyzer_config, analysis_data)
+                analyzer_results[analyzer_name] = result
+
+            # Calculate summary
+            total_issues = 0
+            critical_issues = 0
+            for analyzer_name, result in analyzer_results.items():
+                if "data" in result:
+                    data = result["data"]
+                    if "findings" in data:
+                        total_issues += len(data["findings"])
+                        critical_issues += len([f for f in data["findings"]
+                                                if f.get("severity") in ["critical", "high"]])
+                    elif "vulnerabilities" in data:
+                        total_issues += len(data["vulnerabilities"])
+                        critical_issues += len([v for v in data["vulnerabilities"]
+                                                if v.get("severity") in ["critical", "high"]])
+
+            duration = (datetime.now() - start_time).total_seconds()
+
             results[repo_name] = {
                 "status": "success",
-                "collectors": {},
-                "analyzers": {}
+                "duration_seconds": round(duration, 2),
+                "files_analyzed": len(files),
+                "total_lines": analysis_data["metrics"]["total_lines"],
+                "languages": list(analysis_data["language_breakdown"].keys()),
+                "analyzers": analyzer_results,
+                "summary": {
+                    "total_issues": total_issues,
+                    "critical_issues": critical_issues,
+                },
             }
 
             completed += 1
+            logger.info(f"Completed {repo_name}: {total_issues} issues found in {duration:.2f}s")
 
         except Exception as e:
-            logger.error(f"Failed to process repository: {e}")
+            logger.error(f"Failed to process repository {repo_name}: {e}")
+            duration = (datetime.now() - start_time).total_seconds()
+            results[repo_name] = {
+                "status": "failed",
+                "error": str(e),
+                "duration_seconds": round(duration, 2),
+            }
             failed += 1
 
         job["completed_items"] = completed
@@ -133,6 +328,9 @@ async def process_batch_audit(job_id: str, request: BatchAuditRequest):
 
     job["status"] = "completed"
     job["completed_at"] = datetime.now().isoformat()
+
+    # Log final summary
+    logger.info(f"Batch audit {job_id} completed: {completed} succeeded, {failed} failed")
 
 
 @router.post("/audit", response_model=Dict[str, str])

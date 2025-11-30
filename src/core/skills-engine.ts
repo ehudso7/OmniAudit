@@ -555,11 +555,187 @@ Provide a comprehensive analysis with specific, actionable recommendations.`;
 
   // ==================== Helper Methods ====================
 
-  private async validateDependencies(_definition: SkillDefinition): Promise<void> {
-    // TODO: Implement dependency validation
-    // Check if required packages are available
-    // Check if other skills are registered
-    // Check if API keys are configured
+  private async validateDependencies(definition: SkillDefinition): Promise<void> {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // 1. Check if required packages are available
+    if (definition.capabilities.analyzers) {
+      for (const analyzer of definition.capabilities.analyzers) {
+        if (analyzer.enabled) {
+          const isAvailable = await this.checkAnalyzerAvailability(analyzer.name);
+          if (!isAvailable) {
+            errors.push(`Required analyzer '${analyzer.name}' is not available`);
+          }
+        }
+      }
+    }
+
+    // 2. Check if required transformers are available
+    if (definition.capabilities.transformers) {
+      for (const transformer of definition.capabilities.transformers) {
+        const isAvailable = await this.checkTransformerAvailability(transformer.name);
+        if (!isAvailable) {
+          errors.push(`Required transformer '${transformer.name}' is not available`);
+        }
+      }
+    }
+
+    // 3. Check if dependent skills are registered
+    if (definition.dependencies?.skills) {
+      for (const skillDep of definition.dependencies.skills) {
+        const skill = this.skills.get(skillDep.skill_id);
+        if (!skill) {
+          if (skillDep.optional) {
+            warnings.push(`Optional skill dependency '${skillDep.skill_id}' is not registered`);
+          } else {
+            errors.push(`Required skill dependency '${skillDep.skill_id}' is not registered`);
+          }
+        } else if (skillDep.min_version) {
+          // Check version compatibility
+          const isCompatible = this.checkVersionCompatibility(
+            skill.definition.version,
+            skillDep.min_version,
+          );
+          if (!isCompatible) {
+            errors.push(
+              `Skill '${skillDep.skill_id}' version ${skill.definition.version} ` +
+                `does not meet minimum requirement ${skillDep.min_version}`,
+            );
+          }
+        }
+      }
+    }
+
+    // 4. Check API keys configuration
+    if (definition.capabilities.ai_features) {
+      const aiFeatures = definition.capabilities.ai_features;
+
+      // Check if Claude API is configured when AI features are enabled
+      if (aiFeatures.semantic_analysis || aiFeatures.auto_fix || aiFeatures.explanation_generation) {
+        if (!process.env.ANTHROPIC_API_KEY && !this.anthropic) {
+          errors.push('Anthropic API key is required for AI features but not configured');
+        }
+      }
+    }
+
+    // 5. Check cache configuration
+    if (definition.execution.cache_results) {
+      if (!this.cache) {
+        warnings.push('Caching is enabled but Redis is not configured');
+      }
+    }
+
+    // 6. Validate language support
+    const supportedLanguages = [
+      'typescript',
+      'javascript',
+      'python',
+      'go',
+      'java',
+      'rust',
+      'ruby',
+      'php',
+      'c',
+      'cpp',
+      'csharp',
+      'kotlin',
+    ];
+
+    for (const lang of definition.metadata.language) {
+      if (!supportedLanguages.includes(lang.toLowerCase())) {
+        warnings.push(`Language '${lang}' may have limited support`);
+      }
+    }
+
+    // Log warnings
+    for (const warning of warnings) {
+      console.warn(`[Skill Validation Warning] ${warning}`);
+    }
+
+    // Throw if there are errors
+    if (errors.length > 0) {
+      throw new Error(`Skill validation failed:\n- ${errors.join('\n- ')}`);
+    }
+  }
+
+  private async checkAnalyzerAvailability(analyzerName: string): Promise<boolean> {
+    // List of built-in analyzers
+    const builtinAnalyzers = [
+      'eslint',
+      'typescript',
+      'security',
+      'complexity',
+      'duplication',
+      'performance',
+      'react',
+      'accessibility',
+      'dependency',
+      'style',
+    ];
+
+    // Check if it's a built-in analyzer
+    if (builtinAnalyzers.includes(analyzerName.toLowerCase())) {
+      return true;
+    }
+
+    // Check if it's a custom analyzer that can be loaded
+    try {
+      const analyzer = AnalyzerFactory.createAnalyzer(analyzerName, {});
+      return analyzer !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  private async checkTransformerAvailability(transformerName: string): Promise<boolean> {
+    // List of built-in transformers
+    const builtinTransformers = [
+      'prettier',
+      'eslint-fix',
+      'typescript-fix',
+      'import-organizer',
+      'dead-code-remover',
+      'performance-optimizer',
+      'security-fix',
+    ];
+
+    // Check if it's a built-in transformer
+    if (builtinTransformers.includes(transformerName.toLowerCase())) {
+      return true;
+    }
+
+    // Check if it's a custom transformer that can be loaded
+    try {
+      const transformer = TransformerFactory.createTransformer(transformerName);
+      return transformer !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  private checkVersionCompatibility(currentVersion: string, requiredMinVersion: string): boolean {
+    // Parse semantic versions
+    const current = this.parseVersion(currentVersion);
+    const required = this.parseVersion(requiredMinVersion);
+
+    // Compare versions (major.minor.patch)
+    if (current.major > required.major) return true;
+    if (current.major < required.major) return false;
+
+    if (current.minor > required.minor) return true;
+    if (current.minor < required.minor) return false;
+
+    return current.patch >= required.patch;
+  }
+
+  private parseVersion(version: string): { major: number; minor: number; patch: number } {
+    const parts = version.replace(/^v/, '').split('.');
+    return {
+      major: parseInt(parts[0] || '0', 10),
+      minor: parseInt(parts[1] || '0', 10),
+      patch: parseInt(parts[2] || '0', 10),
+    };
   }
 
   private async initializeAnalyzers(
