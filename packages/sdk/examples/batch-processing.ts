@@ -237,6 +237,7 @@ function mapSeverityToSarif(severity: string): 'error' | 'warning' | 'note' | 'n
     case 'medium':
       return 'warning';
     case 'low':
+    case 'info':
       return 'note';
     default:
       return 'none';
