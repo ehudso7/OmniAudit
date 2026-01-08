@@ -2,10 +2,10 @@
  * Base agent tests
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BaseAgent, AgentError } from '../agent/base.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AgentError, BaseAgent } from '../agent/base.js';
 import { EventBus } from '../bus/event-bus.js';
-import type { WorkItem, Finding, AgentContext } from '../types/index.js';
+import type { AgentContext, Finding, WorkItem } from '../types/index.js';
 import { AgentStatus, FindingSeverity } from '../types/index.js';
 
 class TestAgent extends BaseAgent {

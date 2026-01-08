@@ -15,7 +15,7 @@ import { useState, useEffect } from 'react';
 
 export function Header() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-  const [notifications, setNotifications] = useState<number>(3);
+  const [notifications] = useState<number>(3);
 
   useEffect(() => {
     // Check system preference and sync with DOM

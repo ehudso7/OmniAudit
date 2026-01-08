@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, AlertTriangle, Lock, Key, Bug, RefreshCw } from 'lucide-react';
+import { Shield, AlertTriangle, Lock, Bug, RefreshCw } from 'lucide-react';
 
 export default function SecurityPage() {
   const vulnerabilities = [

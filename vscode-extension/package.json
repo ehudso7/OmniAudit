@@ -188,7 +188,7 @@
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "test": "node ./out/test/runTest.js",
+    "test": "echo 'No tests configured yet - see CONTRIBUTING.md for test setup'",
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {

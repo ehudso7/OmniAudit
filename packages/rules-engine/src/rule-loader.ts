@@ -1,9 +1,9 @@
-import { readFile, readdir, stat } from 'fs/promises';
 import * as path from 'path';
+import { readFile, readdir, stat } from 'fs/promises';
 import * as yaml from 'js-yaml';
+import micromatch from 'micromatch';
 import type { Rule } from './types';
 import { RuleSchema } from './types';
-import micromatch from 'micromatch';
 
 /**
  * RuleLoader - Loads and manages rules from YAML files
@@ -123,31 +123,27 @@ export class RuleLoader {
     let rules = this.getAllRules();
 
     if (criteria.categories) {
-      rules = rules.filter(r => criteria.categories?.includes(r.category));
+      rules = rules.filter((r) => criteria.categories?.includes(r.category));
     }
 
     if (criteria.severities) {
-      rules = rules.filter(r => criteria.severities?.includes(r.severity));
+      rules = rules.filter((r) => criteria.severities?.includes(r.severity));
     }
 
     if (criteria.languages) {
-      rules = rules.filter(r =>
-        r.languages.some(lang => criteria.languages?.includes(lang))
-      );
+      rules = rules.filter((r) => r.languages.some((lang) => criteria.languages?.includes(lang)));
     }
 
     if (criteria.tags) {
-      rules = rules.filter(r =>
-        r.tags?.some(tag => criteria.tags?.includes(tag))
-      );
+      rules = rules.filter((r) => r.tags?.some((tag) => criteria.tags?.includes(tag)));
     }
 
     if (criteria.ids) {
-      rules = rules.filter(r => criteria.ids?.includes(r.id));
+      rules = rules.filter((r) => criteria.ids?.includes(r.id));
     }
 
     if (criteria.enabled !== undefined) {
-      rules = rules.filter(r => r.enabled === criteria.enabled);
+      rules = rules.filter((r) => r.enabled === criteria.enabled);
     }
 
     return rules;
@@ -184,14 +180,14 @@ export class RuleLoader {
 
     // Filter by language
     if (language) {
-      rules = rules.filter(r => r.languages.includes(language));
+      rules = rules.filter((r) => r.languages.includes(language));
     }
 
     // Filter by file conditions
-    rules = rules.filter(r => this.fileMatchesConditions(filePath, r));
+    rules = rules.filter((r) => this.fileMatchesConditions(filePath, r));
 
     // Filter enabled rules only
-    rules = rules.filter(r => r.enabled !== false);
+    rules = rules.filter((r) => r.enabled !== false);
 
     return rules;
   }

@@ -145,7 +145,7 @@ export class PDFReporter implements Reporter {
     // Calculate risk score (0-100)
     const riskScore = Math.min(
       100,
-      Math.round((critical * 25 + high * 15 + medium * 5 + low * 1) / Math.max(1, total) * 10),
+      Math.round(((critical * 25 + high * 15 + medium * 5 + low * 1) / Math.max(1, total)) * 10),
     );
 
     const riskLevel =
@@ -199,13 +199,7 @@ export class PDFReporter implements Reporter {
   private addFindingsBySeverity(doc: PDFDocument, result: AuditResult): void {
     const page = this.addPage(doc);
 
-    page.content.push(
-      '',
-      '═'.repeat(60),
-      '              FINDINGS BY SEVERITY',
-      '═'.repeat(60),
-      '',
-    );
+    page.content.push('', '═'.repeat(60), '              FINDINGS BY SEVERITY', '═'.repeat(60), '');
 
     const severities: Severity[] = ['critical', 'high', 'medium', 'low', 'info'];
 
@@ -242,13 +236,7 @@ export class PDFReporter implements Reporter {
   ): void {
     const page = this.addPage(doc);
 
-    page.content.push(
-      '',
-      '═'.repeat(60),
-      '              DETAILED FINDINGS',
-      '═'.repeat(60),
-      '',
-    );
+    page.content.push('', '═'.repeat(60), '              DETAILED FINDINGS', '═'.repeat(60), '');
 
     // Sort by severity (critical first)
     const sortedFindings = [...result.findings].sort((a, b) => {
@@ -358,12 +346,7 @@ export class PDFReporter implements Reporter {
       }
     }
 
-    page.content.push(
-      '',
-      '2. SHORT-TERM IMPROVEMENTS (Medium)',
-      '─'.repeat(40),
-      '',
-    );
+    page.content.push('', '2. SHORT-TERM IMPROVEMENTS (Medium)', '─'.repeat(40), '');
 
     const medium = result.findings.filter((f) => f.severity === 'medium');
     const uniqueMediumRules = [...new Set(medium.map((f) => f.rule_id))];

@@ -3,10 +3,10 @@
  * Performance Benchmark for Rules Engine
  */
 
+import * as path from 'path';
 import { RulesEngine } from './src/engine';
 import { RuleLoader } from './src/rule-loader';
 import type { FileToAnalyze } from './src/types';
-import * as path from 'path';
 
 const COLORS = {
   reset: '\x1b[0m',
@@ -30,7 +30,9 @@ async function main() {
   try {
     rules = await loader.loadDirectory(rulesPath);
   } catch (error) {
-    console.log(`${COLORS.yellow}Note: Built-in rules not loaded (expected in test environment)${COLORS.reset}`);
+    console.log(
+      `${COLORS.yellow}Note: Built-in rules not loaded (expected in test environment)${COLORS.reset}`,
+    );
     // Create sample rules for benchmarking
     rules = [
       {
@@ -162,7 +164,9 @@ async function main() {
     console.log(`${COLORS.cyan}Sample Findings:${COLORS.reset}`);
     const sampleMatches = result.matches.slice(0, 5);
     for (const match of sampleMatches) {
-      console.log(`  ${COLORS.yellow}[${match.severity.toUpperCase()}]${COLORS.reset} ${match.ruleId}: ${match.message}`);
+      console.log(
+        `  ${COLORS.yellow}[${match.severity.toUpperCase()}]${COLORS.reset} ${match.ruleId}: ${match.message}`,
+      );
       console.log(`    File: ${match.file}:${match.line}:${match.column}`);
     }
     console.log('');

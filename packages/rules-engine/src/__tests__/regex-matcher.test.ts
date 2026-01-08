@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { RegexMatcher } from '../matchers/regex-matcher';
-import type { Rule, FileToAnalyze } from '../types';
+import type { FileToAnalyze, Rule } from '../types';
 
 describe('RegexMatcher', () => {
   const matcher = new RegexMatcher();

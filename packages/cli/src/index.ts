@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
 import chalk from 'chalk';
-import gradient from 'gradient-string';
-import figlet from 'figlet';
+import { Command } from 'commander';
 import { config } from 'dotenv';
+import figlet from 'figlet';
+import gradient from 'gradient-string';
 import {
   createAuditCommand,
-  createFindingsCommand,
-  createConfigCommand,
-  createRulesCommand,
-  createReportCommand,
   createCICommand,
-  createWatchCommand,
+  createConfigCommand,
+  createFindingsCommand,
   createFixCommand,
+  createReportCommand,
+  createRulesCommand,
   createStatsCommand,
+  createWatchCommand,
 } from './commands/index.js';
 
 // Load environment variables
@@ -29,12 +29,10 @@ function showBanner() {
       figlet.textSync('OmniAudit', {
         font: 'Standard',
         horizontalLayout: 'default',
-      })
-    )
+      }),
+    ),
   );
-  console.log(
-    chalk.cyan.bold('  Universal AI-Powered Code Auditing Framework v2.0.0\n')
-  );
+  console.log(chalk.cyan.bold('  Universal AI-Powered Code Auditing Framework v2.0.0\n'));
 }
 
 // Main program configuration
@@ -45,7 +43,11 @@ program
   .option('-v, --verbose', 'Enable verbose output')
   .option('-q, --quiet', 'Suppress non-essential output')
   .option('--no-color', 'Disable colored output')
-  .option('--api-url <url>', 'API server URL', process.env.OMNIAUDIT_API_URL || 'http://localhost:8000')
+  .option(
+    '--api-url <url>',
+    'API server URL',
+    process.env.OMNIAUDIT_API_URL || 'http://localhost:8000',
+  )
   .option('--api-key <key>', 'API authentication key', process.env.OMNIAUDIT_API_KEY);
 
 // Add commands

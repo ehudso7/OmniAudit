@@ -1,9 +1,9 @@
-import { Command } from 'commander';
+import { generateReport } from '@omniaudit/reporters';
 import chalk from 'chalk';
+import { Command } from 'commander';
+import fs from 'fs/promises';
 import { createSpinner } from '../ui/spinner.js';
 import { printFindingsTable, printSummaryTable } from '../ui/table.js';
-import { generateReport } from '@omniaudit/reporters';
-import fs from 'fs/promises';
 
 export function createAuditCommand(): Command {
   const cmd = new Command('audit');
@@ -94,10 +94,15 @@ export function createAuditCommand(): Command {
         const failIndex = severityLevels.indexOf(options.failOn);
         const hasCriticalFindings = severityLevels
           .slice(failIndex)
-          .some(level => result.findings_by_severity[level as keyof typeof result.findings_by_severity] > 0);
+          .some(
+            (level) =>
+              result.findings_by_severity[level as keyof typeof result.findings_by_severity] > 0,
+          );
 
         if (hasCriticalFindings) {
-          console.log(chalk.red(`\n❌ Audit failed: Found ${options.failOn} or higher severity issues\n`));
+          console.log(
+            chalk.red(`\n❌ Audit failed: Found ${options.failOn} or higher severity issues\n`),
+          );
           process.exit(1);
         }
 

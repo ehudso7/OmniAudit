@@ -4,7 +4,7 @@
  * Demonstrates the simplest way to run an audit using the OmniAudit SDK.
  */
 
-import { createClient, audit } from '@omniaudit/sdk';
+import { audit, createClient } from '@omniaudit/sdk';
 
 async function main() {
   // Option 1: Quick one-liner audit

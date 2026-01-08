@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { RuleLoader } from '../rule-loader';
 import type { Rule } from '../types';
 
@@ -54,7 +54,7 @@ describe('RuleLoader', () => {
     it('should filter by category', () => {
       const rules = loader.filterRules({ categories: ['security'] });
       expect(rules).toHaveLength(2);
-      expect(rules.every(r => r.category === 'security')).toBe(true);
+      expect(rules.every((r) => r.category === 'security')).toBe(true);
     });
 
     it('should filter by severity', () => {
@@ -77,7 +77,7 @@ describe('RuleLoader', () => {
     it('should filter by enabled status', () => {
       const rules = loader.filterRules({ enabled: true });
       expect(rules).toHaveLength(2);
-      expect(rules.every(r => r.enabled === true)).toBe(true);
+      expect(rules.every((r) => r.enabled === true)).toBe(true);
     });
 
     it('should combine multiple filters', () => {

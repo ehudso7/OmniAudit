@@ -3,16 +3,16 @@
  * @module @omniaudit/core/agent/base
  */
 
-import type { WorkItem, AnalysisResult, AgentState, Finding } from '../types/index.js';
-import { AgentStatus } from '../types/index.js';
-import type { IAgent, AgentContext } from './types.js';
-import { AgentLifecycle } from './lifecycle.js';
 import {
-  createProgressEvent,
-  createErrorEvent,
   createCompleteEvent,
+  createErrorEvent,
+  createProgressEvent,
   createStateChangeEvent,
 } from '../bus/messages.js';
+import type { AgentState, AnalysisResult, Finding, WorkItem } from '../types/index.js';
+import { AgentStatus } from '../types/index.js';
+import { AgentLifecycle } from './lifecycle.js';
+import type { AgentContext, IAgent } from './types.js';
 
 /**
  * Custom error class for agent errors
@@ -122,12 +122,15 @@ export abstract class BaseAgent implements IAgent {
 
         return result;
       } catch (error) {
-        const agentError = error instanceof AgentError ? error : new AgentError(
-          error instanceof Error ? error.message : String(error),
-          this.id,
-          false,
-          error instanceof Error ? error : undefined,
-        );
+        const agentError =
+          error instanceof AgentError
+            ? error
+            : new AgentError(
+                error instanceof Error ? error.message : String(error),
+                this.id,
+                false,
+                error instanceof Error ? error : undefined,
+              );
 
         this.handleAnalysisError(agentError, item);
 
@@ -229,10 +232,7 @@ export abstract class BaseAgent implements IAgent {
   /**
    * Execute function with retry logic
    */
-  protected async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    maxRetries?: number,
-  ): Promise<T> {
+  protected async executeWithRetry<T>(fn: () => Promise<T>, maxRetries?: number): Promise<T> {
     const retries = maxRetries ?? this.context.config.maxRetries;
     let lastError: Error | undefined;
 

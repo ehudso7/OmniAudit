@@ -56,33 +56,43 @@ export const PatternsSchema = z.union([
 ]);
 
 // Condition schemas
-export const ConditionsSchema = z.object({
-  fileMatch: z.array(z.string()).optional(),
-  fileExclude: z.array(z.string()).optional(),
-  requires: z.array(z.string()).optional(),
-  unless: z.array(z.string()).optional(),
-  when: z.record(z.any()).optional(),
-}).optional();
+export const ConditionsSchema = z
+  .object({
+    fileMatch: z.array(z.string()).optional(),
+    fileExclude: z.array(z.string()).optional(),
+    requires: z.array(z.string()).optional(),
+    unless: z.array(z.string()).optional(),
+    when: z.record(z.any()).optional(),
+  })
+  .optional();
 
 // Fix schema
-export const FixSchema = z.object({
-  type: FixTypeSchema,
-  template: z.string(),
-  confidence: z.number().min(0).max(1).optional(),
-  description: z.string().optional(),
-}).optional();
+export const FixSchema = z
+  .object({
+    type: FixTypeSchema,
+    template: z.string(),
+    confidence: z.number().min(0).max(1).optional(),
+    description: z.string().optional(),
+  })
+  .optional();
 
 // Metadata schemas
-export const MetadataSchema = z.object({
-  cwe: z.array(z.string()).optional(),
-  owasp: z.array(z.string()).optional(),
-  references: z.array(z.string()).optional(),
-  examples: z.array(z.object({
-    code: z.string(),
-    vulnerable: z.boolean().optional(),
-    description: z.string().optional(),
-  })).optional(),
-}).optional();
+export const MetadataSchema = z
+  .object({
+    cwe: z.array(z.string()).optional(),
+    owasp: z.array(z.string()).optional(),
+    references: z.array(z.string()).optional(),
+    examples: z
+      .array(
+        z.object({
+          code: z.string(),
+          vulnerable: z.boolean().optional(),
+          description: z.string().optional(),
+        }),
+      )
+      .optional(),
+  })
+  .optional();
 
 // Main Rule schema
 export const RuleSchema = z.object({

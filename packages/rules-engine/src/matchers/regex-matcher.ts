@@ -1,4 +1,4 @@
-import type { Rule, Match, Matcher, FileToAnalyze } from '../types';
+import type { FileToAnalyze, Match, Matcher, Rule } from '../types';
 
 /**
  * Maximum number of matches to collect per file (ReDoS protection)
@@ -85,8 +85,13 @@ export class RegexMatcher implements Matcher {
 
     // ReDoS protection: limit content size for potentially slow patterns
     let contentToMatch = content;
-    if (this.isSlowPattern(patterns.regex) && content.length > MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS) {
-      console.warn(`Rule ${rule.id}: Content truncated for slow pattern (${content.length} > ${MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS} bytes)`);
+    if (
+      this.isSlowPattern(patterns.regex) &&
+      content.length > MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS
+    ) {
+      console.warn(
+        `Rule ${rule.id}: Content truncated for slow pattern (${content.length} > ${MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS} bytes)`,
+      );
       contentToMatch = content.substring(0, MAX_CONTENT_LENGTH_FOR_SLOW_PATTERNS);
     }
 
@@ -131,11 +136,13 @@ export class RegexMatcher implements Matcher {
             owasp: rule.owasp,
             references: rule.references,
           },
-          fix: rule.fix ? {
-            type: rule.fix.type,
-            replacement: this.generateFix(match, rule.fix.template),
-            confidence: rule.fix.confidence || 0.5,
-          } : undefined,
+          fix: rule.fix
+            ? {
+                type: rule.fix.type,
+                replacement: this.generateFix(match, rule.fix.template),
+                confidence: rule.fix.confidence || 0.5,
+              }
+            : undefined,
         });
 
         // Prevent infinite loops on zero-length matches

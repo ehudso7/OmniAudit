@@ -1,6 +1,6 @@
-import type { Rule, Match, Matcher, FileToAnalyze } from '../types';
-import { regexMatcher } from './regex-matcher';
+import type { FileToAnalyze, Match, Matcher, Rule } from '../types';
 import { astMatcher } from './ast-matcher';
+import { regexMatcher } from './regex-matcher';
 
 /**
  * PatternMatcher - Combines regex and AST matching (Semgrep-like)
@@ -44,7 +44,7 @@ export class PatternMatcher implements Matcher {
 
     // Handle multiple patterns (AND logic)
     if (patterns.patterns) {
-      let allMatches: Match[][] = [];
+      const allMatches: Match[][] = [];
       for (const pattern of patterns.patterns) {
         const patternMatches = this.matchPattern(content, pattern, rule, file);
         allMatches.push(patternMatches);
@@ -75,12 +75,7 @@ export class PatternMatcher implements Matcher {
   /**
    * Match a single pattern string
    */
-  private matchPattern(
-    content: string,
-    pattern: string,
-    rule: Rule,
-    file: FileToAnalyze
-  ): Match[] {
+  private matchPattern(content: string, pattern: string, rule: Rule, file: FileToAnalyze): Match[] {
     // Convert pattern to regex
     const regex = this.patternToRegex(pattern);
     const tempRule = {
@@ -135,10 +130,10 @@ export class PatternMatcher implements Matcher {
 
     // Find matches that appear in all arrays (by line number)
     const first = matchArrays[0] || [];
-    return first.filter(match =>
-      matchArrays.slice(1).every(arr =>
-        arr.some(m => m.file === match.file && m.line === match.line)
-      )
+    return first.filter((match) =>
+      matchArrays
+        .slice(1)
+        .every((arr) => arr.some((m) => m.file === match.file && m.line === match.line)),
     );
   }
 
@@ -146,15 +141,13 @@ export class PatternMatcher implements Matcher {
    * Exclude matches (NOT logic)
    */
   private excludeMatches(matches: Match[], excludeMatches: Match[]): Match[] {
-    return matches.filter(match =>
-      !excludeMatches.some(ex =>
-        ex.file === match.file &&
-        ex.line === match.line &&
-        ex.column === match.column
-      )
+    return matches.filter(
+      (match) =>
+        !excludeMatches.some(
+          (ex) => ex.file === match.file && ex.line === match.line && ex.column === match.column,
+        ),
     );
   }
-
 }
 
 export const patternMatcher = new PatternMatcher();

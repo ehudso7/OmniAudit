@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions, Severity } from '../types.js';
 
 export class CheckstyleReporter implements Reporter {
   name = 'Checkstyle Reporter';

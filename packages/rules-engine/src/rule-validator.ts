@@ -82,7 +82,7 @@ export class RuleValidator {
         'dangerouslySetInnerHTML',
       ];
 
-      if (!validSelectors.some(s => patterns.ast.includes(s))) {
+      if (!validSelectors.some((s) => patterns.ast.includes(s))) {
         warnings.push('AST pattern may not match known selectors');
       }
     }
@@ -96,8 +96,8 @@ export class RuleValidator {
 
     // Check for conflicting file patterns
     if (rule.conditions.fileMatch && rule.conditions.fileExclude) {
-      const hasOverlap = rule.conditions.fileMatch.some(pattern =>
-        rule.conditions?.fileExclude?.includes(pattern)
+      const hasOverlap = rule.conditions.fileMatch.some((pattern) =>
+        rule.conditions?.fileExclude?.includes(pattern),
       );
       if (hasOverlap) {
         warnings.push('fileMatch and fileExclude have overlapping patterns');

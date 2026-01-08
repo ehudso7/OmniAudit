@@ -1,6 +1,6 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
 import chokidar from 'chokidar';
+import { Command } from 'commander';
 
 export function createWatchCommand(): Command {
   const cmd = new Command('watch');
@@ -46,7 +46,7 @@ export function createWatchCommand(): Command {
           clearTimeout(timeout);
         }
 
-        timeout = setTimeout(runAudit, parseInt(options.debounce));
+        timeout = setTimeout(runAudit, Number.parseInt(options.debounce));
       });
 
       watcher.on('add', (filePath) => {

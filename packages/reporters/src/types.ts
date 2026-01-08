@@ -9,7 +9,7 @@ export const CategorySchema = z.enum([
   'accessibility',
   'best-practices',
   'maintainability',
-  'code-quality'
+  'code-quality',
 ]);
 export type Category = z.infer<typeof CategorySchema>;
 
@@ -52,11 +52,13 @@ export const AuditResultSchema = z.object({
     info: z.number(),
   }),
   findings: z.array(FindingSchema),
-  metadata: z.object({
-    version: z.string(),
-    rules_count: z.number(),
-    analyzers: z.array(z.string()),
-  }).optional(),
+  metadata: z
+    .object({
+      version: z.string(),
+      rules_count: z.number(),
+      analyzers: z.array(z.string()),
+    })
+    .optional(),
 });
 
 export type AuditResult = z.infer<typeof AuditResultSchema>;

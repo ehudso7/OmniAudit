@@ -134,7 +134,7 @@ const htmlReporter: Reporter = {
           ${f.recommendation ? `<div class="recommendation"><strong>Recommendation:</strong> ${escapeHtml(f.recommendation)}</div>` : ''}
         </div>
       </div>
-    `
+    `,
       )
       .join('\n');
 
@@ -310,7 +310,7 @@ ${f.recommendation ? `\nRecommendation: ${escapeXml(f.recommendation)}` : ''}
       .join('\n');
 
     const failures = result.findings.filter(
-      (f) => f.severity === 'critical' || f.severity === 'high'
+      (f) => f.severity === 'critical' || f.severity === 'high',
     ).length;
 
     return `<?xml version="1.0" encoding="UTF-8"?>
@@ -328,8 +328,7 @@ const slackReporter: Reporter = {
   description: 'Generate Slack Block Kit message',
 
   generate(result: AuditResult): string {
-    const criticalHigh =
-      result.findings_by_severity.critical + result.findings_by_severity.high;
+    const criticalHigh = result.findings_by_severity.critical + result.findings_by_severity.high;
     const statusEmoji = criticalHigh === 0 ? '✅' : criticalHigh > 5 ? '🚨' : '⚠️';
 
     const blocks = [
@@ -388,8 +387,7 @@ const githubCommentReporter: Reporter = {
   description: 'Generate GitHub PR comment markdown',
 
   generate(result: AuditResult): string {
-    const criticalHigh =
-      result.findings_by_severity.critical + result.findings_by_severity.high;
+    const criticalHigh = result.findings_by_severity.critical + result.findings_by_severity.high;
     const statusIcon = criticalHigh === 0 ? '✅' : criticalHigh > 5 ? '❌' : '⚠️';
 
     let comment = `## ${statusIcon} OmniAudit Results\n\n`;
@@ -406,7 +404,7 @@ const githubCommentReporter: Reporter = {
       comment += `<details>\n<summary>🔴 Critical & High Findings (${criticalHigh})</summary>\n\n`;
 
       const importantFindings = result.findings.filter(
-        (f) => f.severity === 'critical' || f.severity === 'high'
+        (f) => f.severity === 'critical' || f.severity === 'high',
       );
 
       for (const f of importantFindings.slice(0, 10)) {
@@ -466,7 +464,9 @@ const reporters = new Map<string, Reporter>([
 function createReporter(format: string): Reporter {
   const reporter = reporters.get(format);
   if (!reporter) {
-    throw new Error(`Unknown reporter format: ${format}. Available: ${Array.from(reporters.keys()).join(', ')}`);
+    throw new Error(
+      `Unknown reporter format: ${format}. Available: ${Array.from(reporters.keys()).join(', ')}`,
+    );
   }
   return reporter;
 }

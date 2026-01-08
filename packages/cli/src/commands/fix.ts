@@ -1,7 +1,7 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
-import { createSpinner } from '../ui/spinner.js';
+import { Command } from 'commander';
 import { ProgressBar } from '../ui/progress.js';
+import { createSpinner } from '../ui/spinner.js';
 
 export function createFixCommand(): Command {
   const cmd = new Command('fix');
@@ -30,7 +30,7 @@ export function createFixCommand(): Command {
 
         // Mock fixing
         for (let i = 0; i < fixableCount; i++) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           progress.update(i + 1, `Fixed issue ${i + 1}/${fixableCount}`);
         }
 

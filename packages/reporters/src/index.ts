@@ -19,24 +19,24 @@ export { JIRAReporter } from './formats/jira.js';
 export { LinearReporter } from './formats/linear.js';
 export { NotionReporter } from './formats/notion.js';
 
-import { JSONReporter } from './formats/json.js';
-import { SARIFReporter } from './formats/sarif.js';
-import { MarkdownReporter } from './formats/markdown.js';
-import { HTMLReporter } from './formats/html.js';
-import { PDFReporter } from './formats/pdf.js';
-import { JUnitReporter } from './formats/junit.js';
 import { CheckstyleReporter } from './formats/checkstyle.js';
-import { GitLabReporter } from './formats/gitlab.js';
-import { GitHubReporter } from './formats/github.js';
-import { SonarQubeReporter } from './formats/sonarqube.js';
 import { CodeClimateReporter } from './formats/codeclimate.js';
 import { CSVReporter } from './formats/csv.js';
-import { SlackReporter } from './formats/slack.js';
+import { GitHubReporter } from './formats/github.js';
+import { GitLabReporter } from './formats/gitlab.js';
+import { HTMLReporter } from './formats/html.js';
 import { JIRAReporter } from './formats/jira.js';
+import { JSONReporter } from './formats/json.js';
+import { JUnitReporter } from './formats/junit.js';
 import { LinearReporter } from './formats/linear.js';
+import { MarkdownReporter } from './formats/markdown.js';
 import { NotionReporter } from './formats/notion.js';
+import { PDFReporter } from './formats/pdf.js';
+import { SARIFReporter } from './formats/sarif.js';
+import { SlackReporter } from './formats/slack.js';
+import { SonarQubeReporter } from './formats/sonarqube.js';
 
-import type { Reporter, AuditResult, ReporterOptions } from './types.js';
+import type { AuditResult, Reporter, ReporterOptions } from './types.js';
 
 /**
  * Registry of all available reporters
@@ -79,7 +79,7 @@ export function getReporter(format: ReporterFormat): Reporter {
 export async function generateReport(
   result: AuditResult,
   format: ReporterFormat = 'json',
-  options?: ReporterOptions
+  options?: ReporterOptions,
 ): Promise<string> {
   const reporter = getReporter(format);
   return reporter.generate(result, options);
@@ -119,11 +119,7 @@ export class ReporterManager {
   /**
    * Generate report using the specified format
    */
-  async generate(
-    result: AuditResult,
-    format: string,
-    options?: ReporterOptions
-  ): Promise<string> {
+  async generate(result: AuditResult, format: string, options?: ReporterOptions): Promise<string> {
     const reporter = this.reporters.get(format);
     if (!reporter) {
       throw new Error(`Reporter not found: ${format}`);
@@ -137,7 +133,7 @@ export class ReporterManager {
   async generateMultiple(
     result: AuditResult,
     formats: string[],
-    options?: ReporterOptions
+    options?: ReporterOptions,
   ): Promise<Map<string, string>> {
     const reports = new Map<string, string>();
 
@@ -150,7 +146,7 @@ export class ReporterManager {
           console.error(`Failed to generate ${format} report:`, error);
           throw error;
         }
-      })
+      }),
     );
 
     return reports;

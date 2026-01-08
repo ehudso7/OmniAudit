@@ -5,9 +5,9 @@
 
 import { randomUUID } from 'node:crypto';
 import pLimit from 'p-limit';
-import type { IAgent, AgentContext } from './types.js';
-import type { WorkItem, AnalysisResult, CircuitBreakerState } from '../types/index.js';
 import type { EventBus } from '../bus/event-bus.js';
+import type { AnalysisResult, CircuitBreakerState, WorkItem } from '../types/index.js';
+import type { AgentContext, IAgent } from './types.js';
 
 /**
  * Agent factory function
@@ -96,9 +96,7 @@ export class AgentPool {
     // Start with minimum number of agents (25% of max or at least 1)
     const initialAgents = Math.max(1, Math.floor(this.options.maxAgents * 0.25));
 
-    const initPromises = Array.from({ length: initialAgents }, () =>
-      this.createAgent(),
-    );
+    const initPromises = Array.from({ length: initialAgents }, () => this.createAgent());
 
     await Promise.all(initPromises);
     this.isInitialized = true;
@@ -239,10 +237,7 @@ export class AgentPool {
       const circuitBreaker = this.circuitBreakers.get(agent.id);
       if (circuitBreaker?.state === 'open') {
         // Check if we should try half-open
-        if (
-          circuitBreaker.nextAttemptAt &&
-          circuitBreaker.nextAttemptAt <= new Date()
-        ) {
+        if (circuitBreaker.nextAttemptAt && circuitBreaker.nextAttemptAt <= new Date()) {
           circuitBreaker.state = 'half_open';
           return agent.isAvailable();
         }
@@ -323,9 +318,7 @@ export class AgentPool {
     if (circuitBreaker.failureCount >= this.options.circuitBreakerThreshold) {
       // Open circuit breaker
       circuitBreaker.state = 'open';
-      circuitBreaker.nextAttemptAt = new Date(
-        Date.now() + this.options.circuitBreakerResetMs,
-      );
+      circuitBreaker.nextAttemptAt = new Date(Date.now() + this.options.circuitBreakerResetMs);
 
       // Schedule agent restart with exponential backoff
       this.scheduleAgentRestart(agentId);

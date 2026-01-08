@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock fetch for API calls
 global.fetch = vi.fn();
@@ -101,10 +101,12 @@ describe('OmniAudit SDK Integration Tests', () => {
 
   describe('Findings management', () => {
     it('should retrieve findings with pagination', async () => {
-      const allFindings = Array(50).fill(null).map((_, i) => ({
-        id: `finding-${i}`,
-        severity: i < 5 ? 'critical' : 'low',
-      }));
+      const allFindings = Array(50)
+        .fill(null)
+        .map((_, i) => ({
+          id: `finding-${i}`,
+          severity: i < 5 ? 'critical' : 'low',
+        }));
 
       const pageSize = 10;
       const page = 2;
@@ -152,7 +154,9 @@ describe('OmniAudit SDK Integration Tests', () => {
 
       // Simple signature verification mock
       const createSignature = (payload: string, secret: string) => {
-        return `sha256=${Buffer.from(payload + secret).toString('base64').slice(0, 32)}`;
+        return `sha256=${Buffer.from(payload + secret)
+          .toString('base64')
+          .slice(0, 32)}`;
       };
 
       const signature = createSignature(payload, secret);
@@ -194,7 +198,7 @@ describe('OmniAudit SDK Integration Tests', () => {
       const handleRateLimit = (response: any) => {
         if (response.status === 429) {
           const retryAfter = response.headers.get('retry-after') || '60';
-          return { retryAfter: parseInt(retryAfter), shouldRetry: true };
+          return { retryAfter: Number.parseInt(retryAfter), shouldRetry: true };
         }
         return { shouldRetry: false };
       };
@@ -229,12 +233,9 @@ describe('OmniAudit SDK Integration Tests', () => {
         }
       }
 
-      const error = new SDKError(
-        'Authentication failed',
-        'AUTH_FAILED',
-        401,
-        { reason: 'Invalid API key' },
-      );
+      const error = new SDKError('Authentication failed', 'AUTH_FAILED', 401, {
+        reason: 'Invalid API key',
+      });
 
       expect(error.code).toBe('AUTH_FAILED');
       expect(error.statusCode).toBe(401);

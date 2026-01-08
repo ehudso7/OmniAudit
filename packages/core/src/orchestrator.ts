@@ -5,18 +5,18 @@
 
 import { randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
-import type {
-  OrchestratorConfig,
-  WorkItem,
-  AnalysisResult,
-  Checkpoint,
-  MemoryMetrics,
-  ComplexityMetrics,
-} from './types/index.js';
+import { type AgentFactory, AgentPool } from './agent/pool.js';
 import { EventBus } from './bus/event-bus.js';
-import { AgentPool, type AgentFactory } from './agent/pool.js';
 import { createCheckpointEvent, createMemoryWarningEvent } from './bus/messages.js';
 import { analyzeComplexity, sortByComplexity } from './complexity/analyzer.js';
+import type {
+  AnalysisResult,
+  Checkpoint,
+  ComplexityMetrics,
+  MemoryMetrics,
+  OrchestratorConfig,
+  WorkItem,
+} from './types/index.js';
 
 /**
  * Orchestrator events
@@ -163,9 +163,7 @@ export class AgentOrchestrator extends EventEmitter {
    */
   async resumeFromCheckpoint(checkpoint: Checkpoint): Promise<AnalysisResult[]> {
     // Restore state from checkpoint
-    this.state.workItems = new Map(
-      checkpoint.workItems.map((item) => [item.id, item]),
-    );
+    this.state.workItems = new Map(checkpoint.workItems.map((item) => [item.id, item]));
     this.state.completedItems = new Set(checkpoint.completedItems);
 
     // Filter to only incomplete work items
@@ -241,9 +239,7 @@ export class AgentOrchestrator extends EventEmitter {
   /**
    * Analyze complexity of files in batches
    */
-  private async analyzeComplexityBatch(
-    filePaths: string[],
-  ): Promise<ComplexityMetrics[]> {
+  private async analyzeComplexityBatch(filePaths: string[]): Promise<ComplexityMetrics[]> {
     const batchSize = 50;
     const results: ComplexityMetrics[] = [];
 
@@ -364,10 +360,7 @@ export class AgentOrchestrator extends EventEmitter {
       const checkpoint = this.createCheckpoint();
       this.state.lastCheckpoint = new Date();
 
-      const event = createCheckpointEvent(
-        checkpoint.processedItems,
-        checkpoint.totalItems,
-      );
+      const event = createCheckpointEvent(checkpoint.processedItems, checkpoint.totalItems);
 
       this.eventBus.emit(event);
       this.emit('checkpoint', checkpoint);

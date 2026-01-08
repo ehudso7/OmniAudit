@@ -1,5 +1,5 @@
 import EventEmitter from 'eventemitter3';
-import type { AuditRequest, AuditResult, AuditProgress, Finding, EventMap } from './types.js';
+import type { AuditProgress, AuditRequest, AuditResult, EventMap, Finding } from './types.js';
 
 /**
  * Streaming audit client with event-based API
@@ -106,7 +106,7 @@ export class StreamingAuditClient extends EventEmitter<EventMap> {
   private async simulateScanning(): Promise<void> {
     const steps = 10;
     for (let i = 0; i < steps; i++) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       this.emit('progress', {
         stage: 'scanning',
         progress: 10 + (i / steps) * 30,
@@ -120,7 +120,7 @@ export class StreamingAuditClient extends EventEmitter<EventMap> {
   private async simulateAnalysis(): Promise<void> {
     const steps = 10;
     for (let i = 0; i < steps; i++) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       this.emit('progress', {
         stage: 'analyzing',
         progress: 40 + (i / steps) * 50,
@@ -146,7 +146,7 @@ export class StreamingAuditClient extends EventEmitter<EventMap> {
 export function createStreamingAudit(
   _request: AuditRequest,
   apiUrl: string,
-  apiKey?: string
+  apiKey?: string,
 ): StreamingAuditClient {
   return new StreamingAuditClient(apiUrl, apiKey);
 }
@@ -168,7 +168,7 @@ export async function runAuditWithHooks(
   request: AuditRequest,
   hooks: AuditHooks,
   apiUrl: string,
-  apiKey?: string
+  apiKey?: string,
 ): Promise<AuditResult> {
   return new Promise((resolve, reject) => {
     const client = new StreamingAuditClient(apiUrl, apiKey);

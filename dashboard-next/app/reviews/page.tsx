@@ -1,9 +1,18 @@
-import { Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { GitPullRequest, Check, X, Clock, MessageSquare } from 'lucide-react';
+
+interface PRReview {
+  id: string;
+  title: string;
+  repo: string;
+  author: string;
+  status: string;
+  issues: number;
+  comments: number;
+  created_at: string;
+}
 
 async function getPRReviews() {
   const apiUrl = process.env.API_URL || 'http://localhost:8000';
@@ -109,7 +118,7 @@ export default async function ReviewsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {displayReviews.filter((r: any) => r.status === 'approved').length}
+              {displayReviews.filter((r: PRReview) => r.status === 'approved').length}
             </div>
           </CardContent>
         </Card>
@@ -119,7 +128,7 @@ export default async function ReviewsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {displayReviews.filter((r: any) => r.status === 'pending').length}
+              {displayReviews.filter((r: PRReview) => r.status === 'pending').length}
             </div>
           </CardContent>
         </Card>
@@ -131,7 +140,7 @@ export default async function ReviewsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {displayReviews.map((review: any) => (
+            {displayReviews.map((review: PRReview) => (
               <div
                 key={review.id}
                 className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"

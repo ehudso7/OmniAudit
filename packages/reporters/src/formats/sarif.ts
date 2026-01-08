@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions, Severity } from '../types.js';
 
 interface SarifResult {
   ruleId: string;
@@ -86,8 +86,8 @@ export class SARIFReporter implements Reporter {
               name: 'OmniAudit',
               version: result.metadata?.version || '2.0.0',
               informationUri: 'https://github.com/omniaudit/omniaudit',
-              rules: Array.from(new Set(result.findings.map(f => f.rule_id))).map(ruleId => {
-                const finding = result.findings.find(f => f.rule_id === ruleId);
+              rules: Array.from(new Set(result.findings.map((f) => f.rule_id))).map((ruleId) => {
+                const finding = result.findings.find((f) => f.rule_id === ruleId);
                 return {
                   id: ruleId,
                   shortDescription: {
@@ -103,7 +103,7 @@ export class SARIFReporter implements Reporter {
               }),
             },
           },
-          results: result.findings.map(f => this.findingToSarifResult(f)),
+          results: result.findings.map((f) => this.findingToSarifResult(f)),
           properties: {
             metrics: {
               totalFiles: result.total_files,
@@ -116,8 +116,6 @@ export class SARIFReporter implements Reporter {
       ],
     };
 
-    return options?.pretty
-      ? JSON.stringify(sarif, null, 2)
-      : JSON.stringify(sarif);
+    return options?.pretty ? JSON.stringify(sarif, null, 2) : JSON.stringify(sarif);
   }
 }

@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions } from '../types.js';
 
 export class MarkdownReporter implements Reporter {
   name = 'Markdown Reporter';
@@ -78,11 +78,11 @@ export class MarkdownReporter implements Reporter {
 
       // Group by severity
       const bySeverity = {
-        critical: result.findings.filter(f => f.severity === 'critical'),
-        high: result.findings.filter(f => f.severity === 'high'),
-        medium: result.findings.filter(f => f.severity === 'medium'),
-        low: result.findings.filter(f => f.severity === 'low'),
-        info: result.findings.filter(f => f.severity === 'info'),
+        critical: result.findings.filter((f) => f.severity === 'critical'),
+        high: result.findings.filter((f) => f.severity === 'high'),
+        medium: result.findings.filter((f) => f.severity === 'medium'),
+        low: result.findings.filter((f) => f.severity === 'low'),
+        info: result.findings.filter((f) => f.severity === 'info'),
       };
 
       let findingIndex = 0;

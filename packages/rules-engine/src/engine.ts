@@ -1,9 +1,9 @@
-import type { Rule, Match, EngineOptions, EngineResult, FileToAnalyze } from './types';
-import { regexMatcher } from './matchers/regex-matcher';
 import { astMatcher } from './matchers/ast-matcher';
 import { patternMatcher } from './matchers/pattern-matcher';
+import { regexMatcher } from './matchers/regex-matcher';
 import { RuleLoader } from './rule-loader';
 import { RuleValidator } from './rule-validator';
+import type { EngineOptions, EngineResult, FileToAnalyze, Match, Rule } from './types';
 
 /**
  * RulesEngine - Main engine for executing rules against code
@@ -89,7 +89,7 @@ export class RulesEngine {
     const batchSize = this.options.parallelism || 4;
     for (let i = 0; i < files.length; i += batchSize) {
       const batch = files.slice(i, i + batchSize);
-      const batchPromises = batch.map(file => this.analyzeFile(file));
+      const batchPromises = batch.map((file) => this.analyzeFile(file));
 
       try {
         const batchResults = await Promise.all(batchPromises);
@@ -184,7 +184,10 @@ export class RulesEngine {
   /**
    * Benchmark rule execution
    */
-  async benchmark(file: FileToAnalyze, iterations = 100): Promise<{
+  async benchmark(
+    file: FileToAnalyze,
+    iterations = 100,
+  ): Promise<{
     totalMs: number;
     avgMs: number;
     rulesPerSecond: number;

@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions } from '../types.js';
 
 export class JUnitReporter implements Reporter {
   name = 'JUnit Reporter';

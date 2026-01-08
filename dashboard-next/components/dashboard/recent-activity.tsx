@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getRelativeTime } from '@/lib/utils';
-import { GitPullRequest, FileCode, Shield, Check, X } from 'lucide-react';
+import { GitPullRequest, FileCode, Check, X } from 'lucide-react';
 
 interface Activity {
   id: string;

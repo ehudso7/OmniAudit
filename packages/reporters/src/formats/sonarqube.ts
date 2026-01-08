@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions, Severity } from '../types.js';
 
 // SonarQube Generic Issue Import Format
 // https://docs.sonarqube.org/latest/analyzing-source-code/importing-external-issues/generic-issue-import-format/
@@ -37,7 +37,9 @@ export class SonarQubeReporter implements Reporter {
   name = 'SonarQube Reporter';
   format = 'sonarqube';
 
-  private severityToSonarQube(severity: Severity): 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR' | 'INFO' {
+  private severityToSonarQube(
+    severity: Severity,
+  ): 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR' | 'INFO' {
     const mapping: Record<Severity, 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR' | 'INFO'> = {
       critical: 'BLOCKER',
       high: 'CRITICAL',
@@ -90,11 +92,9 @@ export class SonarQubeReporter implements Reporter {
 
   async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {
     const report: SonarQubeReport = {
-      issues: result.findings.map(f => this.findingToSonarQubeIssue(f)),
+      issues: result.findings.map((f) => this.findingToSonarQubeIssue(f)),
     };
 
-    return options?.pretty
-      ? JSON.stringify(report, null, 2)
-      : JSON.stringify(report);
+    return options?.pretty ? JSON.stringify(report, null, 2) : JSON.stringify(report);
   }
 }

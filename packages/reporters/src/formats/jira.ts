@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions, Severity } from '../types.js';
 
 // JIRA issue creation format
 // https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/
@@ -44,9 +44,7 @@ export class JIRAReporter implements Reporter {
   }
 
   private findingToJiraIssue(finding: Finding, projectKey: string): JiraIssue {
-    const location = finding.line
-      ? `${finding.file}:${finding.line}`
-      : finding.file;
+    const location = finding.line ? `${finding.file}:${finding.line}` : finding.file;
 
     return {
       fields: {
@@ -105,51 +103,65 @@ export class JIRAReporter implements Reporter {
                 },
               ],
             },
-            ...(finding.description ? [{
-              type: 'heading',
-              attrs: { level: 3 },
-              content: [
-                {
-                  type: 'text',
-                  text: 'Description',
-                },
-              ],
-            }, {
-              type: 'paragraph',
-              content: [
-                {
-                  type: 'text',
-                  text: finding.description,
-                },
-              ],
-            }] : []),
-            ...(finding.recommendation ? [{
-              type: 'heading',
-              attrs: { level: 3 },
-              content: [
-                {
-                  type: 'text',
-                  text: 'Recommendation',
-                },
-              ],
-            }, {
-              type: 'paragraph',
-              content: [
-                {
-                  type: 'text',
-                  text: finding.recommendation,
-                },
-              ],
-            }] : []),
-            ...(finding.code_snippet ? [{
-              type: 'codeBlock',
-              content: [
-                {
-                  type: 'text',
-                  text: finding.code_snippet,
-                },
-              ],
-            }] : []),
+            ...(finding.description
+              ? [
+                  {
+                    type: 'heading',
+                    attrs: { level: 3 },
+                    content: [
+                      {
+                        type: 'text',
+                        text: 'Description',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'paragraph',
+                    content: [
+                      {
+                        type: 'text',
+                        text: finding.description,
+                      },
+                    ],
+                  },
+                ]
+              : []),
+            ...(finding.recommendation
+              ? [
+                  {
+                    type: 'heading',
+                    attrs: { level: 3 },
+                    content: [
+                      {
+                        type: 'text',
+                        text: 'Recommendation',
+                      },
+                    ],
+                  },
+                  {
+                    type: 'paragraph',
+                    content: [
+                      {
+                        type: 'text',
+                        text: finding.recommendation,
+                      },
+                    ],
+                  },
+                ]
+              : []),
+            ...(finding.code_snippet
+              ? [
+                  {
+                    type: 'codeBlock',
+                    content: [
+                      {
+                        type: 'text',
+                        text: finding.code_snippet,
+                      },
+                    ],
+                  },
+                ]
+              : []),
           ],
         },
         issuetype: {
@@ -171,14 +183,12 @@ export class JIRAReporter implements Reporter {
   async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {
     const projectKey = options?.template || 'PROJ';
 
-    const issues = result.findings.map(f => this.findingToJiraIssue(f, projectKey));
+    const issues = result.findings.map((f) => this.findingToJiraIssue(f, projectKey));
 
     const output = {
       issueUpdates: issues,
     };
 
-    return options?.pretty
-      ? JSON.stringify(output, null, 2)
-      : JSON.stringify(output);
+    return options?.pretty ? JSON.stringify(output, null, 2) : JSON.stringify(output);
   }
 }

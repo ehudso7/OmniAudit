@@ -4,6 +4,7 @@ FastAPI Application - Main Entry Point
 REST API for OmniAudit platform.
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Any
@@ -41,13 +42,38 @@ from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# Initialize FastAPI app
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager for startup and shutdown events.
+
+    Uses modern FastAPI lifespan pattern instead of deprecated on_event.
+    """
+    # Startup
+    logger.info("OmniAudit API starting up...")
+
+    # Warm up AI schemas to reduce first-request latency
+    logger.info("Warming up AI schemas...")
+    warmed_up = warm_up_ai_schemas()
+    if warmed_up:
+        logger.info("AI schemas warmed up successfully")
+    else:
+        logger.info("AI schemas warm-up skipped (disabled or no API key)")
+
+    yield
+
+    # Shutdown
+    logger.info("OmniAudit API shutting down...")
+
+# Initialize FastAPI app with lifespan handler
 app = FastAPI(
     title="OmniAudit API",
     description="Universal Project Auditing & Monitoring Platform",
     version="0.3.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # CORS middleware - Secure configuration
@@ -92,26 +118,6 @@ plugin_manager = PluginManager()
 # Register collectors
 plugin_manager.register_plugin(GitCollector)
 plugin_manager.register_plugin(GitHubCollector)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize application on startup."""
-    logger.info("OmniAudit API starting up...")
-
-    # Warm up AI schemas to reduce first-request latency
-    logger.info("Warming up AI schemas...")
-    warmed_up = warm_up_ai_schemas()
-    if warmed_up:
-        logger.info("AI schemas warmed up successfully")
-    else:
-        logger.info("AI schemas warm-up skipped (disabled or no API key)")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown."""
-    logger.info("OmniAudit API shutting down...")
 
 
 @app.get("/")

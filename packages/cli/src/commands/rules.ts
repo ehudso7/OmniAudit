@@ -1,5 +1,5 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
 import { createSpinner } from '../ui/spinner.js';
 import { createTable } from '../ui/table.js';
 
@@ -15,7 +15,7 @@ export function createRulesCommand(): Command {
     .option('-c, --category <category>', 'Filter by category')
     .option('-s, --severity <severity>', 'Filter by default severity')
     .option('--enabled-only', 'Show only enabled rules')
-    .action(async (options) => {
+    .action(async (_options) => {
       const spinner = createSpinner('Loading rules...');
 
       try {
@@ -104,8 +104,14 @@ export function createRulesCommand(): Command {
         console.log(chalk.bold('Name:'), rule.name);
         console.log(chalk.bold('Category:'), rule.category);
         console.log(chalk.bold('Severity:'), chalk.red(rule.severity.toUpperCase()));
-        console.log(chalk.bold('Status:'), rule.enabled ? chalk.green('✓ Enabled') : chalk.gray('✗ Disabled'));
-        console.log(chalk.bold('Auto-fixable:'), rule.autoFixable ? chalk.green('Yes') : chalk.gray('No'));
+        console.log(
+          chalk.bold('Status:'),
+          rule.enabled ? chalk.green('✓ Enabled') : chalk.gray('✗ Disabled'),
+        );
+        console.log(
+          chalk.bold('Auto-fixable:'),
+          rule.autoFixable ? chalk.green('Yes') : chalk.gray('No'),
+        );
         console.log(chalk.bold('\nDescription:'));
         console.log(rule.description);
         console.log(chalk.bold('\nBad Example:'));

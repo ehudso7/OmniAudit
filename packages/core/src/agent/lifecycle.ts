@@ -3,7 +3,7 @@
  * @module @omniaudit/core/agent/lifecycle
  */
 
-import type { WorkItem, AnalysisResult } from '../types/index.js';
+import type { AnalysisResult, WorkItem } from '../types/index.js';
 import type { AgentLifecycleHooks } from './types.js';
 
 /**

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { RuleValidator } from '../rule-validator';
 import type { Rule } from '../types';
 
@@ -55,7 +55,7 @@ describe('RuleValidator', () => {
       const rule = { ...validRule, patterns: { regex: '[invalid(' } };
       const result = validator.validate(rule);
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('regex'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('regex'))).toBe(true);
     });
 
     it('should warn about overly broad patterns', () => {
@@ -95,13 +95,13 @@ describe('RuleValidator', () => {
     it('should warn about short descriptions', () => {
       const rule = { ...validRule, description: 'Short' };
       const result = validator.validate(rule);
-      expect(result.warnings.some(w => w.includes('description'))).toBe(true);
+      expect(result.warnings.some((w) => w.includes('description'))).toBe(true);
     });
 
     it('should warn about non-standard ID format', () => {
       const rule = { ...validRule, id: 'test-123' };
       const result = validator.validate(rule);
-      expect(result.warnings.some(w => w.includes('ID'))).toBe(true);
+      expect(result.warnings.some((w) => w.includes('ID'))).toBe(true);
     });
 
     it('should warn if critical rule lacks references', () => {
@@ -127,7 +127,7 @@ describe('RuleValidator', () => {
       const rules = [validRule, validRule];
       const results = validator.validateBatch(rules);
       const sec001Result = results.get('SEC001');
-      expect(sec001Result?.errors.some(e => e.includes('Duplicate'))).toBe(true);
+      expect(sec001Result?.errors.some((e) => e.includes('Duplicate'))).toBe(true);
     });
 
     it('should provide summary', () => {
