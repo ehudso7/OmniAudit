@@ -1,6 +1,71 @@
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useState } from 'react';
 
+// Demo data for when backend is unavailable
+const DEMO_REVIEWS = [
+  {
+    id: 'demo-1',
+    repo: 'acme/web-app',
+    pr_number: 42,
+    title: 'Add user authentication flow',
+    author: 'developer',
+    action: 'REQUEST_CHANGES',
+    reviewed_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    issues_found: 3,
+    security_issues: 1,
+    performance_issues: 1,
+    quality_issues: 1,
+    suggestions: 2,
+    comments: [
+      { type: 'security', file: 'src/auth.js', line: 45, message: 'Potential SQL injection vulnerability in user input handling' },
+      { type: 'performance', file: 'src/api.js', line: 128, message: 'Consider caching this API response to reduce latency' },
+      { type: 'quality', file: 'src/utils.js', line: 23, message: 'Function complexity exceeds recommended threshold' },
+    ],
+  },
+  {
+    id: 'demo-2',
+    repo: 'acme/api-service',
+    pr_number: 108,
+    title: 'Optimize database queries',
+    author: 'backend-dev',
+    action: 'APPROVE',
+    reviewed_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    issues_found: 0,
+    security_issues: 0,
+    performance_issues: 0,
+    quality_issues: 0,
+    suggestions: 1,
+    comments: [],
+  },
+  {
+    id: 'demo-3',
+    repo: 'acme/mobile-app',
+    pr_number: 256,
+    title: 'Update dependencies and fix security vulnerabilities',
+    author: 'security-team',
+    action: 'COMMENT',
+    reviewed_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    issues_found: 2,
+    security_issues: 2,
+    performance_issues: 0,
+    quality_issues: 0,
+    suggestions: 0,
+    comments: [
+      { type: 'security', file: 'package.json', line: 15, message: 'Outdated dependency with known CVE-2024-1234' },
+      { type: 'security', file: 'package.json', line: 22, message: 'Dependency has critical security advisory' },
+    ],
+  },
+];
+
+const DEMO_STATS = {
+  total_reviews: 47,
+  issues_found: 123,
+  security_blocked: 8,
+  this_week: 12,
+  approval_rate: 72,
+  repos_connected: 5,
+};
+
 function PRReviews({ apiUrl }) {
   const [reviews, setReviews] = useState([]);
   const [stats, setStats] = useState(null);
@@ -8,6 +73,7 @@ function PRReviews({ apiUrl }) {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [selectedReview, setSelectedReview] = useState(null);
+  const [demoMode, setDemoMode] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -95,15 +161,36 @@ function PRReviews({ apiUrl }) {
     );
   }
 
-  if (error && reviews.length === 0) {
+  const loadDemoData = () => {
+    setDemoMode(true);
+    setReviews(DEMO_REVIEWS);
+    setStats(DEMO_STATS);
+    setError(null);
+    setLoading(false);
+  };
+
+  if (error && reviews.length === 0 && !demoMode) {
     return (
       <div className='pr-reviews'>
         <div className='error'>
-          <h2>Failed to load reviews</h2>
-          <p>{error}</p>
-          <button type='button' className='btn btn-primary' onClick={fetchData}>
-            Retry
-          </button>
+          <h2>Backend API Unavailable</h2>
+          <p style={{ marginBottom: '1rem' }}>
+            The OmniAudit API server is not running or not accessible.
+          </p>
+          <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1.5rem' }}>
+            To use the full application, start the backend server with:<br />
+            <code style={{ background: '#f0f0f0', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+              cd python-app && uvicorn omniaudit.api.main:app --reload
+            </code>
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <button type='button' className='btn btn-primary' onClick={fetchData}>
+              Retry Connection
+            </button>
+            <button type='button' className='btn btn-secondary' onClick={loadDemoData}>
+              View Demo
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -111,12 +198,45 @@ function PRReviews({ apiUrl }) {
 
   return (
     <div className='pr-reviews'>
+      {demoMode && (
+        <div className='demo-banner' style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          padding: '0.75rem 1rem',
+          borderRadius: '8px',
+          marginBottom: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <span>
+            <strong>Demo Mode</strong> — Viewing sample data. Connect to the API for live reviews.
+          </span>
+          <button
+            type='button'
+            onClick={() => {
+              setDemoMode(false);
+              fetchData();
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Connect to API
+          </button>
+        </div>
+      )}
       <div className='reviews-header'>
         <div className='reviews-header-content'>
           <h2>🔍 PR Reviews</h2>
           <p>Automated code reviews powered by AI</p>
         </div>
-        <button type='button' className='btn btn-secondary btn-small' onClick={fetchData} disabled={loading}>
+        <button type='button' className='btn btn-secondary btn-small' onClick={demoMode ? loadDemoData : fetchData} disabled={loading}>
           {loading ? '⟳' : '↻'} Refresh
         </button>
       </div>

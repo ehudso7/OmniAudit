@@ -1,13 +1,72 @@
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useState } from 'react';
 
+// Demo data for when backend is unavailable
+const DEMO_DASHBOARD_DATA = {
+  stats: {
+    total_reviews: 47,
+    issues_found: 123,
+    security_blocked: 8,
+    approval_rate: 72,
+    this_week: 12,
+    repos_connected: 5,
+  },
+  activity: [
+    { day: 'Mon', reviews: 5 },
+    { day: 'Tue', reviews: 8 },
+    { day: 'Wed', reviews: 3 },
+    { day: 'Thu', reviews: 12 },
+    { day: 'Fri', reviews: 7 },
+    { day: 'Sat', reviews: 2 },
+    { day: 'Sun', reviews: 4 },
+  ],
+  issues_breakdown: {
+    security: 28,
+    performance: 35,
+    quality: 45,
+    suggestions: 15,
+  },
+  top_repositories: [
+    { name: 'acme/web-app', reviews: 18 },
+    { name: 'acme/api-service', reviews: 12 },
+    { name: 'acme/mobile-app', reviews: 9 },
+    { name: 'acme/shared-lib', reviews: 5 },
+  ],
+  recent_reviews: [
+    { repo: 'acme/web-app', pr_number: 142, action: 'APPROVE' },
+    { repo: 'acme/api-service', pr_number: 87, action: 'REQUEST_CHANGES' },
+    { repo: 'acme/mobile-app', pr_number: 256, action: 'COMMENT' },
+  ],
+};
+
+const DEMO_SKILLS = [
+  { name: 'Security Analysis', category: 'security', description: 'Detect vulnerabilities, SQL injection, XSS, and other security issues' },
+  { name: 'Performance Review', category: 'performance', description: 'Identify performance bottlenecks and optimization opportunities' },
+  { name: 'Code Quality', category: 'quality', description: 'Enforce coding standards, detect code smells and anti-patterns' },
+  { name: 'Dependency Audit', category: 'security', description: 'Check for vulnerable dependencies and outdated packages' },
+];
+
 function Dashboard({ apiUrl, auditResults }) {
   const [dashboardData, setDashboardData] = useState(null);
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [demoMode, setDemoMode] = useState(false);
+
+  const loadDemoData = useCallback(() => {
+    setDemoMode(true);
+    setDashboardData(DEMO_DASHBOARD_DATA);
+    setSkills(DEMO_SKILLS);
+    setError(null);
+    setLoading(false);
+  }, []);
 
   const fetchData = useCallback(async () => {
+    if (demoMode) {
+      loadDemoData();
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -20,6 +79,8 @@ function Dashboard({ apiUrl, auditResults }) {
       if (dashboardRes.ok) {
         const data = await dashboardRes.json();
         setDashboardData(data);
+      } else {
+        throw new Error('Failed to fetch dashboard data');
       }
 
       if (skillsRes.ok) {
@@ -32,7 +93,7 @@ function Dashboard({ apiUrl, auditResults }) {
     } finally {
       setLoading(false);
     }
-  }, [apiUrl]);
+  }, [apiUrl, demoMode, loadDemoData]);
 
   useEffect(() => {
     fetchData();
@@ -61,20 +122,68 @@ function Dashboard({ apiUrl, auditResults }) {
     );
   }
 
+  if (error && !dashboardData && !demoMode) {
+    return (
+      <div className='dashboard'>
+        <div className='error'>
+          <h2>Backend API Unavailable</h2>
+          <p style={{ marginBottom: '1rem' }}>
+            The OmniAudit API server is not running or not accessible.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <button type='button' className='btn btn-primary' onClick={fetchData}>
+              Retry Connection
+            </button>
+            <button type='button' className='btn btn-secondary' onClick={loadDemoData}>
+              View Demo
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className='dashboard'>
+      {demoMode && (
+        <div className='demo-banner' style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          padding: '0.75rem 1rem',
+          borderRadius: '8px',
+          marginBottom: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <span>
+            <strong>Demo Mode</strong> — Viewing sample data. Connect to the API for live metrics.
+          </span>
+          <button
+            type='button'
+            onClick={() => {
+              setDemoMode(false);
+              fetchData();
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Connect to API
+          </button>
+        </div>
+      )}
       <div className='dashboard-header'>
         <h2>📊 Dashboard</h2>
-        <button type='button' className='btn btn-secondary btn-small' onClick={fetchData} disabled={loading}>
+        <button type='button' className='btn btn-secondary btn-small' onClick={demoMode ? loadDemoData : fetchData} disabled={loading}>
           {loading ? '⟳' : '↻'} Refresh
         </button>
       </div>
-
-      {error && (
-        <div className='error-message'>
-          ⚠️ {error}
-        </div>
-      )}
 
       {/* Key Metrics */}
       <div className='stats-grid'>

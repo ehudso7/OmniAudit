@@ -68,6 +68,12 @@
   border-color: rgba(251, 191, 36, 0.3);
 }
 
+.status-offline {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+  color: #a78bfa;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
 /* ==================== Navigation Tabs ==================== */
 .app-nav {
   display: flex;
