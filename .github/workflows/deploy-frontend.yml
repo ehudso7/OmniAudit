@@ -43,21 +43,10 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL || '' }}
 
-      - name: Deploy to Vercel (Production)
-        uses: amondnet/vercel-action@v25
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: frontend
-          vercel-args: '--prod'
-
-      - name: Deploy Preview to Vercel
-        uses: amondnet/vercel-action@v25
-        if: github.event_name == 'pull_request'
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: frontend
+      # Note: Vercel's native GitHub integration handles automatic deployments.
+      # This workflow validates the build succeeds. If you need manual deployment,
+      # configure the Vercel project to use the 'frontend' directory as root.
+      - name: Verify build artifacts
+        run: |
+          echo "Frontend build completed successfully"
+          ls -la frontend/dist/
