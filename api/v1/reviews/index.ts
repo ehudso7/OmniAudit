@@ -48,10 +48,25 @@ function generateDemoReviews(): Review[] {
       reviewed_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
       action: 'REQUEST_CHANGES',
       comments: [
-        { type: 'security', line: 45, file: 'auth.js', message: 'Potential XSS vulnerability in user input handling' },
-        { type: 'performance', line: 128, file: 'login.js', message: 'Consider memoizing this expensive computation' },
-        { type: 'suggestion', line: 67, file: 'auth.js', message: 'Add error handling for network failures' }
-      ]
+        {
+          type: 'security',
+          line: 45,
+          file: 'auth.js',
+          message: 'Potential XSS vulnerability in user input handling',
+        },
+        {
+          type: 'performance',
+          line: 128,
+          file: 'login.js',
+          message: 'Consider memoizing this expensive computation',
+        },
+        {
+          type: 'suggestion',
+          line: 67,
+          file: 'auth.js',
+          message: 'Add error handling for network failures',
+        },
+      ],
     },
     {
       id: 'rev-002',
@@ -69,7 +84,7 @@ function generateDemoReviews(): Review[] {
       suggestions: 0,
       reviewed_at: new Date(now.getTime() - 5 * 60 * 60 * 1000).toISOString(),
       action: 'APPROVE',
-      comments: []
+      comments: [],
     },
     {
       id: 'rev-003',
@@ -88,10 +103,20 @@ function generateDemoReviews(): Review[] {
       reviewed_at: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString(),
       action: 'REQUEST_CHANGES',
       comments: [
-        { type: 'security', line: 1, file: 'package.json', message: 'lodash 4.17.15 has known vulnerabilities - update to 4.17.21' },
-        { type: 'security', line: 12, file: 'package.json', message: 'axios 0.19.0 is vulnerable to SSRF attacks' },
-        { type: 'quality', line: 45, file: 'utils.js', message: 'Unused import detected' }
-      ]
+        {
+          type: 'security',
+          line: 1,
+          file: 'package.json',
+          message: 'lodash 4.17.15 has known vulnerabilities - update to 4.17.21',
+        },
+        {
+          type: 'security',
+          line: 12,
+          file: 'package.json',
+          message: 'axios 0.19.0 is vulnerable to SSRF attacks',
+        },
+        { type: 'quality', line: 45, file: 'utils.js', message: 'Unused import detected' },
+      ],
     },
     {
       id: 'rev-004',
@@ -110,8 +135,13 @@ function generateDemoReviews(): Review[] {
       reviewed_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(),
       action: 'COMMENT',
       comments: [
-        { type: 'performance', line: 89, file: 'notifications.ts', message: 'Large payload may cause delays on slow networks' }
-      ]
+        {
+          type: 'performance',
+          line: 89,
+          file: 'notifications.ts',
+          message: 'Large payload may cause delays on slow networks',
+        },
+      ],
     },
     {
       id: 'rev-005',
@@ -129,7 +159,7 @@ function generateDemoReviews(): Review[] {
       suggestions: 0,
       reviewed_at: new Date(now.getTime() - 30 * 60 * 60 * 1000).toISOString(),
       action: 'APPROVE',
-      comments: []
+      comments: [],
     },
     {
       id: 'rev-006',
@@ -148,10 +178,20 @@ function generateDemoReviews(): Review[] {
       reviewed_at: new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString(),
       action: 'APPROVE',
       comments: [
-        { type: 'performance', line: 23, file: 'styles.css', message: 'Consider using CSS containment for better rendering' },
-        { type: 'quality', line: 156, file: 'Layout.tsx', message: 'Magic number - consider using a constant' }
-      ]
-    }
+        {
+          type: 'performance',
+          line: 23,
+          file: 'styles.css',
+          message: 'Consider using CSS containment for better rendering',
+        },
+        {
+          type: 'quality',
+          line: 156,
+          file: 'Layout.tsx',
+          message: 'Magic number - consider using a constant',
+        },
+      ],
+    },
   ];
 }
 
@@ -177,10 +217,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Apply filters
     if (repo && typeof repo === 'string') {
-      reviews = reviews.filter(r => r.repo === repo);
+      reviews = reviews.filter((r) => r.repo === repo);
     }
     if (action && typeof action === 'string') {
-      reviews = reviews.filter(r => r.action.toLowerCase() === action.toLowerCase());
+      reviews = reviews.filter((r) => r.action.toLowerCase() === action.toLowerCase());
     }
 
     // Sort by reviewed_at descending
@@ -190,22 +230,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const total = reviews.length;
 
     // Apply pagination
-    const limitNum = Math.min(parseInt(limit as string, 10) || 50, 100);
-    const offsetNum = parseInt(offset as string, 10) || 0;
+    const limitNum = Math.min(Number.parseInt(limit as string, 10) || 50, 100);
+    const offsetNum = Number.parseInt(offset as string, 10) || 0;
     reviews = reviews.slice(offsetNum, offsetNum + limitNum);
 
     return res.status(200).json({
       reviews,
       total,
       limit: limitNum,
-      offset: offsetNum
+      offset: offsetNum,
     });
   } catch (error) {
     console.error('Failed to fetch reviews:', error);
     return res.status(500).json({
       error: 'Failed to fetch reviews',
       reviews: [],
-      total: 0
+      total: 0,
     });
   }
 }

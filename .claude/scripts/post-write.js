@@ -8,9 +8,9 @@
  * - Regenerate barrel files (index.ts)
  */
 
-const { execFileSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const { execFileSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // Use process.cwd() for portability instead of hardcoded path
 const PROJECT_ROOT = process.cwd();
@@ -31,7 +31,7 @@ function main() {
     const fileName = path.basename(filePath);
 
     // Skip for certain files
-    if (['.lock', '.log', '.md', '.txt', '.json'].some(e => ext === e)) {
+    if (['.lock', '.log', '.md', '.txt', '.json'].some((e) => ext === e)) {
       console.log(`✅ Skipping post-write for ${ext} file`);
       process.exit(0);
     }
@@ -44,15 +44,15 @@ function main() {
         // Try Biome first - use execFileSync to avoid command injection
         execFileSync('npx', ['@biomejs/biome', 'format', '--write', filePath], {
           cwd: PROJECT_ROOT,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
         console.log('  ✓ Formatted with Biome');
-      } catch (err) {
+      } catch (_err) {
         // Fallback to Prettier
         try {
           execFileSync('npx', ['prettier', '--write', filePath], {
             cwd: PROJECT_ROOT,
-            stdio: 'pipe'
+            stdio: 'pipe',
           });
           console.log('  ✓ Formatted with Prettier');
         } catch (err2) {
@@ -64,10 +64,10 @@ function main() {
       try {
         execFileSync('npx', ['@biomejs/biome', 'check', '--apply', filePath], {
           cwd: PROJECT_ROOT,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
         console.log('  ✓ Linting auto-fixed');
-      } catch (err) {
+      } catch (_err) {
         // Lint errors are expected, don't fail
       }
     }
@@ -77,17 +77,16 @@ function main() {
       try {
         execFileSync('black', [filePath], {
           cwd: PROJECT_ROOT,
-          stdio: 'pipe'
+          stdio: 'pipe',
         });
         console.log('  ✓ Formatted with Black');
-      } catch (err) {
+      } catch (_err) {
         console.warn('  ⚠️  Could not format Python file');
       }
     }
 
     console.log('✅ Post-write actions completed');
     process.exit(0);
-
   } catch (error) {
     console.error('❌ Post-write hook error:', error.message);
     // Don't fail on post-processing errors

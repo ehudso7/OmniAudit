@@ -8,20 +8,24 @@ export class RuleValidator {
   /**
    * Validate a single rule
    */
-  validate(rule: any): RuleValidationResult {
+  validate(rule: unknown): RuleValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
     // Schema validation
     try {
       RuleSchema.parse(rule);
-    } catch (error: any) {
-      if (error.errors) {
-        for (const err of error.errors) {
+    } catch (error: unknown) {
+      const zodError = error as {
+        errors?: Array<{ path: string[]; message: string }>;
+        message?: string;
+      };
+      if (zodError.errors) {
+        for (const err of zodError.errors) {
           errors.push(`${err.path.join('.')}: ${err.message}`);
         }
-      } else {
-        errors.push(error.message);
+      } else if (zodError.message) {
+        errors.push(zodError.message);
       }
     }
 
@@ -30,12 +34,15 @@ export class RuleValidator {
       return { valid: false, errors, warnings };
     }
 
+    // Cast to Rule after successful schema validation
+    const validatedRule = rule as Rule;
+
     // Additional validation checks
-    this.validatePatterns(rule, errors, warnings);
-    this.validateConditions(rule, errors, warnings);
-    this.validateMetadata(rule, errors, warnings);
-    this.validateFix(rule, errors, warnings);
-    this.validateBestPractices(rule, errors, warnings);
+    this.validatePatterns(validatedRule, errors, warnings);
+    this.validateConditions(validatedRule, errors, warnings);
+    this.validateMetadata(validatedRule, errors, warnings);
+    this.validateFix(validatedRule, errors, warnings);
+    this.validateBestPractices(validatedRule, errors, warnings);
 
     return {
       valid: errors.length === 0,
@@ -48,7 +55,12 @@ export class RuleValidator {
    * Validate patterns
    */
   private validatePatterns(rule: Rule, errors: string[], warnings: string[]): void {
-    const patterns = rule.patterns as any;
+    const patterns = rule.patterns as {
+      regex?: string;
+      flags?: string;
+      ast?: string;
+      pattern?: string;
+    };
 
     // Check if at least one pattern type is defined
     if (!patterns.regex && !patterns.ast && !patterns.pattern) {
@@ -59,8 +71,9 @@ export class RuleValidator {
     if (patterns.regex) {
       try {
         new RegExp(patterns.regex, patterns.flags);
-      } catch (error: any) {
-        errors.push(`Invalid regex pattern: ${error.message}`);
+      } catch (error: unknown) {
+        const regexError = error as Error;
+        errors.push(`Invalid regex pattern: ${regexError.message}`);
       }
 
       // Check for overly broad patterns
@@ -70,7 +83,8 @@ export class RuleValidator {
     }
 
     // Validate AST pattern
-    if (patterns.ast) {
+    const astPattern = patterns.ast;
+    if (astPattern) {
       const validSelectors = [
         'CallExpression',
         'FunctionDeclaration',
@@ -83,6 +97,7 @@ export class RuleValidator {
       ];
 
       if (!validSelectors.some((s) => patterns.ast.includes(s))) {
+      if (!validSelectors.some((s) => astPattern.includes(s))) {
         warnings.push('AST pattern may not match known selectors');
       }
     }
@@ -227,7 +242,9 @@ export class RuleValidator {
   /**
    * Validate multiple rules
    */
-  validateBatch(rules: any[]): Map<string, RuleValidationResult> {
+  validateBatch(
+    rules: Array<{ id?: string } & Record<string, unknown>>,
+  ): Map<string, RuleValidationResult> {
     const results = new Map<string, RuleValidationResult>();
 
     for (const rule of rules) {

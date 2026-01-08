@@ -42,6 +42,8 @@ export class RulesEngine {
   addRules(rules: Rule[]): void {
     this.rules = [...this.rules, ...rules];
     this.options.rules = this.rules;
+    // Also register with loader for file matching
+    this.loader.registerRules(rules);
   }
 
   /**
@@ -193,7 +195,7 @@ export class RulesEngine {
     rulesPerSecond: number;
     matchesFound: number;
   }> {
-    const startTime = Date.now();
+    const startTime = performance.now();
     let totalMatches = 0;
 
     for (let i = 0; i < iterations; i++) {
@@ -201,10 +203,10 @@ export class RulesEngine {
       totalMatches += matches.length;
     }
 
-    const endTime = Date.now();
+    const endTime = performance.now();
     const totalMs = endTime - startTime;
     const avgMs = totalMs / iterations;
-    const rulesPerSecond = (this.rules.length * iterations) / (totalMs / 1000);
+    const rulesPerSecond = totalMs > 0 ? (this.rules.length * iterations) / (totalMs / 1000) : 0;
 
     return {
       totalMs,

@@ -3,7 +3,12 @@ import { useState } from 'react';
 
 const AVAILABLE_SKILLS = [
   { id: 'security-auditor', name: 'Security', icon: '🔐', description: 'Detect vulnerabilities' },
-  { id: 'performance-optimizer-pro', name: 'Performance', icon: '⚡', description: 'Find bottlenecks' },
+  {
+    id: 'performance-optimizer-pro',
+    name: 'Performance',
+    icon: '⚡',
+    description: 'Find bottlenecks',
+  },
   { id: 'code-quality', name: 'Quality', icon: '📋', description: 'Code smells & patterns' },
   { id: 'react-best-practices', name: 'React', icon: '⚛️', description: 'React patterns' },
   { id: 'typescript-expert', name: 'TypeScript', icon: '📘', description: 'Type checking' },
@@ -53,7 +58,10 @@ function AuditRunner({ apiUrl, onComplete }) {
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
   const [code, setCode] = useState(EXAMPLE_CODES.performance);
-  const [selectedSkills, setSelectedSkills] = useState(['security-auditor', 'performance-optimizer-pro']);
+  const [selectedSkills, setSelectedSkills] = useState([
+    'security-auditor',
+    'performance-optimizer-pro',
+  ]);
   const [progress, setProgress] = useState(0);
 
   const runAnalysis = async () => {
@@ -69,7 +77,7 @@ function AuditRunner({ apiUrl, onComplete }) {
 
     // Simulate progress
     const progressInterval = setInterval(() => {
-      setProgress(prev => Math.min(prev + 10, 90));
+      setProgress((prev) => Math.min(prev + 10, 90));
     }, 200);
 
     try {
@@ -90,7 +98,9 @@ function AuditRunner({ apiUrl, onComplete }) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.detail || `Analysis failed (${response.status})`);
+        throw new Error(
+          errorData.error || errorData.detail || `Analysis failed (${response.status})`,
+        );
       }
 
       const data = await response.json();
@@ -116,10 +126,8 @@ function AuditRunner({ apiUrl, onComplete }) {
   };
 
   const toggleSkill = (skillId) => {
-    setSelectedSkills(prev =>
-      prev.includes(skillId)
-        ? prev.filter(s => s !== skillId)
-        : [...prev, skillId]
+    setSelectedSkills((prev) =>
+      prev.includes(skillId) ? prev.filter((s) => s !== skillId) : [...prev, skillId],
     );
   };
 
@@ -132,10 +140,14 @@ function AuditRunner({ apiUrl, onComplete }) {
   const getSeverityClass = (severity) => {
     switch (severity) {
       case 'critical':
-      case 'high': return 'severity-high';
-      case 'medium': return 'severity-medium';
-      case 'low': return 'severity-low';
-      default: return 'severity-info';
+      case 'high':
+        return 'severity-high';
+      case 'medium':
+        return 'severity-medium';
+      case 'low':
+        return 'severity-low';
+      default:
+        return 'severity-info';
     }
   };
 
@@ -151,10 +163,18 @@ function AuditRunner({ apiUrl, onComplete }) {
           {/* Example Buttons */}
           <div className='example-buttons'>
             <span>Load example:</span>
-            <button type='button' onClick={() => loadExample('vulnerable')} className='btn btn-small'>
+            <button
+              type='button'
+              onClick={() => loadExample('vulnerable')}
+              className='btn btn-small'
+            >
               🔓 Vulnerable Code
             </button>
-            <button type='button' onClick={() => loadExample('performance')} className='btn btn-small'>
+            <button
+              type='button'
+              onClick={() => loadExample('performance')}
+              className='btn btn-small'
+            >
               🐢 Performance Issues
             </button>
             <button type='button' onClick={() => loadExample('clean')} className='btn btn-small'>
@@ -209,7 +229,7 @@ function AuditRunner({ apiUrl, onComplete }) {
           >
             {loading ? (
               <>
-                <span className='spinner-small'></span>
+                <span className='spinner-small' />
                 Analyzing... {progress}%
               </>
             ) : (
@@ -220,7 +240,7 @@ function AuditRunner({ apiUrl, onComplete }) {
           {/* Progress Bar */}
           {loading && (
             <div className='progress-bar'>
-              <div className='progress-fill' style={{ width: `${progress}%` }}></div>
+              <div className='progress-fill' style={{ width: `${progress}%` }} />
             </div>
           )}
 
@@ -257,7 +277,7 @@ function AuditRunner({ apiUrl, onComplete }) {
                       background: `conic-gradient(
                         ${results.score >= 80 ? '#22c55e' : results.score >= 50 ? '#f59e0b' : '#ef4444'} ${results.score * 3.6}deg,
                         #1e293b ${results.score * 3.6}deg
-                      )`
+                      )`,
                     }}
                   >
                     <div className='score-inner'>
@@ -303,9 +323,14 @@ function AuditRunner({ apiUrl, onComplete }) {
                   <h4>Issues Found ({results.findings.length})</h4>
                   <div className='findings-list'>
                     {results.findings.map((finding, idx) => (
-                      <div key={idx} className={`finding-card ${getSeverityClass(finding.severity)}`}>
+                      <div
+                        key={idx}
+                        className={`finding-card ${getSeverityClass(finding.severity)}`}
+                      >
                         <div className='finding-header'>
-                          <span className={`finding-type type-${finding.type}`}>{finding.type}</span>
+                          <span className={`finding-type type-${finding.type}`}>
+                            {finding.type}
+                          </span>
                           <span className='finding-severity'>{finding.severity}</span>
                         </div>
                         <h5 className='finding-title'>{finding.title}</h5>

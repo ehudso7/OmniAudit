@@ -14,7 +14,7 @@ export class TransformerFactory {
   ]);
 
   static createTransformer(name: string): Transformer {
-    const TransformerClass = this.TRANSFORMERS.get(name);
+    const TransformerClass = TransformerFactory.TRANSFORMERS.get(name);
 
     if (!TransformerClass) {
       throw new Error(`Unknown transformer: ${name}`);
@@ -24,11 +24,11 @@ export class TransformerFactory {
   }
 
   static getAvailableTransformers(): string[] {
-    return Array.from(this.TRANSFORMERS.keys());
+    return Array.from(TransformerFactory.TRANSFORMERS.keys());
   }
 
   static registerTransformer(name: string, transformerClass: new () => Transformer): void {
-    this.TRANSFORMERS.set(name, transformerClass);
+    TransformerFactory.TRANSFORMERS.set(name, transformerClass);
   }
 }
 

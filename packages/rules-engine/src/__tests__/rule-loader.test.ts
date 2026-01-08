@@ -47,7 +47,7 @@ describe('RuleLoader', () => {
 
     beforeEach(() => {
       for (const rule of testRules) {
-        loader['loadedRules'].set(rule.id, rule);
+        loader.loadedRules.set(rule.id, rule);
       }
     });
 
@@ -107,7 +107,7 @@ describe('RuleLoader', () => {
     };
 
     beforeEach(() => {
-      loader['loadedRules'].set(rule.id, rule);
+      loader.loadedRules.set(rule.id, rule);
     });
 
     it('should match files with fileMatch pattern', () => {
@@ -150,7 +150,7 @@ describe('RuleLoader', () => {
       ];
 
       for (const rule of rules) {
-        loader['loadedRules'].set(rule.id, rule);
+        loader.loadedRules.set(rule.id, rule);
       }
 
       const stats = loader.getStats();

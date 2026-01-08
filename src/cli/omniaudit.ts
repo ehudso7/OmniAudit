@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import * as dotenv from 'dotenv';
@@ -340,7 +340,7 @@ function displayResults(results: SkillExecutionResult[], format: string): void {
         console.log(chalk.gray(`   ${opt.description.slice(0, 100)}...`));
 
         if (opt.auto_fixable) {
-          console.log(chalk.green(`   ✓ Auto-fixable`));
+          console.log(chalk.green('   ✓ Auto-fixable'));
         }
         console.log();
       }
@@ -360,7 +360,7 @@ function displayResults(results: SkillExecutionResult[], format: string): void {
   const totalWarnings = results.reduce((sum, r) => sum + (r.metrics?.warnings_found || 0), 0);
   const totalSuggestions = results.reduce((sum, r) => sum + (r.metrics?.suggestions_found || 0), 0);
 
-  console.log(chalk.bold('\n' + '='.repeat(70)));
+  console.log(chalk.bold(`\n${'='.repeat(70)}`));
   console.log(chalk.bold('TOTAL SUMMARY'));
   console.log(chalk.bold('='.repeat(70)));
   console.log(chalk.red(`Errors:      ${totalIssues}`));

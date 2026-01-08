@@ -16,7 +16,7 @@ export class AnalyzerFactory {
   ]);
 
   static createAnalyzer(name: string, config: Record<string, unknown> = {}): Analyzer {
-    const AnalyzerClass = this.ANALYZERS.get(name);
+    const AnalyzerClass = AnalyzerFactory.ANALYZERS.get(name);
 
     if (!AnalyzerClass) {
       throw new Error(`Unknown analyzer: ${name}`);
@@ -26,14 +26,14 @@ export class AnalyzerFactory {
   }
 
   static getAvailableAnalyzers(): string[] {
-    return Array.from(this.ANALYZERS.keys());
+    return Array.from(AnalyzerFactory.ANALYZERS.keys());
   }
 
   static registerAnalyzer(
     name: string,
     analyzerClass: new (config: Record<string, unknown>) => Analyzer,
   ): void {
-    this.ANALYZERS.set(name, analyzerClass);
+    AnalyzerFactory.ANALYZERS.set(name, analyzerClass);
   }
 }
 

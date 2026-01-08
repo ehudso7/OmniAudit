@@ -2,6 +2,10 @@ import path from 'path';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import fs from 'fs/promises';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import chalk from 'chalk';
+import { Command } from 'commander';
 import { createSpinner } from '../ui/spinner.js';
 
 export function createConfigCommand(): Command {

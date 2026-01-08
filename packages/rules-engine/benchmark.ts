@@ -4,6 +4,7 @@
  */
 
 import * as path from 'path';
+import * as path from 'node:path';
 import { RulesEngine } from './src/engine';
 import { RuleLoader } from './src/rule-loader';
 import type { FileToAnalyze } from './src/types';
@@ -26,10 +27,20 @@ async function main() {
   const loader = new RuleLoader();
   const rulesPath = path.join(process.cwd(), '../../rules/builtin');
 
-  let rules;
+  let rules: Array<{
+    id: string;
+    name: string;
+    description: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    category: 'security' | 'quality' | 'performance';
+    languages: string[];
+    patterns: { regex?: string; ast?: string };
+    enabled: boolean;
+  }>;
   try {
     rules = await loader.loadDirectory(rulesPath);
   } catch (error) {
+  } catch (_error) {
     console.log(
       `${COLORS.yellow}Note: Built-in rules not loaded (expected in test environment)${COLORS.reset}`,
     );
@@ -67,8 +78,8 @@ async function main() {
   const stats = engine.getStats();
   console.log(`${COLORS.cyan}Rule Statistics:${COLORS.reset}`);
   console.log(`  Total: ${stats.total}`);
-  console.log(`  By Category:`, stats.byCategory);
-  console.log(`  By Severity:`, stats.bySeverity);
+  console.log('  By Category:', stats.byCategory);
+  console.log('  By Severity:', stats.bySeverity);
   console.log('');
 
   // Test file samples
@@ -126,8 +137,12 @@ async function main() {
 
   // Benchmark 1: Single file analysis
   console.log(`${COLORS.cyan}Benchmark 1: Single File Analysis${COLORS.reset}`);
-  const singleFileBench = await engine.benchmark(testFiles[0]!, 100);
-  console.log(`  Iterations: 100`);
+  const firstFile = testFiles[0];
+  if (!firstFile) {
+    throw new Error('No test files available');
+  }
+  const singleFileBench = await engine.benchmark(firstFile, 100);
+  console.log('  Iterations: 100');
   console.log(`  Total time: ${singleFileBench.totalMs.toFixed(2)}ms`);
   console.log(`  Avg time: ${singleFileBench.avgMs.toFixed(2)}ms`);
   console.log(`  Rules/second: ${singleFileBench.rulesPerSecond.toLocaleString()}`);
@@ -154,7 +169,7 @@ async function main() {
     engine.filterRules({ categories: ['security'], severities: ['critical', 'high'] });
   }
   const filterEnd = Date.now();
-  console.log(`  Iterations: 10,000`);
+  console.log('  Iterations: 10,000');
   console.log(`  Total time: ${(filterEnd - filterStart).toFixed(2)}ms`);
   console.log(`  Avg time: ${((filterEnd - filterStart) / 10000).toFixed(4)}ms`);
   console.log('');

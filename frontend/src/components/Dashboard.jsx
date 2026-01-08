@@ -73,7 +73,7 @@ function Dashboard({ apiUrl, auditResults }) {
     try {
       const [dashboardRes, skillsRes] = await Promise.all([
         fetch(`${apiUrl}/api/v1/dashboard/stats`),
-        fetch(`${apiUrl}/api/skills`)
+        fetch(`${apiUrl}/api/skills`),
       ]);
 
       if (dashboardRes.ok) {
@@ -108,14 +108,14 @@ function Dashboard({ apiUrl, auditResults }) {
   const recentReviews = dashboardData?.recent_reviews || [];
 
   // Calculate max for chart scaling
-  const maxActivity = Math.max(...activity.map(a => a.reviews), 1);
+  const maxActivity = Math.max(...activity.map((a) => a.reviews), 1);
   const maxIssue = Math.max(...Object.values(issuesBreakdown), 1);
 
   if (loading && !dashboardData) {
     return (
       <div className='dashboard'>
         <div className='loading'>
-          <div className='spinner'></div>
+          <div className='spinner' />
           <p>Loading dashboard...</p>
         </div>
       </div>
@@ -181,9 +181,17 @@ function Dashboard({ apiUrl, auditResults }) {
       <div className='dashboard-header'>
         <h2>📊 Dashboard</h2>
         <button type='button' className='btn btn-secondary btn-small' onClick={demoMode ? loadDemoData : fetchData} disabled={loading}>
+        <button
+          type='button'
+          className='btn btn-secondary btn-small'
+          onClick={fetchData}
+          disabled={loading}
+        >
           {loading ? '⟳' : '↻'} Refresh
         </button>
       </div>
+
+      {error && <div className='error-message'>⚠️ {error}</div>}
 
       {/* Key Metrics */}
       <div className='stats-grid'>
@@ -207,7 +215,9 @@ function Dashboard({ apiUrl, auditResults }) {
           <div className='stat-icon'>🔐</div>
           <div className='stat-content'>
             <h3>Security Blocked</h3>
-            <p className='stat-value' style={{ color: '#ef4444' }}>{stats.security_blocked || 0}</p>
+            <p className='stat-value' style={{ color: '#ef4444' }}>
+              {stats.security_blocked || 0}
+            </p>
           </div>
         </div>
 
@@ -312,7 +322,11 @@ function Dashboard({ apiUrl, auditResults }) {
                     <span className='review-pr'>#{review.pr_number}</span>
                   </div>
                   <span className={`review-action-badge ${review.action.toLowerCase()}`}>
-                    {review.action === 'APPROVE' ? '✓' : review.action === 'REQUEST_CHANGES' ? '⚠' : '💬'}
+                    {review.action === 'APPROVE'
+                      ? '✓'
+                      : review.action === 'REQUEST_CHANGES'
+                        ? '⚠'
+                        : '💬'}
                   </span>
                 </div>
               ))
@@ -345,9 +359,12 @@ function Dashboard({ apiUrl, auditResults }) {
           <h3>📋 Latest Analysis Results</h3>
           <div className='audit-results-card'>
             <div className='audit-score'>
-              <div className='score-circle' style={{
-                background: `conic-gradient(${auditResults.score >= 80 ? '#22c55e' : auditResults.score >= 50 ? '#f59e0b' : '#ef4444'} ${auditResults.score * 3.6}deg, #1e293b 0deg)`
-              }}>
+              <div
+                className='score-circle'
+                style={{
+                  background: `conic-gradient(${auditResults.score >= 80 ? '#22c55e' : auditResults.score >= 50 ? '#f59e0b' : '#ef4444'} ${auditResults.score * 3.6}deg, #1e293b 0deg)`,
+                }}
+              >
                 <span className='score-value'>{auditResults.score}</span>
               </div>
               <span className='score-label'>Health Score</span>

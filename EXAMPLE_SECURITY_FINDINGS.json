@@ -110,9 +110,7 @@
         "line_number": 12,
         "code_snippet": "DEBUG = True",
         "recommendation": "Disable debug mode in production environments.",
-        "references": [
-          "https://owasp.org/www-project-top-ten/"
-        ]
+        "references": ["https://owasp.org/www-project-top-ten/"]
       }
     ],
     "summary": {

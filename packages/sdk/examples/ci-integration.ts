@@ -170,7 +170,7 @@ async function runCIAudit(): Promise<number> {
     // Generate SARIF report for GitHub Code Scanning
     if (process.env.GITHUB_ACTIONS) {
       printSection('Generating SARIF Report');
-      const sarif = await client.export(result.id, 'sarif');
+      const _sarif = await client.export(result.id, 'sarif');
       const sarifPath = process.env.SARIF_OUTPUT || 'omniaudit-results.sarif';
 
       // In a real implementation, write to file

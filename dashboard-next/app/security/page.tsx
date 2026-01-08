@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Shield, AlertTriangle, Lock, Bug, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, Bug, Key, Lock, RefreshCw, Shield } from 'lucide-react';
 
 export default function SecurityPage() {
   const vulnerabilities = [
@@ -42,94 +43,88 @@ export default function SecurityPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Security</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage security vulnerabilities
-          </p>
+          <h1 className='text-3xl font-bold tracking-tight'>Security</h1>
+          <p className='text-muted-foreground'>Monitor and manage security vulnerabilities</p>
         </div>
         <Button>
-          <RefreshCw className="mr-2 h-4 w-4" />
+          <RefreshCw className='mr-2 h-4 w-4' />
           Run Security Scan
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className='grid gap-4 md:grid-cols-4'>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Critical</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Critical</CardTitle>
+            <AlertTriangle className='h-4 w-4 text-red-500' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">3</div>
-            <p className="text-xs text-muted-foreground">Require immediate action</p>
+            <div className='text-2xl font-bold text-red-600'>3</div>
+            <p className='text-xs text-muted-foreground'>Require immediate action</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">High</CardTitle>
-            <Shield className="h-4 w-4 text-orange-500" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>High</CardTitle>
+            <Shield className='h-4 w-4 text-orange-500' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">7</div>
-            <p className="text-xs text-muted-foreground">Should be addressed soon</p>
+            <div className='text-2xl font-bold text-orange-600'>7</div>
+            <p className='text-xs text-muted-foreground'>Should be addressed soon</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Medium</CardTitle>
-            <Bug className="h-4 w-4 text-yellow-500" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Medium</CardTitle>
+            <Bug className='h-4 w-4 text-yellow-500' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">12</div>
-            <p className="text-xs text-muted-foreground">Plan to fix</p>
+            <div className='text-2xl font-bold text-yellow-600'>12</div>
+            <p className='text-xs text-muted-foreground'>Plan to fix</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
-            <Lock className="h-4 w-4 text-green-500" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Resolved</CardTitle>
+            <Lock className='h-4 w-4 text-green-500' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">45</div>
-            <p className="text-xs text-muted-foreground">Fixed this month</p>
+            <div className='text-2xl font-bold text-green-600'>45</div>
+            <p className='text-xs text-muted-foreground'>Fixed this month</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className='grid gap-6 md:grid-cols-2'>
         <Card>
           <CardHeader>
             <CardTitle>Active Vulnerabilities</CardTitle>
-            <CardDescription>
-              Issues requiring immediate attention
-            </CardDescription>
+            <CardDescription>Issues requiring immediate attention</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {vulnerabilities
                 .filter((v) => v.status === 'open')
                 .map((vuln) => (
                   <div
                     key={vuln.id}
-                    className="rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                    className='rounded-lg border p-4 transition-colors hover:bg-muted/50'
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                    <div className='flex items-start justify-between'>
+                      <div className='space-y-1'>
+                        <div className='flex items-center gap-2'>
                           {getSeverityBadge(vuln.severity)}
-                          <span className="text-sm text-muted-foreground">
-                            {vuln.id}
-                          </span>
+                          <span className='text-sm text-muted-foreground'>{vuln.id}</span>
                         </div>
-                        <p className="font-medium">{vuln.title}</p>
-                        <p className="text-sm text-muted-foreground font-mono">
+                        <p className='font-medium'>{vuln.title}</p>
+                        <p className='text-sm text-muted-foreground font-mono'>
                           {vuln.file}:{vuln.line}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant='outline' size='sm'>
                         View Details
                       </Button>
                     </div>
@@ -142,43 +137,41 @@ export default function SecurityPage() {
         <Card>
           <CardHeader>
             <CardTitle>Security Score</CardTitle>
-            <CardDescription>
-              Overall security posture
-            </CardDescription>
+            <CardDescription>Overall security posture</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center pt-6">
-            <div className="relative h-40 w-40">
-              <svg className="h-full w-full -rotate-90 transform">
+          <CardContent className='flex flex-col items-center pt-6'>
+            <div className='relative h-40 w-40'>
+              <svg className='h-full w-full -rotate-90 transform'>
                 <circle
-                  cx="80"
-                  cy="80"
-                  r="70"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  fill="none"
-                  className="text-muted"
+                  cx='80'
+                  cy='80'
+                  r='70'
+                  stroke='currentColor'
+                  strokeWidth='12'
+                  fill='none'
+                  className='text-muted'
                 />
                 <circle
-                  cx="80"
-                  cy="80"
-                  r="70"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeLinecap="round"
-                  className="text-green-500"
+                  cx='80'
+                  cy='80'
+                  r='70'
+                  stroke='currentColor'
+                  strokeWidth='12'
+                  fill='none'
+                  strokeLinecap='round'
+                  className='text-green-500'
                   style={{
                     strokeDasharray: 2 * Math.PI * 70,
                     strokeDashoffset: 2 * Math.PI * 70 * 0.22,
                   }}
                 />
               </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold">78</span>
-                <span className="text-sm text-muted-foreground">/ 100</span>
+              <div className='absolute inset-0 flex flex-col items-center justify-center'>
+                <span className='text-4xl font-bold'>78</span>
+                <span className='text-sm text-muted-foreground'>/ 100</span>
               </div>
             </div>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
+            <p className='mt-4 text-center text-sm text-muted-foreground'>
               Your security score is Good. Fix critical issues to improve.
             </p>
           </CardContent>
@@ -190,7 +183,7 @@ export default function SecurityPage() {
           <CardTitle>OWASP Top 10 Coverage</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-5'>
             {[
               'Injection',
               'Broken Auth',
@@ -205,11 +198,11 @@ export default function SecurityPage() {
             ].map((item, i) => (
               <div
                 key={item}
-                className="rounded-lg border p-3 text-center transition-colors hover:bg-muted/50"
+                className='rounded-lg border p-3 text-center transition-colors hover:bg-muted/50'
               >
-                <div className="text-xs text-muted-foreground">A{i + 1}</div>
-                <div className="font-medium text-sm mt-1">{item}</div>
-                <div className="mt-2">
+                <div className='text-xs text-muted-foreground'>A{i + 1}</div>
+                <div className='font-medium text-sm mt-1'>{item}</div>
+                <div className='mt-2'>
                   <Badge variant={i < 3 ? 'default' : 'secondary'}>
                     {i < 3 ? 'Protected' : 'Check'}
                   </Badge>

@@ -333,7 +333,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
     };
 
     if (this.config.apiKey) {
-      headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+      headers.Authorization = `Bearer ${this.config.apiKey}`;
     }
 
     const response = await fetch(url, {

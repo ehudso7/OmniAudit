@@ -83,7 +83,7 @@ function PRReviews({ apiUrl }) {
       // Fetch reviews and stats in parallel
       const [reviewsRes, statsRes] = await Promise.all([
         fetch(`${apiUrl}/api/v1/reviews`),
-        fetch(`${apiUrl}/api/v1/reviews/stats`)
+        fetch(`${apiUrl}/api/v1/reviews/stats`),
       ]);
 
       if (!reviewsRes.ok || !statsRes.ok) {
@@ -113,7 +113,8 @@ function PRReviews({ apiUrl }) {
   const getStatusBadge = (review) => {
     if (review.action === 'APPROVE') {
       return <span className='badge badge-success'>✓ Approved</span>;
-    } else if (review.action === 'REQUEST_CHANGES') {
+    }
+    if (review.action === 'REQUEST_CHANGES') {
       return <span className='badge badge-danger'>⚠ Changes Requested</span>;
     }
     return <span className='badge badge-info'>💬 Commented</span>;
@@ -143,10 +144,14 @@ function PRReviews({ apiUrl }) {
 
   const getSeverityColor = (type) => {
     switch (type) {
-      case 'security': return '#ef4444';
-      case 'performance': return '#f59e0b';
-      case 'quality': return '#8b5cf6';
-      default: return '#3b82f6';
+      case 'security':
+        return '#ef4444';
+      case 'performance':
+        return '#f59e0b';
+      case 'quality':
+        return '#8b5cf6';
+      default:
+        return '#3b82f6';
     }
   };
 
@@ -154,7 +159,7 @@ function PRReviews({ apiUrl }) {
     return (
       <div className='pr-reviews'>
         <div className='loading'>
-          <div className='spinner'></div>
+          <div className='spinner' />
           <p>Loading reviews...</p>
         </div>
       </div>
@@ -237,6 +242,12 @@ function PRReviews({ apiUrl }) {
           <p>Automated code reviews powered by AI</p>
         </div>
         <button type='button' className='btn btn-secondary btn-small' onClick={demoMode ? loadDemoData : fetchData} disabled={loading}>
+        <button
+          type='button'
+          className='btn btn-secondary btn-small'
+          onClick={fetchData}
+          disabled={loading}
+        >
           {loading ? '⟳' : '↻'} Refresh
         </button>
       </div>
@@ -283,21 +294,21 @@ function PRReviews({ apiUrl }) {
           className={filter === 'issues' ? 'active' : ''}
           onClick={() => setFilter('issues')}
         >
-          With Issues ({reviews.filter(r => r.issues_found > 0).length})
+          With Issues ({reviews.filter((r) => r.issues_found > 0).length})
         </button>
         <button
           type='button'
           className={filter === 'security' ? 'active' : ''}
           onClick={() => setFilter('security')}
         >
-          🔴 Security ({reviews.filter(r => r.security_issues > 0).length})
+          🔴 Security ({reviews.filter((r) => r.security_issues > 0).length})
         </button>
         <button
           type='button'
           className={filter === 'approved' ? 'active' : ''}
           onClick={() => setFilter('approved')}
         >
-          ✓ Approved ({reviews.filter(r => r.action === 'APPROVE').length})
+          ✓ Approved ({reviews.filter((r) => r.action === 'APPROVE').length})
         </button>
       </div>
 
@@ -309,7 +320,10 @@ function PRReviews({ apiUrl }) {
             onClick={() => setSelectedReview(selectedReview?.id === review.id ? null : review)}
             role='button'
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && setSelectedReview(selectedReview?.id === review.id ? null : review)}
+            onKeyDown={(e) =>
+              e.key === 'Enter' &&
+              setSelectedReview(selectedReview?.id === review.id ? null : review)
+            }
           >
             <div className='review-main'>
               <div className='review-repo'>{review.repo}</div>
@@ -354,11 +368,16 @@ function PRReviews({ apiUrl }) {
                     <div key={idx} className='comment-item'>
                       <span
                         className='comment-type'
-                        style={{ backgroundColor: getSeverityColor(comment.type) + '20', color: getSeverityColor(comment.type) }}
+                        style={{
+                          backgroundColor: `${getSeverityColor(comment.type)}20`,
+                          color: getSeverityColor(comment.type),
+                        }}
                       >
                         {comment.type}
                       </span>
-                      <span className='comment-location'>{comment.file}:{comment.line}</span>
+                      <span className='comment-location'>
+                        {comment.file}:{comment.line}
+                      </span>
                       <p className='comment-message'>{comment.message}</p>
                     </div>
                   ))}

@@ -66,7 +66,7 @@ export function createRulesCommand(): Command {
           ]);
         }
 
-        console.log('\n' + table.toString());
+        console.log(`\n${table.toString()}`);
       } catch (error) {
         spinner.fail('Failed to load rules');
         console.error(chalk.red(error instanceof Error ? error.message : 'Unknown error'));

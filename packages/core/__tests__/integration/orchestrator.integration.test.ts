@@ -68,6 +68,7 @@ describe('OmniAudit Orchestrator Integration Tests', () => {
   describe('Agent pool management', () => {
     it('should manage concurrent agent execution', async () => {
       const maxConcurrency = 5;
+      const _maxConcurrency = 5;
       const tasks = Array(10)
         .fill(null)
         .map((_, i) => Promise.resolve({ taskId: i, completed: true }));
@@ -167,7 +168,7 @@ describe('OmniAudit Orchestrator Integration Tests', () => {
           if (!this.subscribers.has(event)) {
             this.subscribers.set(event, []);
           }
-          this.subscribers.get(event)!.push(handler);
+          this.subscribers.get(event)?.push(handler);
         },
         emit(event: string, data: any) {
           const handlers = this.subscribers.get(event) || [];
