@@ -53,5 +53,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Run application
-CMD ["uvicorn", "omniaudit.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run application (shell form to expand PORT env var, default to 8000)
+CMD sh -c "uvicorn omniaudit.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"
