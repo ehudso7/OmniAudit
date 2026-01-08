@@ -3,7 +3,7 @@
  * @module @omniaudit/core/agent/lifecycle
  */
 
-import type { WorkItem, AnalysisResult } from '../types/index.js';
+import type { AnalysisResult, WorkItem } from '../types/index.js';
 import type { AgentLifecycleHooks } from './types.js';
 
 /**
@@ -230,6 +230,7 @@ export class AgentLifecycle {
       [LifecycleStage.ANALYZING]: [
         LifecycleStage.REPORTING,
         LifecycleStage.READY,
+        LifecycleStage.ANALYZING, // Allow re-entry for batch work
         LifecycleStage.ERROR,
       ],
       [LifecycleStage.REPORTING]: [LifecycleStage.READY, LifecycleStage.ERROR],

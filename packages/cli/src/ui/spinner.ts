@@ -1,5 +1,4 @@
-import ora, { Ora } from 'ora';
-import chalk from 'chalk';
+import ora, { type Ora } from 'ora';
 
 export class Spinner {
   private spinner: Ora | null = null;

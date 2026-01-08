@@ -13,6 +13,10 @@ on:
     paths:
       - 'frontend/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -25,44 +29,40 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      # Install dependencies. We use `npm install` instead of `npm ci` to avoid CI failing when package.json and package-lock.json are out of sync.
-      # Maintainers: run `npm install` locally and commit the updated package-lock.json to keep the repo consistent.
       - name: Install dependencies
         working-directory: frontend
-        run: npm ci || npm install
         run: |
           set -e
           echo "Attempting clean install with npm ci..."
-          if npm ci --ignore-scripts; then
+          if npm ci --ignore-scripts 2>/dev/null; then
             echo "npm ci succeeded"
           else
             echo "npm ci failed — falling back to npm install"
-            npm install --ignore-scripts --no-audit --no-fund
+            npm install --legacy-peer-deps --ignore-scripts --no-audit --no-fund
           fi
 
       - name: Build
         working-directory: frontend
         run: npm run build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://omni-audit-c1oeztkup-everton-hudsons-projects.vercel.app' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.omniaudit.dev' }}
 
-      - name: Deploy to Vercel
+      - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: frontend
           vercel-args: '--prod'
-        if: github.ref == 'refs/heads/main'
 
       - name: Deploy Preview to Vercel
         uses: amondnet/vercel-action@v25
+        if: github.event_name == 'pull_request'
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: frontend
-        if: github.event_name == 'pull_request'
