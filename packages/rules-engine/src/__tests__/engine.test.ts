@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { RulesEngine } from '../engine';
-import type { Rule, FileToAnalyze } from '../types';
+import type { FileToAnalyze, Rule } from '../types';
 
 describe('RulesEngine', () => {
   let engine: RulesEngine;

@@ -1,7 +1,7 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import { createSpinner } from '../ui/spinner.js';
 import { getAvailableFormats } from '@omniaudit/reporters';
+import chalk from 'chalk';
+import { Command } from 'commander';
+import { createSpinner } from '../ui/spinner.js';
 
 export function createReportCommand(): Command {
   const cmd = new Command('report');
@@ -70,7 +70,7 @@ export function createReportCommand(): Command {
     .description('Upload report to OmniAudit server')
     .requiredOption('-i, --input <file>', 'Report file to upload')
     .option('--api-url <url>', 'API URL')
-    .action(async (options) => {
+    .action(async (_options) => {
       const spinner = createSpinner('Uploading report...');
 
       try {

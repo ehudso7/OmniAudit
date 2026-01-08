@@ -30,7 +30,7 @@ export class CSVReporter implements Reporter {
       'OWASP',
     ];
 
-    let csv = headers.join(',') + '\n';
+    let csv = `${headers.join(',')}\n`;
 
     for (const finding of result.findings) {
       const row = [
@@ -48,7 +48,7 @@ export class CSVReporter implements Reporter {
         this.escapeCSV(finding.owasp?.join('; ') || ''),
       ];
 
-      csv += row.join(',') + '\n';
+      csv += `${row.join(',')}\n`;
     }
 
     return csv;

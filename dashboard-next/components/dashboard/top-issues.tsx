@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { cn, getSeverityColor, getRelativeTime } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn, getRelativeTime, getSeverityColor } from '@/lib/utils';
 
 interface Issue {
   id: string;
@@ -54,38 +54,31 @@ export function TopIssues({ issues = [] }: TopIssuesProps) {
   const displayIssues = issues.length > 0 ? issues : defaultIssues;
 
   return (
-    <Card className="h-full">
+    <Card className='h-full'>
       <CardHeader>
         <CardTitle>Top Issues</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {displayIssues.slice(0, 5).map((issue) => (
             <div
               key={issue.id}
-              className="flex items-start justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+              className='flex items-start justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50'
             >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
+              <div className='space-y-1'>
+                <div className='flex items-center gap-2'>
                   <Badge
-                    variant="outline"
-                    className={cn(
-                      'text-xs font-medium',
-                      getSeverityColor(issue.severity),
-                    )}
+                    variant='outline'
+                    className={cn('text-xs font-medium', getSeverityColor(issue.severity))}
                   >
                     {issue.severity}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {issue.category}
-                  </span>
+                  <span className='text-xs text-muted-foreground'>{issue.category}</span>
                 </div>
-                <p className="font-medium text-sm">{issue.title}</p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  {issue.file}
-                </p>
+                <p className='font-medium text-sm'>{issue.title}</p>
+                <p className='text-xs text-muted-foreground font-mono'>{issue.file}</p>
               </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
+              <span className='text-xs text-muted-foreground whitespace-nowrap'>
                 {getRelativeTime(issue.created_at)}
               </span>
             </div>

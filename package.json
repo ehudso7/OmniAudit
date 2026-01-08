@@ -3,12 +3,7 @@
   "version": "2.0.0",
   "description": "Universal AI Coding Auditing Framework - Enterprise Monorepo",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "frontend",
-    "vscode-extension",
-    "github-app"
-  ],
+  "workspaces": ["packages/*", "frontend", "vscode-extension", "github-app"],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",

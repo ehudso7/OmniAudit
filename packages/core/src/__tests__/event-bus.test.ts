@@ -2,13 +2,13 @@
  * Event bus tests
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EventBus } from '../bus/event-bus.js';
 import {
+  createCompleteEvent,
+  createErrorEvent,
   createFindingEvent,
   createProgressEvent,
-  createErrorEvent,
-  createCompleteEvent,
 } from '../bus/messages.js';
 import { FindingSeverity } from '../types/index.js';
 

@@ -3,16 +3,16 @@
  * @module @omniaudit/core/agent/base
  */
 
-import type { WorkItem, AnalysisResult, AgentState, Finding } from '../types/index.js';
-import { AgentStatus } from '../types/index.js';
-import type { IAgent, AgentContext } from './types.js';
-import { AgentLifecycle } from './lifecycle.js';
 import {
-  createProgressEvent,
-  createErrorEvent,
   createCompleteEvent,
+  createErrorEvent,
+  createProgressEvent,
   createStateChangeEvent,
 } from '../bus/messages.js';
+import type { AgentState, AnalysisResult, Finding, WorkItem } from '../types/index.js';
+import { AgentStatus } from '../types/index.js';
+import { AgentLifecycle } from './lifecycle.js';
+import type { AgentContext, IAgent } from './types.js';
 
 /**
  * Custom error class for agent errors
@@ -122,12 +122,15 @@ export abstract class BaseAgent implements IAgent {
 
         return result;
       } catch (error) {
-        const agentError = error instanceof AgentError ? error : new AgentError(
-          error instanceof Error ? error.message : String(error),
-          this.id,
-          false,
-          error instanceof Error ? error : undefined,
-        );
+        const agentError =
+          error instanceof AgentError
+            ? error
+            : new AgentError(
+                error instanceof Error ? error.message : String(error),
+                this.id,
+                false,
+                error instanceof Error ? error : undefined,
+              );
 
         this.handleAnalysisError(agentError, item);
 
@@ -229,10 +232,7 @@ export abstract class BaseAgent implements IAgent {
   /**
    * Execute function with retry logic
    */
-  protected async executeWithRetry<T>(
-    fn: () => Promise<T>,
-    maxRetries?: number,
-  ): Promise<T> {
+  protected async executeWithRetry<T>(fn: () => Promise<T>, maxRetries?: number): Promise<T> {
     const retries = maxRetries ?? this.context.config.maxRetries;
     let lastError: Error | undefined;
 
@@ -260,7 +260,7 @@ export abstract class BaseAgent implements IAgent {
   protected calculateBackoff(attempt: number): number {
     const baseDelay = this.context.config.retryBackoffMs;
     const maxDelay = this.context.config.maxRetryBackoffMs;
-    const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+    const delay = Math.min(baseDelay * 2 ** attempt, maxDelay);
 
     // Add jitter (±10%)
     const jitter = delay * 0.1 * (Math.random() * 2 - 1);

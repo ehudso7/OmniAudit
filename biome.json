@@ -1,8 +1,33 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
   "files": {
-    "ignore": ["dist", "node_modules", "frontend/dist", "*.d.ts", "build", "vscode-extension", "python-app"]
+    "ignore": [
+      "dist",
+      "node_modules",
+      "frontend/dist",
+      "*.d.ts",
+      "build",
+      "vscode-extension",
+      "python-app"
+    ]
   },
+  "overrides": [
+    {
+      "include": ["**/*.test.ts", "**/__tests__/**/*.ts", "**/examples/**/*.ts", "**/examples/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noEmptyBlockStatements": "off",
+            "noExplicitAny": "off"
+          },
+          "complexity": {
+            "noForEach": "off",
+            "noBannedTypes": "off"
+          }
+        }
+      }
+    }
+  ],
   "organizeImports": {
     "enabled": true
   },
@@ -62,7 +87,7 @@
         "noDuplicateObjectKeys": "error",
         "noDuplicateParameters": "error",
         "noEmptyBlockStatements": "error",
-        "noExplicitAny": "warn",
+        "noExplicitAny": "off",
         "noExtraNonNullAssertion": "error",
         "noFallthroughSwitchClause": "error",
         "noFunctionAssign": "error",

@@ -33,7 +33,7 @@ function generateDemoStats(): ReviewStats {
     this_month: 6,
     approval_rate: Math.round((approved / totalReviews) * 100 * 10) / 10,
     repos_connected: 4,
-    avg_issues_per_pr: Math.round((issuesFound / totalReviews) * 10) / 10
+    avg_issues_per_pr: Math.round((issuesFound / totalReviews) * 10) / 10,
   };
 }
 
@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       this_month: 0,
       approval_rate: 0,
       repos_connected: 0,
-      avg_issues_per_pr: 0
+      avg_issues_per_pr: 0,
     });
   }
 }

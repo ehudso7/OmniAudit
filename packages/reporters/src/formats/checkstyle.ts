@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions, Severity } from '../types.js';
 
 export class CheckstyleReporter implements Reporter {
   name = 'Checkstyle Reporter';
@@ -48,13 +48,13 @@ export class CheckstyleReporter implements Reporter {
         const severity = this.severityToCheckstyle(finding.severity);
         const source = `omniaudit.${finding.category}.${finding.rule_id}`;
 
-        xml += `    <error `;
+        xml += '    <error ';
         xml += `line="${line}" `;
         xml += `column="${column}" `;
         xml += `severity="${severity}" `;
         xml += `message="${this.escapeXml(finding.message)}" `;
         xml += `source="${this.escapeXml(source)}"`;
-        xml += `/>\n`;
+        xml += '/>\n';
       }
 
       xml += '  </file>\n';

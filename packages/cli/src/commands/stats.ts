@@ -1,5 +1,5 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
 import { createSpinner } from '../ui/spinner.js';
 import { createTable } from '../ui/table.js';
 
@@ -37,7 +37,7 @@ export function createStatsCommand(): Command {
           ['Open Issues', chalk.red('651')],
           ['Average Findings per Audit', chalk.cyan('20.0')],
           ['Most Common Category', chalk.yellow('security')],
-          ['Fix Rate', chalk.green('74.4%')]
+          ['Fix Rate', chalk.green('74.4%')],
         );
 
         console.log(table.toString());
@@ -53,7 +53,7 @@ export function createStatsCommand(): Command {
     .command('trends')
     .description('Show trends over time')
     .option('--period <days>', 'Time period in days', '30')
-    .action(async (options) => {
+    .action(async (_options) => {
       const spinner = createSpinner('Analyzing trends...');
 
       try {
@@ -76,7 +76,7 @@ export function createStatsCommand(): Command {
     .command('top-issues')
     .description('Show most common issues')
     .option('--limit <number>', 'Number of results', '10')
-    .action(async (options) => {
+    .action(async (_options) => {
       const spinner = createSpinner('Finding top issues...');
 
       try {
@@ -94,7 +94,7 @@ export function createStatsCommand(): Command {
         table.push(
           ['1', 'security/no-eval', '127', chalk.red('Critical')],
           ['2', 'performance/no-sync-fs', '93', chalk.yellow('Medium')],
-          ['3', 'best-practices/no-console', '78', chalk.blue('Low')]
+          ['3', 'best-practices/no-console', '78', chalk.blue('Low')],
         );
 
         console.log(chalk.bold.cyan('\n🔝 Top Issues\n'));

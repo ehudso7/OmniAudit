@@ -7,7 +7,7 @@ This ensures consistent behavior across all data collection plugins.
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class BaseCollector(ABC):
@@ -97,7 +97,7 @@ class BaseCollector(ABC):
         return {
             "collector": self.name,
             "version": self.version,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "data": data,
             "metadata": metadata or {}
         }

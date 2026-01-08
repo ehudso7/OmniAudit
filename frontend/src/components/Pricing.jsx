@@ -136,14 +136,15 @@ function Pricing({ onSelectPlan }) {
           <div className='faq-item'>
             <h4>How does the free trial work?</h4>
             <p>
-              Start with a 14-day free trial of Pro or Team. No credit card required. Cancel anytime.
+              Start with a 14-day free trial of Pro or Team. No credit card required. Cancel
+              anytime.
             </p>
           </div>
           <div className='faq-item'>
             <h4>What counts as a PR review?</h4>
             <p>
-              Each pull request that OmniAudit analyzes counts as one review, regardless of the number
-              of comments.
+              Each pull request that OmniAudit analyzes counts as one review, regardless of the
+              number of comments.
             </p>
           </div>
           <div className='faq-item'>

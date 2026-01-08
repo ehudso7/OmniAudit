@@ -39,13 +39,7 @@
     "typescript": "^5.7.2",
     "vitest": "^1.2.2"
   },
-  "keywords": [
-    "rules-engine",
-    "pattern-matching",
-    "ast",
-    "security",
-    "code-analysis"
-  ],
+  "keywords": ["rules-engine", "pattern-matching", "ast", "security", "code-analysis"],
   "author": "OmniAudit Team",
   "license": "MIT"
 }

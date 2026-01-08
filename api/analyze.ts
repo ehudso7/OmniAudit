@@ -44,7 +44,8 @@ const SECURITY_PATTERNS = [
   {
     pattern: /document\.write\s*\(/gi,
     title: 'document.write() usage',
-    description: 'document.write() can overwrite the entire document and is vulnerable to injection',
+    description:
+      'document.write() can overwrite the entire document and is vulnerable to injection',
     severity: 'medium',
     fix: 'Use DOM manipulation methods like appendChild() or innerHTML with proper sanitization.',
   },
@@ -149,10 +150,18 @@ function findLineNumber(code: string, match: RegExpMatchArray): number {
 }
 
 function detectLanguage(code: string): string {
-  if (code.includes('interface ') || code.includes(': string') || code.includes(': number') || code.includes('<T>')) {
+  if (
+    code.includes('interface ') ||
+    code.includes(': string') ||
+    code.includes(': number') ||
+    code.includes('<T>')
+  ) {
     return 'typescript';
   }
-  if (code.includes('def ') || code.includes('import ') && code.includes(':') && !code.includes('from \'')) {
+  if (
+    code.includes('def ') ||
+    (code.includes('import ') && code.includes(':') && !code.includes("from '"))
+  ) {
     return 'python';
   }
   if (code.includes('func ') || code.includes('package ')) {
@@ -171,7 +180,7 @@ function analyzeCode(code: string, skills: string[]): AnalysisResult {
   };
 
   // Run security analysis
-  if (skills.some(s => s.toLowerCase().includes('security'))) {
+  if (skills.some((s) => s.toLowerCase().includes('security'))) {
     for (const pattern of SECURITY_PATTERNS) {
       const matches = code.matchAll(pattern.pattern);
       for (const match of matches) {
@@ -191,7 +200,7 @@ function analyzeCode(code: string, skills: string[]): AnalysisResult {
   }
 
   // Run performance analysis
-  if (skills.some(s => s.toLowerCase().includes('performance'))) {
+  if (skills.some((s) => s.toLowerCase().includes('performance'))) {
     for (const pattern of PERFORMANCE_PATTERNS) {
       const matches = code.matchAll(pattern.pattern);
       for (const match of matches) {
@@ -211,7 +220,7 @@ function analyzeCode(code: string, skills: string[]): AnalysisResult {
   }
 
   // Run quality analysis
-  if (skills.some(s => s.toLowerCase().includes('quality') || s.toLowerCase().includes('code'))) {
+  if (skills.some((s) => s.toLowerCase().includes('quality') || s.toLowerCase().includes('code'))) {
     for (const pattern of QUALITY_PATTERNS) {
       const matches = code.matchAll(pattern.pattern);
       for (const match of matches) {
@@ -290,7 +299,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Default skills if none provided
-    const activeSkills = skills.length > 0 ? skills : ['security-auditor', 'performance-optimizer-pro', 'code-quality'];
+    const activeSkills =
+      skills.length > 0
+        ? skills
+        : ['security-auditor', 'performance-optimizer-pro', 'code-quality'];
 
     // Run analysis
     const result = analyzeCode(code, activeSkills);

@@ -34,9 +34,12 @@ export class SlackReporter implements Reporter {
     const criticalCount = result.findings_by_severity.critical;
     const highCount = result.findings_by_severity.high;
 
-    const color = criticalCount > 0 ? this.getSeverityColor('critical') :
-                  highCount > 0 ? this.getSeverityColor('high') :
-                  this.getSeverityColor('medium');
+    const color =
+      criticalCount > 0
+        ? this.getSeverityColor('critical')
+        : highCount > 0
+          ? this.getSeverityColor('high')
+          : this.getSeverityColor('medium');
 
     const attachment = {
       color,
@@ -106,7 +109,7 @@ export class SlackReporter implements Reporter {
 
     // Add top 5 critical/high findings
     const criticalFindings = result.findings
-      .filter(f => f.severity === 'critical' || f.severity === 'high')
+      .filter((f) => f.severity === 'critical' || f.severity === 'high')
       .slice(0, 5);
 
     if (criticalFindings.length > 0) {
@@ -123,9 +126,10 @@ export class SlackReporter implements Reporter {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `${this.getSeverityEmoji(finding.severity)} *${finding.title}*\n` +
-                  `\`${finding.file}\`${finding.line ? `:${finding.line}` : ''}\n` +
-                  `_${finding.message}_`,
+            text:
+              `${this.getSeverityEmoji(finding.severity)} *${finding.title}*\n` +
+              `\`${finding.file}\`${finding.line ? `:${finding.line}` : ''}\n` +
+              `_${finding.message}_`,
           },
         });
       }

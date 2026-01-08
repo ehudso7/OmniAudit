@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 // Mock external dependencies
 vi.mock('@anthropic-ai/sdk', () => ({
@@ -27,7 +27,11 @@ describe('OmniAudit Orchestrator Integration Tests', () => {
         path: '/test/project',
         files: [
           { path: 'src/index.ts', content: 'const x = 1;', language: 'typescript' },
-          { path: 'src/utils.ts', content: 'export const add = (a, b) => a + b;', language: 'typescript' },
+          {
+            path: 'src/utils.ts',
+            content: 'export const add = (a, b) => a + b;',
+            language: 'typescript',
+          },
         ],
       };
 
@@ -63,10 +67,10 @@ describe('OmniAudit Orchestrator Integration Tests', () => {
 
   describe('Agent pool management', () => {
     it('should manage concurrent agent execution', async () => {
-      const maxConcurrency = 5;
-      const tasks = Array(10).fill(null).map((_, i) =>
-        Promise.resolve({ taskId: i, completed: true }),
-      );
+      const _maxConcurrency = 5;
+      const tasks = Array(10)
+        .fill(null)
+        .map((_, i) => Promise.resolve({ taskId: i, completed: true }));
 
       const results = await Promise.all(tasks);
       expect(results).toHaveLength(10);
@@ -76,7 +80,10 @@ describe('OmniAudit Orchestrator Integration Tests', () => {
     it('should handle agent failures gracefully', async () => {
       const tasks = [
         Promise.resolve({ success: true }),
-        Promise.reject(new Error('Agent failed')).catch((e) => ({ success: false, error: e.message })),
+        Promise.reject(new Error('Agent failed')).catch((e) => ({
+          success: false,
+          error: e.message,
+        })),
         Promise.resolve({ success: true }),
       ];
 
@@ -160,7 +167,7 @@ describe('OmniAudit Orchestrator Integration Tests', () => {
           if (!this.subscribers.has(event)) {
             this.subscribers.set(event, []);
           }
-          this.subscribers.get(event)!.push(handler);
+          this.subscribers.get(event)?.push(handler);
         },
         emit(event: string, data: any) {
           const handlers = this.subscribers.get(event) || [];

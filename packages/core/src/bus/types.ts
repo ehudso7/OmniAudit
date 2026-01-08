@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import type { Finding, AgentState, AnalysisResult } from '../types/index.js';
+import type { AgentState, AnalysisResult, Finding } from '../types/index.js';
 
 /**
  * Base event schema with correlation ID tracking

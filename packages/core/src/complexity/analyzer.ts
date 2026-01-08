@@ -6,10 +6,10 @@
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
 import type { ComplexityMetrics } from '../types/index.js';
-import { Language, type LanguageWeights } from './types.js';
-import { calculateLocScore } from './scorers/loc.js';
 import { calculateCyclomaticScore } from './scorers/cyclomatic.js';
 import { calculateDependencyScore } from './scorers/dependencies.js';
+import { calculateLocScore } from './scorers/loc.js';
+import { Language, type LanguageWeights } from './types.js';
 
 /**
  * Default language weights
@@ -162,7 +162,10 @@ export async function analyzeComplexityBatch(
   );
 
   return results
-    .filter((result): result is PromiseFulfilledResult<ComplexityMetrics> => result.status === 'fulfilled')
+    .filter(
+      (result): result is PromiseFulfilledResult<ComplexityMetrics> =>
+        result.status === 'fulfilled',
+    )
     .map((result) => result.value);
 }
 

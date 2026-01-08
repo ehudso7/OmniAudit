@@ -1,24 +1,24 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard,
-  GitPullRequest,
-  Play,
-  FileText,
   BarChart3,
-  Shield,
-  Settings,
   BookOpen,
-  Users,
-  Plug,
   ChevronLeft,
   ChevronRight,
+  FileText,
+  GitPullRequest,
+  LayoutDashboard,
+  Play,
+  Plug,
+  Settings,
+  Shield,
+  Users,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -45,31 +45,27 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
+      <div className='flex h-16 items-center justify-between border-b px-4'>
         {!collapsed && (
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Shield className="h-5 w-5" />
+          <Link href='/' className='flex items-center space-x-2'>
+            <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
+              <Shield className='h-5 w-5' />
             </div>
-            <span className="text-xl font-bold">OmniAudit</span>
+            <span className='text-xl font-bold'>OmniAudit</span>
           </Link>
         )}
         <Button
-          variant="ghost"
-          size="icon"
+          variant='ghost'
+          size='icon'
           onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8"
+          className='h-8 w-8'
         >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
+          {collapsed ? <ChevronRight className='h-4 w-4' /> : <ChevronLeft className='h-4 w-4' />}
         </Button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className='flex-1 space-y-1 p-2'>
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -93,11 +89,11 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t p-4">
+      <div className='border-t p-4'>
         {!collapsed && (
-          <div className="text-xs text-muted-foreground">
+          <div className='text-xs text-muted-foreground'>
             <p>OmniAudit v2.0.0</p>
-            <p className="mt-1">Enterprise Edition</p>
+            <p className='mt-1'>Enterprise Edition</p>
           </div>
         )}
       </div>

@@ -3,8 +3,8 @@
  * @module @omniaudit/core/agent/types
  */
 
-import type { WorkItem, AnalysisResult, AgentConfig } from '../types/index.js';
 import type { EventBus } from '../bus/event-bus.js';
+import type { AgentConfig, AnalysisResult, WorkItem } from '../types/index.js';
 
 /**
  * Agent initialization context

@@ -7,7 +7,7 @@ REST API for OmniAudit platform.
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 import os
 
@@ -406,7 +406,7 @@ async def run_audit(request: AuditRequest) -> AuditResponse:
 
 def get_timestamp() -> str:
     """Get current timestamp in ISO format."""
-    return datetime.utcnow().isoformat() + "Z"
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def generate_audit_id() -> str:

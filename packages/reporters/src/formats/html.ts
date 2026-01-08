@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions } from '../types.js';
 
 export class HTMLReporter implements Reporter {
   name = 'HTML Reporter';
@@ -62,7 +62,7 @@ export class HTMLReporter implements Reporter {
     }
 
     if (finding.cwe && finding.cwe.length > 0) {
-      html += `<p class="cwe"><strong>CWE:</strong> ${finding.cwe.map(c => this.escapeHtml(c)).join(', ')}</p>`;
+      html += `<p class="cwe"><strong>CWE:</strong> ${finding.cwe.map((c) => this.escapeHtml(c)).join(', ')}</p>`;
     }
 
     html += `
@@ -222,7 +222,7 @@ export class HTMLReporter implements Reporter {
   }
 
   async generate(result: AuditResult, _options?: ReporterOptions): Promise<string> {
-    let html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">

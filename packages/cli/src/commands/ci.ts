@@ -1,5 +1,5 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
 import { createSpinner } from '../ui/spinner.js';
 
 export function createCICommand(): Command {
@@ -14,7 +14,7 @@ export function createCICommand(): Command {
     .option('--fail-on <severity>', 'Fail on severity level', 'high')
     .option('--upload', 'Upload results to server')
     .option('--pr-comment', 'Post results as PR comment')
-    .action(async (options) => {
+    .action(async (_options) => {
       const spinner = createSpinner('Running CI audit...');
 
       try {

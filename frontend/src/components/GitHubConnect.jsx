@@ -17,7 +17,7 @@ function GitHubConnect({ apiUrl, onConnect }) {
       if (response.ok) {
         onConnect?.();
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Could not verify connection. Redirecting to GitHub...');
     }
 
@@ -37,7 +37,8 @@ function GitHubConnect({ apiUrl, onConnect }) {
       </div>
 
       <p className='connect-description'>
-        Install the OmniAudit GitHub App to automatically review your pull requests with AI-powered code analysis.
+        Install the OmniAudit GitHub App to automatically review your pull requests with AI-powered
+        code analysis.
       </p>
 
       <div className='features-list'>
@@ -71,7 +72,12 @@ function GitHubConnect({ apiUrl, onConnect }) {
         </div>
       </div>
 
-      <button type='button' className='btn btn-primary btn-large' onClick={handleConnect} disabled={loading}>
+      <button
+        type='button'
+        className='btn btn-primary btn-large'
+        onClick={handleConnect}
+        disabled={loading}
+      >
         {loading ? '⏳ Connecting...' : '🔗 Install GitHub App'}
       </button>
 
@@ -82,7 +88,11 @@ function GitHubConnect({ apiUrl, onConnect }) {
           <small>
             OmniAudit only requests necessary permissions. We never store your code.
             <br />
-            <a href='https://github.com/ehudso7/OmniAudit' target='_blank' rel='noopener noreferrer'>
+            <a
+              href='https://github.com/ehudso7/OmniAudit'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
               View source code
             </a>
           </small>

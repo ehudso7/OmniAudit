@@ -1,8 +1,8 @@
-import { Command } from 'commander';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import chalk from 'chalk';
+import { Command } from 'commander';
 import { createSpinner } from '../ui/spinner.js';
-import fs from 'fs/promises';
-import path from 'path';
 
 export function createConfigCommand(): Command {
   const cmd = new Command('config');

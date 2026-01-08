@@ -2,12 +2,12 @@
  * Orchestrator tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { writeFile, mkdir, rm } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { AgentOrchestrator } from '../orchestrator.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BaseAgent } from '../agent/base.js';
-import type { WorkItem, Finding, AgentContext } from '../types/index.js';
+import { AgentOrchestrator } from '../orchestrator.js';
+import type { AgentContext, Finding, WorkItem } from '../types/index.js';
 import { FindingSeverity } from '../types/index.js';
 
 const TEST_DIR = '/tmp/omniaudit-test';

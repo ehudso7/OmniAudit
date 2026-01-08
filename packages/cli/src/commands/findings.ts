@@ -1,13 +1,12 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
 import { createSpinner } from '../ui/spinner.js';
 import { printFindingsTable } from '../ui/table.js';
 
 export function createFindingsCommand(): Command {
   const cmd = new Command('findings');
 
-  cmd
-    .description('Manage and query audit findings');
+  cmd.description('Manage and query audit findings');
 
   // List findings
   cmd
@@ -17,7 +16,7 @@ export function createFindingsCommand(): Command {
     .option('-c, --category <categories...>', 'Filter by category')
     .option('-f, --file <pattern>', 'Filter by file pattern')
     .option('--limit <number>', 'Limit results', '50')
-    .action(async (options) => {
+    .action(async (_options) => {
       const spinner = createSpinner('Fetching findings...');
 
       try {

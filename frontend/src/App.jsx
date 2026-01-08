@@ -32,7 +32,7 @@ function App() {
 
   return (
     <div className='app'>
-      <header className='app-header' role='banner'>
+      <header className='app-header'>
         <div className='header-brand'>
           <h1>🔍 OmniAudit</h1>
           <span className='header-tagline'>AI-Powered Code Review</span>
@@ -55,7 +55,7 @@ function App() {
         </div>
       </header>
 
-      <nav className='app-nav' role='navigation' aria-label='Main navigation'>
+      <nav className='app-nav' aria-label='Main navigation'>
         <button
           type='button'
           className={activeTab === 'reviews' ? 'active' : ''}
@@ -106,7 +106,7 @@ function App() {
         </button>
       </nav>
 
-      <main className='app-main' role='main' aria-label='Main content'>
+      <main className='app-main' aria-label='Main content'>
         {activeTab === 'reviews' && <PRReviews apiUrl={API_URL} />}
         {activeTab === 'dashboard' && <Dashboard apiUrl={API_URL} auditResults={auditResults} />}
         {activeTab === 'audit' && <AuditRunner apiUrl={API_URL} onComplete={setAuditResults} />}
