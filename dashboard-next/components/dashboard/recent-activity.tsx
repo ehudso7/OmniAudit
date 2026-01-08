@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getRelativeTime } from '@/lib/utils';
-import { GitPullRequest, FileCode, Shield, Check, X } from 'lucide-react';
+import { Check, FileCode, GitPullRequest, Shield, X } from 'lucide-react';
 
 interface Activity {
   id: string;
@@ -70,31 +70,26 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
   const displayActivities = activities.length > 0 ? activities : defaultActivities;
 
   return (
-    <Card className="h-full">
+    <Card className='h-full'>
       <CardHeader>
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {displayActivities.slice(0, 5).map((activity) => {
             const Icon = activityIcons[activity.type];
             return (
-              <div
-                key={activity.id}
-                className="flex items-start gap-3"
-              >
+              <div key={activity.id} className='flex items-start gap-3'>
                 <div
                   className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-muted ${activityColors[activity.type]}`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className='h-4 w-4' />
                 </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">{activity.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {activity.description}
-                  </p>
+                <div className='flex-1 space-y-1'>
+                  <p className='text-sm font-medium'>{activity.title}</p>
+                  <p className='text-xs text-muted-foreground'>{activity.description}</p>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                <span className='text-xs text-muted-foreground whitespace-nowrap'>
                   {getRelativeTime(activity.timestamp)}
                 </span>
               </div>

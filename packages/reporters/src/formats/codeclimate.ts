@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions, Severity } from '../types.js';
 
 // Code Climate Issue Data Format
 // https://github.com/codeclimate/platform/blob/master/spec/analyzers/SPEC.md
@@ -36,7 +36,9 @@ export class CodeClimateReporter implements Reporter {
   name = 'Code Climate Reporter';
   format = 'codeclimate';
 
-  private severityToCodeClimate(severity: Severity): 'info' | 'minor' | 'major' | 'critical' | 'blocker' {
+  private severityToCodeClimate(
+    severity: Severity,
+  ): 'info' | 'minor' | 'major' | 'critical' | 'blocker' {
     const mapping: Record<Severity, 'info' | 'minor' | 'major' | 'critical' | 'blocker'> = {
       critical: 'blocker',
       high: 'critical',
@@ -52,7 +54,7 @@ export class CodeClimateReporter implements Reporter {
     let hash = 0;
     for (let i = 0; i < data.length; i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash).toString(16).padStart(16, '0');
@@ -111,16 +113,14 @@ export class CodeClimateReporter implements Reporter {
   }
 
   async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {
-    const issues = result.findings.map(f => this.findingToCodeClimateIssue(f));
+    const issues = result.findings.map((f) => this.findingToCodeClimateIssue(f));
 
     // Code Climate expects newline-delimited JSON
     if (options?.format === 'ndjson') {
-      return issues.map(issue => JSON.stringify(issue)).join('\n');
+      return issues.map((issue) => JSON.stringify(issue)).join('\n');
     }
 
     // Return as JSON array
-    return options?.pretty
-      ? JSON.stringify(issues, null, 2)
-      : JSON.stringify(issues);
+    return options?.pretty ? JSON.stringify(issues, null, 2) : JSON.stringify(issues);
   }
 }

@@ -4,7 +4,7 @@
  */
 
 import EventEmitter from 'eventemitter3';
-import type { BusEvent, EventType, EventHandler } from './types.js';
+import type { BusEvent, EventHandler, EventType } from './types.js';
 
 /**
  * Type-safe event bus for orchestrator and agent communication
@@ -146,9 +146,7 @@ export class EventBus {
    * @returns Array of events from the agent
    */
   getEventsByAgent(agentId: string): BusEvent[] {
-    return this.eventHistory.filter(
-      (event) => 'agentId' in event && event.agentId === agentId,
-    );
+    return this.eventHistory.filter((event) => 'agentId' in event && event.agentId === agentId);
   }
 
   /**
@@ -156,12 +154,10 @@ export class EventBus {
    * @param eventType Event type to search for
    * @returns Array of events of the specified type
    */
-  getEventsByType<T extends EventType>(
-    eventType: T,
-  ): Array<Extract<BusEvent, { type: T }>> {
-    return this.eventHistory.filter(
-      (event) => event.type === eventType,
-    ) as Array<Extract<BusEvent, { type: T }>>;
+  getEventsByType<T extends EventType>(eventType: T): Array<Extract<BusEvent, { type: T }>> {
+    return this.eventHistory.filter((event) => event.type === eventType) as Array<
+      Extract<BusEvent, { type: T }>
+    >;
   }
 
   /**

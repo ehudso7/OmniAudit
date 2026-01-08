@@ -16,7 +16,8 @@ const BUILTIN_SKILLS: Skill[] = [
   {
     id: 'security-auditor',
     name: 'Security Auditor',
-    description: 'Detects vulnerabilities, SQL injection, XSS, hardcoded secrets, and security misconfigurations',
+    description:
+      'Detects vulnerabilities, SQL injection, XSS, hardcoded secrets, and security misconfigurations',
     category: 'Security',
     version: '1.0.0',
     tags: ['security', 'vulnerabilities', 'owasp'],
@@ -46,7 +47,8 @@ const BUILTIN_SKILLS: Skill[] = [
   {
     id: 'react-best-practices',
     name: 'React Best Practices',
-    description: 'Reviews React patterns, hooks usage, component structure, and performance optimizations',
+    description:
+      'Reviews React patterns, hooks usage, component structure, and performance optimizations',
     category: 'React',
     version: '1.0.0',
     tags: ['react', 'hooks', 'components'],
@@ -160,7 +162,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // If ID provided, return specific skill
     if (id && typeof id === 'string') {
-      const skill = BUILTIN_SKILLS.find(s => s.id === id);
+      const skill = BUILTIN_SKILLS.find((s) => s.id === id);
 
       if (!skill) {
         return res.status(404).json({

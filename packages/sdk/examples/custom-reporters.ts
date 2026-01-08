@@ -22,7 +22,7 @@ const markdownReporter: Reporter = {
   generate(result: AuditResult): string {
     const lines: string[] = [];
 
-    lines.push(`# OmniAudit Report`);
+    lines.push('# OmniAudit Report');
     lines.push('');
     lines.push(`**Project:** ${result.project}`);
     lines.push(`**Date:** ${new Date(result.timestamp).toLocaleString()}`);
@@ -134,7 +134,7 @@ const htmlReporter: Reporter = {
           ${f.recommendation ? `<div class="recommendation"><strong>Recommendation:</strong> ${escapeHtml(f.recommendation)}</div>` : ''}
         </div>
       </div>
-    `
+    `,
       )
       .join('\n');
 
@@ -310,7 +310,7 @@ ${f.recommendation ? `\nRecommendation: ${escapeXml(f.recommendation)}` : ''}
       .join('\n');
 
     const failures = result.findings.filter(
-      (f) => f.severity === 'critical' || f.severity === 'high'
+      (f) => f.severity === 'critical' || f.severity === 'high',
     ).length;
 
     return `<?xml version="1.0" encoding="UTF-8"?>
@@ -328,8 +328,7 @@ const slackReporter: Reporter = {
   description: 'Generate Slack Block Kit message',
 
   generate(result: AuditResult): string {
-    const criticalHigh =
-      result.findings_by_severity.critical + result.findings_by_severity.high;
+    const criticalHigh = result.findings_by_severity.critical + result.findings_by_severity.high;
     const statusEmoji = criticalHigh === 0 ? '✅' : criticalHigh > 5 ? '🚨' : '⚠️';
 
     const blocks = [
@@ -369,11 +368,9 @@ const slackReporter: Reporter = {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text:
-            '*🔴 Critical Issues*\n' +
-            criticalFindings
-              .map((f) => `• *${f.title}*\n  \`${f.file}:${f.line || 0}\``)
-              .join('\n'),
+          text: `*🔴 Critical Issues*\n${criticalFindings
+            .map((f) => `• *${f.title}*\n  \`${f.file}:${f.line || 0}\``)
+            .join('\n')}`,
         },
       });
     }
@@ -388,14 +385,13 @@ const githubCommentReporter: Reporter = {
   description: 'Generate GitHub PR comment markdown',
 
   generate(result: AuditResult): string {
-    const criticalHigh =
-      result.findings_by_severity.critical + result.findings_by_severity.high;
+    const criticalHigh = result.findings_by_severity.critical + result.findings_by_severity.high;
     const statusIcon = criticalHigh === 0 ? '✅' : criticalHigh > 5 ? '❌' : '⚠️';
 
     let comment = `## ${statusIcon} OmniAudit Results\n\n`;
 
-    comment += `| Metric | Value |\n`;
-    comment += `|--------|-------|\n`;
+    comment += '| Metric | Value |\n';
+    comment += '|--------|-------|\n';
     comment += `| Files Analyzed | ${result.total_files} |\n`;
     comment += `| Total Findings | ${result.total_findings} |\n`;
     comment += `| Critical | ${result.findings_by_severity.critical} |\n`;
@@ -406,7 +402,7 @@ const githubCommentReporter: Reporter = {
       comment += `<details>\n<summary>🔴 Critical & High Findings (${criticalHigh})</summary>\n\n`;
 
       const importantFindings = result.findings.filter(
-        (f) => f.severity === 'critical' || f.severity === 'high'
+        (f) => f.severity === 'critical' || f.severity === 'high',
       );
 
       for (const f of importantFindings.slice(0, 10)) {
@@ -418,17 +414,17 @@ const githubCommentReporter: Reporter = {
         if (f.recommendation) {
           comment += `💡 **Recommendation:** ${f.recommendation}\n\n`;
         }
-        comment += `---\n\n`;
+        comment += '---\n\n';
       }
 
       if (importantFindings.length > 10) {
         comment += `\n*...and ${importantFindings.length - 10} more critical/high findings*\n`;
       }
 
-      comment += `</details>\n`;
+      comment += '</details>\n';
     }
 
-    comment += `\n---\n*Powered by [OmniAudit](https://omniaudit.dev)*`;
+    comment += '\n---\n*Powered by [OmniAudit](https://omniaudit.dev)*';
 
     return comment;
   },
@@ -466,7 +462,9 @@ const reporters = new Map<string, Reporter>([
 function createReporter(format: string): Reporter {
   const reporter = reporters.get(format);
   if (!reporter) {
-    throw new Error(`Unknown reporter format: ${format}. Available: ${Array.from(reporters.keys()).join(', ')}`);
+    throw new Error(
+      `Unknown reporter format: ${format}. Available: ${Array.from(reporters.keys()).join(', ')}`,
+    );
   }
   return reporter;
 }

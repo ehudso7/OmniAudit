@@ -5,7 +5,7 @@
  * Includes GitHub Actions, GitLab CI, and generic CI examples.
  */
 
-import { createClient, audit } from '@omniaudit/sdk';
+import { audit, createClient } from '@omniaudit/sdk';
 import type { AuditResult, Finding } from '@omniaudit/sdk';
 
 // Configuration from environment variables
@@ -15,7 +15,7 @@ const config = {
   projectPath: process.env.PROJECT_PATH || '.',
   failOnCritical: process.env.FAIL_ON_CRITICAL !== 'false',
   failOnHigh: process.env.FAIL_ON_HIGH === 'true',
-  maxFindings: parseInt(process.env.MAX_FINDINGS || '0', 10),
+  maxFindings: Number.parseInt(process.env.MAX_FINDINGS || '0', 10),
   baselineAuditId: process.env.BASELINE_AUDIT_ID,
 };
 
@@ -69,7 +69,9 @@ function severityColor(severity: string): string {
 
 function printFinding(finding: Finding, index: number) {
   const color = severityColor(finding.severity);
-  console.log(`${color}${index + 1}. [${finding.severity.toUpperCase()}] ${finding.title}${colors.reset}`);
+  console.log(
+    `${color}${index + 1}. [${finding.severity.toUpperCase()}] ${finding.title}${colors.reset}`,
+  );
   console.log(`   File: ${finding.file}:${finding.line || 0}`);
   console.log(`   Rule: ${finding.rule_id}`);
   console.log(`   ${finding.message}`);
@@ -137,12 +139,16 @@ async function runCIAudit(): Promise<number> {
         const newHigh = comparison.new.filter((f) => f.severity === 'high');
 
         if (newCritical.length > 0 && config.failOnCritical) {
-          console.log(`\n${colors.red}${colors.bold}❌ FAILED: ${newCritical.length} new critical issues found${colors.reset}`);
+          console.log(
+            `\n${colors.red}${colors.bold}❌ FAILED: ${newCritical.length} new critical issues found${colors.reset}`,
+          );
           return EXIT_CODES.NEW_ISSUES_FOUND;
         }
 
         if (newHigh.length > 0 && config.failOnHigh) {
-          console.log(`\n${colors.red}${colors.bold}❌ FAILED: ${newHigh.length} new high severity issues found${colors.reset}`);
+          console.log(
+            `\n${colors.red}${colors.bold}❌ FAILED: ${newHigh.length} new high severity issues found${colors.reset}`,
+          );
           return EXIT_CODES.NEW_ISSUES_FOUND;
         }
       }
@@ -152,7 +158,7 @@ async function runCIAudit(): Promise<number> {
     if (result.findings.length > 0) {
       printSection('Findings');
       const criticalAndHigh = result.findings.filter(
-        (f) => f.severity === 'critical' || f.severity === 'high'
+        (f) => f.severity === 'critical' || f.severity === 'high',
       );
       criticalAndHigh.slice(0, 20).forEach((f, i) => printFinding(f, i));
 
@@ -164,7 +170,7 @@ async function runCIAudit(): Promise<number> {
     // Generate SARIF report for GitHub Code Scanning
     if (process.env.GITHUB_ACTIONS) {
       printSection('Generating SARIF Report');
-      const sarif = await client.export(result.id, 'sarif');
+      const _sarif = await client.export(result.id, 'sarif');
       const sarifPath = process.env.SARIF_OUTPUT || 'omniaudit-results.sarif';
 
       // In a real implementation, write to file
@@ -179,21 +185,27 @@ async function runCIAudit(): Promise<number> {
 
     // Check for critical findings
     if (config.failOnCritical && result.findings_by_severity.critical > 0) {
-      console.log(`${colors.red}${colors.bold}❌ FAILED: ${result.findings_by_severity.critical} critical findings${colors.reset}`);
+      console.log(
+        `${colors.red}${colors.bold}❌ FAILED: ${result.findings_by_severity.critical} critical findings${colors.reset}`,
+      );
       return EXIT_CODES.CRITICAL_FINDINGS;
     }
     console.log(`${colors.green}✓ No critical findings${colors.reset}`);
 
     // Check for high findings
     if (config.failOnHigh && result.findings_by_severity.high > 0) {
-      console.log(`${colors.red}${colors.bold}❌ FAILED: ${result.findings_by_severity.high} high severity findings${colors.reset}`);
+      console.log(
+        `${colors.red}${colors.bold}❌ FAILED: ${result.findings_by_severity.high} high severity findings${colors.reset}`,
+      );
       return EXIT_CODES.HIGH_FINDINGS;
     }
     console.log(`${colors.green}✓ High severity check passed${colors.reset}`);
 
     // Check max findings
     if (config.maxFindings > 0 && result.total_findings > config.maxFindings) {
-      console.log(`${colors.red}${colors.bold}❌ FAILED: ${result.total_findings} findings exceed limit of ${config.maxFindings}${colors.reset}`);
+      console.log(
+        `${colors.red}${colors.bold}❌ FAILED: ${result.total_findings} findings exceed limit of ${config.maxFindings}${colors.reset}`,
+      );
       return EXIT_CODES.MAX_FINDINGS_EXCEEDED;
     }
     console.log(`${colors.green}✓ Finding count within limits${colors.reset}`);

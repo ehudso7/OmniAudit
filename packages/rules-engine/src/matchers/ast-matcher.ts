@@ -1,7 +1,7 @@
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import type * as t from '@babel/types';
-import type { Rule, Match, Matcher, FileToAnalyze } from '../types';
+import type { FileToAnalyze, Match, Matcher, Rule } from '../types';
 
 /**
  * ASTMatcher - Handles AST-based pattern matching
@@ -146,17 +146,12 @@ export class ASTMatcher implements Matcher {
         n.callee?.object?.name === 'console' &&
         n.callee?.property?.name === 'log',
 
-      'eval': (n) =>
-        n.type === 'CallExpression' &&
-        n.callee?.name === 'eval',
+      eval: (n) => n.type === 'CallExpression' && n.callee?.name === 'eval',
 
-      'dangerouslySetInnerHTML': (n) =>
-        n.type === 'JSXAttribute' &&
-        n.name?.name === 'dangerouslySetInnerHTML',
+      dangerouslySetInnerHTML: (n) =>
+        n.type === 'JSXAttribute' && n.name?.name === 'dangerouslySetInnerHTML',
 
-      'Function constructor': (n) =>
-        n.type === 'NewExpression' &&
-        n.callee?.name === 'Function',
+      'Function constructor': (n) => n.type === 'NewExpression' && n.callee?.name === 'Function',
 
       'setTimeout string': (n) =>
         n.type === 'CallExpression' &&
@@ -168,9 +163,7 @@ export class ASTMatcher implements Matcher {
         n.callee?.name === 'setInterval' &&
         n.arguments?.[0]?.type === 'StringLiteral',
 
-      'innerHTML': (n) =>
-        n.type === 'MemberExpression' &&
-        n.property?.name === 'innerHTML',
+      innerHTML: (n) => n.type === 'MemberExpression' && n.property?.name === 'innerHTML',
 
       'document.write': (n) =>
         n.type === 'CallExpression' &&

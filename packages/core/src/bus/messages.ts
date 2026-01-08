@@ -4,16 +4,16 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import type { AgentState, AnalysisResult, Finding } from '../types/index.js';
 import type {
-  FindingEvent,
-  ProgressEvent,
-  ErrorEvent,
-  CompleteEvent,
-  StateChangeEvent,
   CheckpointEvent,
+  CompleteEvent,
+  ErrorEvent,
+  FindingEvent,
   MemoryWarningEvent,
+  ProgressEvent,
+  StateChangeEvent,
 } from './types.js';
-import type { Finding, AgentState, AnalysisResult } from '../types/index.js';
 
 /**
  * Create a finding event

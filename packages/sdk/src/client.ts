@@ -1,5 +1,13 @@
 import EventEmitter from 'eventemitter3';
-import type { SDKConfig, AuditRequest, AuditResult, Finding, Rule, EventMap, AuditProgress } from './types.js';
+import type {
+  AuditProgress,
+  AuditRequest,
+  AuditResult,
+  EventMap,
+  Finding,
+  Rule,
+  SDKConfig,
+} from './types.js';
 
 export class OmniAuditClient extends EventEmitter<EventMap> {
   private config: SDKConfig;
@@ -262,7 +270,10 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
   /**
    * Compare two audits
    */
-  async compareAudits(_baselineId: string, _currentId: string): Promise<{
+  async compareAudits(
+    _baselineId: string,
+    _currentId: string,
+  ): Promise<{
     new: Finding[];
     fixed: Finding[];
     unchanged: Finding[];
@@ -313,7 +324,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
       method?: string;
       body?: unknown;
       headers?: Record<string, string>;
-    } = {}
+    } = {},
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: Record<string, string> = {
@@ -322,7 +333,7 @@ export class OmniAuditClient extends EventEmitter<EventMap> {
     };
 
     if (this.config.apiKey) {
-      headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+      headers.Authorization = `Bearer ${this.config.apiKey}`;
     }
 
     const response = await fetch(url, {

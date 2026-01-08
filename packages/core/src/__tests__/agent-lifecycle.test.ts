@@ -2,9 +2,9 @@
  * Agent lifecycle tests
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AgentLifecycle, LifecycleStage } from '../agent/lifecycle.js';
-import type { WorkItem, AnalysisResult } from '../types/index.js';
+import type { AnalysisResult, WorkItem } from '../types/index.js';
 
 describe('AgentLifecycle', () => {
   describe('Initialization', () => {

@@ -1,5 +1,5 @@
-import Table from 'cli-table3';
 import chalk from 'chalk';
+import Table from 'cli-table3';
 
 export interface TableColumn {
   name: string;
@@ -17,29 +17,29 @@ export interface TableOptions {
 
 export function createTable(options: TableOptions): Table.Table {
   return new Table({
-    head: options.columns.map(col => chalk.bold(col.name)),
-    colAligns: options.columns.map(col => col.align || 'left'),
+    head: options.columns.map((col) => chalk.bold(col.name)),
+    colAligns: options.columns.map((col) => col.align || 'left'),
     style: {
       head: options.style?.head || ['cyan'],
       border: options.style?.border || ['gray'],
     },
     chars: {
-      'top': '─',
+      top: '─',
       'top-mid': '┬',
       'top-left': '┌',
       'top-right': '┐',
-      'bottom': '─',
+      bottom: '─',
       'bottom-mid': '┴',
       'bottom-left': '└',
       'bottom-right': '┘',
-      'left': '│',
+      left: '│',
       'left-mid': '├',
-      'mid': '─',
+      mid: '─',
       'mid-mid': '┼',
-      'right': '│',
+      right: '│',
       'right-mid': '┤',
-      'middle': '│'
-    }
+      middle: '│',
+    },
   });
 }
 
@@ -100,7 +100,7 @@ export function printSummaryTable(summary: {
     ['High', chalk.red(summary.findings_by_severity.high?.toString() || '0')],
     ['Medium', chalk.yellow(summary.findings_by_severity.medium?.toString() || '0')],
     ['Low', chalk.blue(summary.findings_by_severity.low?.toString() || '0')],
-    ['Info', chalk.gray(summary.findings_by_severity.info?.toString() || '0')]
+    ['Info', chalk.gray(summary.findings_by_severity.info?.toString() || '0')],
   );
 
   console.log(table.toString());

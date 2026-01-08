@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions } from '../types.js';
 
 // Notion database entry format
 // https://developers.notion.com/reference/page
@@ -153,7 +153,7 @@ export class NotionReporter implements Reporter {
               },
             ],
           },
-        }
+        },
       );
     }
 
@@ -204,7 +204,7 @@ export class NotionReporter implements Reporter {
               },
             ],
           },
-        }
+        },
       );
     }
 
@@ -214,7 +214,7 @@ export class NotionReporter implements Reporter {
   async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {
     const databaseId = options?.template || 'DATABASE_ID';
 
-    const pages = result.findings.map(f => this.findingToNotionPage(f, databaseId));
+    const pages = result.findings.map((f) => this.findingToNotionPage(f, databaseId));
 
     const output = {
       database_id: databaseId,
@@ -227,8 +227,6 @@ export class NotionReporter implements Reporter {
       },
     };
 
-    return options?.pretty
-      ? JSON.stringify(output, null, 2)
-      : JSON.stringify(output);
+    return options?.pretty ? JSON.stringify(output, null, 2) : JSON.stringify(output);
   }
 }

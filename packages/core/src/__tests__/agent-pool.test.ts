@@ -2,11 +2,11 @@
  * Agent pool tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AgentPool } from '../agent/pool.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BaseAgent } from '../agent/base.js';
+import { AgentPool } from '../agent/pool.js';
 import { EventBus } from '../bus/event-bus.js';
-import type { WorkItem, Finding, AgentContext } from '../types/index.js';
+import type { AgentContext, Finding, WorkItem } from '../types/index.js';
 import { FindingSeverity } from '../types/index.js';
 
 class TestPoolAgent extends BaseAgent {

@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createClient } from '@libsql/client';
 import * as dotenv from 'dotenv';
 
@@ -34,7 +34,7 @@ async function migrate() {
         console.log(`✓ Statement ${i + 1}/${statements.length} executed successfully`);
       } catch (error) {
         console.error(`✗ Error executing statement ${i + 1}:`, error);
-        console.error('Statement:', statement.substring(0, 100) + '...');
+        console.error('Statement:', `${statement.substring(0, 100)}...`);
         throw error;
       }
     }

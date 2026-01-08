@@ -1,11 +1,11 @@
-import { Suspense } from 'react';
-import { DashboardStats } from '@/components/dashboard/stats';
+import { HealthScore } from '@/components/dashboard/health-score';
+import { QuickActions } from '@/components/dashboard/quick-actions';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { SeverityChart } from '@/components/dashboard/severity-chart';
+import { DashboardStats } from '@/components/dashboard/stats';
 import { TopIssues } from '@/components/dashboard/top-issues';
-import { QuickActions } from '@/components/dashboard/quick-actions';
-import { HealthScore } from '@/components/dashboard/health-score';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Suspense } from 'react';
 
 // Server Component - data fetched on server
 async function getDashboardData() {
@@ -31,13 +31,11 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Monitor your code quality and security metrics
-          </p>
+          <h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
+          <p className='text-muted-foreground'>Monitor your code quality and security metrics</p>
         </div>
         <QuickActions />
       </div>
@@ -48,16 +46,16 @@ export default async function DashboardPage() {
       </Suspense>
 
       {/* Main Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
         {/* Health Score */}
-        <div className="lg:col-span-1">
+        <div className='lg:col-span-1'>
           <Suspense fallback={<CardLoading />}>
             <HealthScore score={data?.health_score} />
           </Suspense>
         </div>
 
         {/* Severity Distribution */}
-        <div className="lg:col-span-2">
+        <div className='lg:col-span-2'>
           <Suspense fallback={<CardLoading />}>
             <SeverityChart data={data?.severity_breakdown} />
           </Suspense>
@@ -65,7 +63,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Secondary Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className='grid gap-6 md:grid-cols-2'>
         {/* Top Issues */}
         <Suspense fallback={<CardLoading />}>
           <TopIssues issues={data?.top_issues} />
@@ -82,14 +80,14 @@ export default async function DashboardPage() {
 
 function StatsLoading() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
       {[1, 2, 3, 4].map((i) => (
-        <Skeleton key={i} className="h-32 rounded-lg" />
+        <Skeleton key={i} className='h-32 rounded-lg' />
       ))}
     </div>
   );
 }
 
 function CardLoading() {
-  return <Skeleton className="h-[300px] rounded-lg" />;
+  return <Skeleton className='h-[300px] rounded-lg' />;
 }

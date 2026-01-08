@@ -2,11 +2,11 @@
  * Complexity analyzer tests
  */
 
-import { describe, it, expect } from 'vitest';
-import { calculateLocScore } from '../complexity/scorers/loc.js';
+import { describe, expect, it } from 'vitest';
+import { detectLanguage } from '../complexity/analyzer.js';
 import { calculateCyclomaticScore } from '../complexity/scorers/cyclomatic.js';
 import { calculateDependencyScore } from '../complexity/scorers/dependencies.js';
-import { detectLanguage } from '../complexity/analyzer.js';
+import { calculateLocScore } from '../complexity/scorers/loc.js';
 import { Language } from '../complexity/types.js';
 
 describe('Complexity Scoring', () => {

@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding, Severity } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions, Severity } from '../types.js';
 
 // GitHub Code Scanning format (SARIF-like but simplified for annotations)
 // https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning
@@ -72,27 +72,20 @@ export class GitHubReporter implements Reporter {
   async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {
     if (options?.format === 'annotations') {
       // GitHub Actions annotation format
-      const commands = result.findings.map(f => this.formatAsGitHubCommand(f));
+      const commands = result.findings.map((f) => this.formatAsGitHubCommand(f));
       return commands.join('\n');
     }
 
     // JSON format for GitHub Code Scanning
-    const annotations = result.findings.map(f => this.findingToAnnotation(f));
+    const annotations = result.findings.map((f) => this.findingToAnnotation(f));
 
     const output = {
       title: 'OmniAudit Code Analysis',
       summary: `Found ${result.total_findings} issues across ${result.total_files} files`,
       annotations,
-      text: `## Summary\n\n` +
-        `- Critical: ${result.findings_by_severity.critical}\n` +
-        `- High: ${result.findings_by_severity.high}\n` +
-        `- Medium: ${result.findings_by_severity.medium}\n` +
-        `- Low: ${result.findings_by_severity.low}\n` +
-        `- Info: ${result.findings_by_severity.info}\n`,
+      text: `## Summary\n\n- Critical: ${result.findings_by_severity.critical}\n- High: ${result.findings_by_severity.high}\n- Medium: ${result.findings_by_severity.medium}\n- Low: ${result.findings_by_severity.low}\n- Info: ${result.findings_by_severity.info}\n`,
     };
 
-    return options?.pretty
-      ? JSON.stringify(output, null, 2)
-      : JSON.stringify(output);
+    return options?.pretty ? JSON.stringify(output, null, 2) : JSON.stringify(output);
   }
 }

@@ -4,7 +4,7 @@
  * Demonstrates real-time progress tracking using the streaming API.
  */
 
-import { createClient, StreamingAuditClient, runAuditWithHooks } from '@omniaudit/sdk';
+import { StreamingAuditClient, createClient, runAuditWithHooks } from '@omniaudit/sdk';
 import type { AuditProgress, Finding } from '@omniaudit/sdk';
 
 // Helper to create a progress bar
@@ -50,7 +50,7 @@ async function streamWithEvents() {
 
   const client = new StreamingAuditClient(
     process.env.OMNIAUDIT_API_URL || 'http://localhost:8000',
-    process.env.OMNIAUDIT_API_KEY
+    process.env.OMNIAUDIT_API_KEY,
   );
 
   const findings: Finding[] = [];
@@ -115,7 +115,7 @@ async function streamWithHooks() {
       },
     },
     process.env.OMNIAUDIT_API_URL || 'http://localhost:8000',
-    process.env.OMNIAUDIT_API_KEY
+    process.env.OMNIAUDIT_API_KEY,
   );
 
   // Group findings by severity
@@ -124,7 +124,7 @@ async function streamWithHooks() {
       acc[f.severity] = (acc[f.severity] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
   console.log('\nFindings breakdown:');
@@ -143,10 +143,10 @@ async function main() {
   try {
     // Run all examples
     await streamWithGenerator();
-    console.log('\n' + '-'.repeat(60) + '\n');
+    console.log(`\n${'-'.repeat(60)}\n`);
 
     await streamWithEvents();
-    console.log('\n' + '-'.repeat(60) + '\n');
+    console.log(`\n${'-'.repeat(60)}\n`);
 
     await streamWithHooks();
   } catch (error) {

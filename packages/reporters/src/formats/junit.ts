@@ -1,4 +1,4 @@
-import type { AuditResult, Reporter, ReporterOptions, Finding } from '../types.js';
+import type { AuditResult, Finding, Reporter, ReporterOptions } from '../types.js';
 
 export class JUnitReporter implements Reporter {
   name = 'JUnit Reporter';
@@ -30,21 +30,21 @@ export class JUnitReporter implements Reporter {
       if (finding.recommendation) {
         testCase += `\nRecommendation: ${this.escapeXml(finding.recommendation)}\n`;
       }
-      testCase += `      </failure>\n`;
+      testCase += '      </failure>\n';
     } else if (finding.severity === 'medium') {
       testCase += `      <error message="${this.escapeXml(finding.message)}" type="${finding.severity}">\n`;
       testCase += `${this.escapeXml(finding.file)}${finding.line ? `:${finding.line}` : ''}\n`;
-      testCase += `      </error>\n`;
+      testCase += '      </error>\n';
     } else {
       // Low and info are represented as skipped tests with system-out
       testCase += `      <skipped message="${this.escapeXml(finding.message)}"/>\n`;
-      testCase += `      <system-out>\n`;
+      testCase += '      <system-out>\n';
       testCase += `${this.escapeXml(finding.file)}${finding.line ? `:${finding.line}` : ''}\n`;
       testCase += `${this.escapeXml(finding.description || '')}\n`;
-      testCase += `      </system-out>\n`;
+      testCase += '      </system-out>\n';
     }
 
-    testCase += `    </testcase>\n`;
+    testCase += '    </testcase>\n';
     return testCase;
   }
 

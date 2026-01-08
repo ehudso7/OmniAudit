@@ -14,11 +14,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --apply ."
   },
-  "keywords": [
-    "omniaudit",
-    "orchestration",
-    "agents"
-  ],
+  "keywords": ["omniaudit", "orchestration", "agents"],
   "author": "OmniAudit Team",
   "license": "MIT",
   "dependencies": {
