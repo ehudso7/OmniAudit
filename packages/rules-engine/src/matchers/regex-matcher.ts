@@ -29,8 +29,9 @@ export class RegexMatcher implements Matcher {
   private getRegex(pattern: string, flags?: string): RegExp {
     const cacheKey = `${pattern}|${flags || ''}`;
 
-    if (this.regexCache.has(cacheKey)) {
-      return this.regexCache.get(cacheKey)!;
+    const cached = this.regexCache.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     const regex = new RegExp(pattern, flags || 'gm');
@@ -97,12 +98,15 @@ export class RegexMatcher implements Matcher {
 
     try {
       const regex = this.getRegex(patterns.regex, patterns.flags);
-      let match: RegExpExecArray | null;
 
       // Reset regex state
       regex.lastIndex = 0;
 
-      while ((match = regex.exec(contentToMatch)) !== null) {
+      for (
+        let match = regex.exec(contentToMatch);
+        match !== null;
+        match = regex.exec(contentToMatch)
+      ) {
         // ReDoS protection: limit number of matches
         if (matches.length >= MAX_MATCHES_PER_FILE) {
           console.warn(`Rule ${rule.id}: Match limit reached (${MAX_MATCHES_PER_FILE})`);

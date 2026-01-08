@@ -2,14 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
 } from 'recharts';
 
 interface SeverityChartProps {
@@ -40,17 +40,17 @@ export function SeverityChart({ data }: SeverityChartProps) {
   ];
 
   return (
-    <Card className="h-full">
+    <Card className='h-full'>
       <CardHeader>
         <CardTitle>Issues by Severity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" width={80} />
+        <div className='h-[250px]'>
+          <ResponsiveContainer width='100%' height='100%'>
+            <BarChart data={chartData} layout='vertical'>
+              <CartesianGrid strokeDasharray='3 3' horizontal={true} vertical={false} />
+              <XAxis type='number' />
+              <YAxis dataKey='name' type='category' width={80} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
@@ -59,7 +59,7 @@ export function SeverityChart({ data }: SeverityChartProps) {
                 }}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
               />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+              <Bar dataKey='value' radius={[0, 4, 4, 0]}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}

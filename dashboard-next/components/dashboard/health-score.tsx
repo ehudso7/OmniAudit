@@ -23,32 +23,32 @@ export function HealthScore({ score = 75 }: HealthScoreProps) {
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
   return (
-    <Card className="h-full">
+    <Card className='h-full'>
       <CardHeader>
         <CardTitle>Code Health Score</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center">
-        <div className="relative h-32 w-32">
+      <CardContent className='flex flex-col items-center justify-center'>
+        <div className='relative h-32 w-32'>
           {/* Background circle */}
-          <svg className="h-full w-full -rotate-90 transform">
+          <svg className='h-full w-full -rotate-90 transform'>
             <circle
-              cx="64"
-              cy="64"
-              r="45"
-              stroke="currentColor"
-              strokeWidth="10"
-              fill="none"
-              className="text-muted"
+              cx='64'
+              cy='64'
+              r='45'
+              stroke='currentColor'
+              strokeWidth='10'
+              fill='none'
+              className='text-muted'
             />
             {/* Progress circle */}
             <circle
-              cx="64"
-              cy="64"
-              r="45"
-              stroke="currentColor"
-              strokeWidth="10"
-              fill="none"
-              strokeLinecap="round"
+              cx='64'
+              cy='64'
+              r='45'
+              stroke='currentColor'
+              strokeWidth='10'
+              fill='none'
+              strokeLinecap='round'
               className={getScoreColor(score)}
               style={{
                 strokeDasharray: circumference,
@@ -58,18 +58,14 @@ export function HealthScore({ score = 75 }: HealthScoreProps) {
             />
           </svg>
           {/* Score text */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-3xl font-bold ${getScoreColor(score)}`}>
-              {score}
-            </span>
-            <span className="text-xs text-muted-foreground">/ 100</span>
+          <div className='absolute inset-0 flex flex-col items-center justify-center'>
+            <span className={`text-3xl font-bold ${getScoreColor(score)}`}>{score}</span>
+            <span className='text-xs text-muted-foreground'>/ 100</span>
           </div>
         </div>
-        <div className="mt-4 text-center">
-          <p className={`text-lg font-semibold ${getScoreColor(score)}`}>
-            {getScoreLabel(score)}
-          </p>
-          <p className="text-sm text-muted-foreground">
+        <div className='mt-4 text-center'>
+          <p className={`text-lg font-semibold ${getScoreColor(score)}`}>{getScoreLabel(score)}</p>
+          <p className='text-sm text-muted-foreground'>
             Based on security, quality, and performance metrics
           </p>
         </div>

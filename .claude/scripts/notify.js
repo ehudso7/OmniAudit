@@ -7,8 +7,8 @@
  * - PagerDuty (for critical events)
  */
 
-const https = require('https');
-const { URL } = require('url');
+const https = require('node:https');
+const { URL } = require('node:url');
 
 function sendWebhook(url, payload) {
   return new Promise((resolve, reject) => {
@@ -24,13 +24,13 @@ function sendWebhook(url, payload) {
         headers: {
           'Content-Type': 'application/json',
           // Use Buffer.byteLength for correct byte length (handles non-ASCII)
-          'Content-Length': Buffer.byteLength(data, 'utf8')
-        }
+          'Content-Length': Buffer.byteLength(data, 'utf8'),
+        },
       };
 
       const req = https.request(options, (res) => {
         let responseData = '';
-        res.on('data', (chunk) => responseData += chunk);
+        res.on('data', (chunk) => (responseData += chunk));
         res.on('end', () => {
           if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve(responseData);
@@ -43,7 +43,6 @@ function sendWebhook(url, payload) {
       req.on('error', reject);
       req.write(data);
       req.end();
-
     } catch (err) {
       reject(err);
     }
@@ -77,16 +76,16 @@ function main() {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `*OmniAudit Notification*\n${message}`
-            }
-          }
-        ]
+              text: `*OmniAudit Notification*\n${message}`,
+            },
+          },
+        ],
       };
 
       promises.push(
         sendWebhook(slackWebhook, slackPayload)
           .then(() => console.log('  ✓ Sent to Slack'))
-          .catch(err => console.warn('  ⚠️  Slack webhook failed:', err.message))
+          .catch((err) => console.warn('  ⚠️  Slack webhook failed:', err.message)),
       );
     }
 
@@ -99,15 +98,15 @@ function main() {
             title: 'OmniAudit Notification',
             description: message,
             color: level === 'error' ? 0xff0000 : level === 'warn' ? 0xffa500 : 0x00ff00,
-            timestamp: new Date().toISOString()
-          }
-        ]
+            timestamp: new Date().toISOString(),
+          },
+        ],
       };
 
       promises.push(
         sendWebhook(discordWebhook, discordPayload)
           .then(() => console.log('  ✓ Sent to Discord'))
-          .catch(err => console.warn('  ⚠️  Discord webhook failed:', err.message))
+          .catch((err) => console.warn('  ⚠️  Discord webhook failed:', err.message)),
       );
     }
 
@@ -119,13 +118,13 @@ function main() {
         summary: 'OmniAudit Notification',
         themeColor: level === 'error' ? 'FF0000' : level === 'warn' ? 'FFA500' : '00FF00',
         title: 'OmniAudit Notification',
-        text: message
+        text: message,
       };
 
       promises.push(
         sendWebhook(teamsWebhook, teamsPayload)
           .then(() => console.log('  ✓ Sent to Teams'))
-          .catch(err => console.warn('  ⚠️  Teams webhook failed:', err.message))
+          .catch((err) => console.warn('  ⚠️  Teams webhook failed:', err.message)),
       );
     }
 
@@ -135,13 +134,13 @@ function main() {
         message,
         level,
         timestamp: new Date().toISOString(),
-        source: 'omniaudit-claude-code'
+        source: 'omniaudit-claude-code',
       };
 
       promises.push(
         sendWebhook(customWebhook, customPayload)
           .then(() => console.log('  ✓ Sent to custom webhook'))
-          .catch(err => console.warn('  ⚠️  Custom webhook failed:', err.message))
+          .catch((err) => console.warn('  ⚠️  Custom webhook failed:', err.message)),
       );
     }
 
@@ -153,7 +152,6 @@ function main() {
       console.log('✅ Notification processing completed');
       process.exit(0);
     });
-
   } catch (error) {
     console.error('❌ Notification hook error:', error.message);
     // Exit with error code to indicate failure

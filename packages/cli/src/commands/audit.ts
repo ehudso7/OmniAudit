@@ -2,6 +2,10 @@ import { generateReport } from '@omniaudit/reporters';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import fs from 'fs/promises';
+import fs from 'node:fs/promises';
+import { generateReport } from '@omniaudit/reporters';
+import chalk from 'chalk';
+import { Command } from 'commander';
 import { createSpinner } from '../ui/spinner.js';
 import { printFindingsTable, printSummaryTable } from '../ui/table.js';
 
@@ -85,7 +89,7 @@ export function createAuditCommand(): Command {
             spinner2.succeed(`Report saved to ${options.output}`);
           } else {
             spinner2.stop();
-            console.log('\n' + report);
+            console.log(`\n${report}`);
           }
         }
 

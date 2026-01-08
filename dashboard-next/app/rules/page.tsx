@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Settings, CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, Plus, Search, Settings, XCircle } from 'lucide-react';
+import { useState } from 'react';
 
 export default function RulesPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,31 +67,27 @@ export default function RulesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Rules</h1>
-          <p className="text-muted-foreground">
-            Configure and manage audit rules
-          </p>
+          <h1 className='text-3xl font-bold tracking-tight'>Rules</h1>
+          <p className='text-muted-foreground'>Configure and manage audit rules</p>
         </div>
         <Button>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className='mr-2 h-4 w-4' />
           Add Custom Rule
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className='grid gap-4 md:grid-cols-4'>
         {ruleCategories.map((category) => (
           <Card key={category.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">{category.name}</CardTitle>
+            <CardHeader className='pb-2'>
+              <CardTitle className='text-sm font-medium'>{category.name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${category.color}`}>
-                {category.count}
-              </div>
-              <p className="text-xs text-muted-foreground">active rules</p>
+              <div className={`text-2xl font-bold ${category.color}`}>{category.count}</div>
+              <p className='text-xs text-muted-foreground'>active rules</p>
             </CardContent>
           </Card>
         ))}
@@ -99,31 +95,29 @@ export default function RulesPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className='flex items-center justify-between'>
             <div>
               <CardTitle>All Rules</CardTitle>
-              <CardDescription>
-                {rules.length} rules configured
-              </CardDescription>
+              <CardDescription>{rules.length} rules configured</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className='flex items-center gap-2'>
+              <div className='relative'>
+                <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
                 <Input
-                  placeholder="Search rules..."
-                  className="w-64 pl-10"
+                  placeholder='Search rules...'
+                  className='w-64 pl-10'
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="icon">
-                <Settings className="h-4 w-4" />
+              <Button variant='outline' size='icon'>
+                <Settings className='h-4 w-4' />
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {rules
               .filter(
                 (rule) =>
@@ -133,9 +127,9 @@ export default function RulesPage() {
               .map((rule) => (
                 <div
                   key={rule.id}
-                  className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                  className='flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50'
                 >
-                  <div className="flex items-start gap-4">
+                  <div className='flex items-start gap-4'>
                     <div
                       className={`rounded-full p-1 ${
                         rule.enabled
@@ -144,33 +138,28 @@ export default function RulesPage() {
                       }`}
                     >
                       {rule.enabled ? (
-                        <CheckCircle className="h-5 w-5" />
+                        <CheckCircle className='h-5 w-5' />
                       ) : (
-                        <XCircle className="h-5 w-5" />
+                        <XCircle className='h-5 w-5' />
                       )}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{rule.title}</span>
+                      <div className='flex items-center gap-2'>
+                        <span className='font-medium'>{rule.title}</span>
                         {getSeverityBadge(rule.severity)}
-                        <Badge variant="outline">{rule.category}</Badge>
+                        <Badge variant='outline'>{rule.category}</Badge>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {rule.description}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground font-mono">
+                      <p className='mt-1 text-sm text-muted-foreground'>{rule.description}</p>
+                      <p className='mt-1 text-xs text-muted-foreground font-mono'>
                         {rule.id}: {rule.name}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                  <div className='flex items-center gap-2'>
+                    <Button variant='outline' size='sm'>
                       Configure
                     </Button>
-                    <Button
-                      variant={rule.enabled ? 'destructive' : 'default'}
-                      size="sm"
-                    >
+                    <Button variant={rule.enabled ? 'destructive' : 'default'} size='sm'>
                       {rule.enabled ? 'Disable' : 'Enable'}
                     </Button>
                   </div>

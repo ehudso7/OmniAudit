@@ -71,7 +71,7 @@ export class ASTAnalyzer implements Analyzer {
                 type: 'long-function',
                 severity: 'info',
                 message: `Function is ${length} lines long`,
-                description: `Consider breaking down into smaller functions`,
+                description: 'Consider breaking down into smaller functions',
                 line: path.node.loc.start.line,
                 column: path.node.loc.start.column,
                 confidence: 1.0,

@@ -160,7 +160,7 @@ export class PDFReporter implements Reporter {
       '1. OVERVIEW',
       '─'.repeat(40),
       '',
-      `   This report presents the findings from an automated security`,
+      '   This report presents the findings from an automated security',
       `   and code quality analysis of the ${result.project} project.`,
       '',
       `   Analysis Date: ${new Date(result.timestamp).toISOString()}`,
@@ -266,17 +266,17 @@ export class PDFReporter implements Reporter {
         `│ File:        ${this.truncate(finding.file, 42)}`,
         `│ Location:    Line ${finding.line || 'N/A'}, Column ${finding.column || 'N/A'}`,
         `├${'─'.repeat(58)}┤`,
-        `│ Description:`,
+        '│ Description:',
         ...this.wrapText(finding.description, 56).map((line) => `│   ${line}`),
         `├${'─'.repeat(58)}┤`,
-        `│ Message:`,
+        '│ Message:',
         ...this.wrapText(finding.message, 56).map((line) => `│   ${line}`),
       );
 
       if (finding.recommendation) {
         page.content.push(
           `├${'─'.repeat(58)}┤`,
-          `│ Recommendation:`,
+          '│ Recommendation:',
           ...this.wrapText(finding.recommendation, 56).map((line) => `│   ${line}`),
         );
       }
@@ -284,7 +284,7 @@ export class PDFReporter implements Reporter {
       if (finding.code_snippet) {
         page.content.push(
           `├${'─'.repeat(58)}┤`,
-          `│ Code Snippet:`,
+          '│ Code Snippet:',
           ...finding.code_snippet
             .split('\n')
             .slice(0, 5)
@@ -520,7 +520,7 @@ startxref
 
   private truncate(str: string, maxLength: number): string {
     if (str.length <= maxLength) return str;
-    return str.substring(0, maxLength - 3) + '...';
+    return `${str.substring(0, maxLength - 3)}...`;
   }
 
   private wrapText(text: string, maxWidth: number): string[] {

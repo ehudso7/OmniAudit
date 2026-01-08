@@ -7,9 +7,9 @@
  * - Execute related unit tests
  */
 
-const { execFileSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+const { execFileSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // Use process.cwd() for portability instead of hardcoded path
 const PROJECT_ROOT = process.cwd();
@@ -38,10 +38,10 @@ function main() {
         execFileSync('npx', ['tsc', '--noEmit', filePath], {
           cwd: PROJECT_ROOT,
           stdio: 'pipe',
-          timeout: 10000
+          timeout: 10000,
         });
         console.log('  ✓ TypeScript syntax valid');
-      } catch (err) {
+      } catch (_err) {
         console.warn('  ⚠️  TypeScript validation warnings (not blocking)');
       }
     }
@@ -53,10 +53,10 @@ function main() {
         execFileSync('python', ['-m', 'py_compile', filePath], {
           cwd: PROJECT_ROOT,
           stdio: 'pipe',
-          timeout: 5000
+          timeout: 5000,
         });
         console.log('  ✓ Python syntax valid');
-      } catch (err) {
+      } catch (_err) {
         console.error('  ❌ Python syntax error detected');
         // Don't block on syntax errors, let the user fix
       }
@@ -64,7 +64,6 @@ function main() {
 
     console.log('✅ Post-edit validation completed');
     process.exit(0);
-
   } catch (error) {
     console.error('❌ Post-edit hook error:', error.message);
     // Don't fail on validation errors

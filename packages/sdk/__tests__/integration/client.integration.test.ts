@@ -150,7 +150,7 @@ describe('OmniAudit SDK Integration Tests', () => {
     it('should verify webhook signatures', () => {
       const payload = JSON.stringify({ event: 'audit.completed' });
       const secret = 'whsec_test123';
-      const timestamp = Date.now().toString();
+      const _timestamp = Date.now().toString();
 
       // Simple signature verification mock
       const createSignature = (payload: string, secret: string) => {
@@ -210,7 +210,7 @@ describe('OmniAudit SDK Integration Tests', () => {
 
     it('should implement exponential backoff', async () => {
       const calculateBackoff = (attempt: number, baseDelay = 1000) => {
-        return Math.min(baseDelay * Math.pow(2, attempt), 30000);
+        return Math.min(baseDelay * 2 ** attempt, 30000);
       };
 
       expect(calculateBackoff(0)).toBe(1000);

@@ -359,7 +359,7 @@ export class AgentPool {
     }
 
     const backoffMs = Math.min(
-      1000 * Math.pow(2, circuitBreaker.failureCount - this.options.circuitBreakerThreshold),
+      1000 * 2 ** (circuitBreaker.failureCount - this.options.circuitBreakerThreshold),
       60000, // Max 60 seconds
     );
 

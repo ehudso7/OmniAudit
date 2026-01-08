@@ -253,7 +253,7 @@ export class AgentOrchestrator extends EventEmitter {
         if (result.status === 'fulfilled') {
           results.push(result.value);
         } else {
-          console.warn(`Failed to analyze complexity:`, result.reason);
+          console.warn('Failed to analyze complexity:', result.reason);
         }
       }
     }

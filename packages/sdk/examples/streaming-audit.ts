@@ -143,10 +143,10 @@ async function main() {
   try {
     // Run all examples
     await streamWithGenerator();
-    console.log('\n' + '-'.repeat(60) + '\n');
+    console.log(`\n${'-'.repeat(60)}\n`);
 
     await streamWithEvents();
-    console.log('\n' + '-'.repeat(60) + '\n');
+    console.log(`\n${'-'.repeat(60)}\n`);
 
     await streamWithHooks();
   } catch (error) {

@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Settings, Shield, Users, Mail } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mail, Settings, Shield, UserPlus, Users } from 'lucide-react';
 
 export default function TeamPage() {
   const teamMembers = [
@@ -49,63 +49,61 @@ export default function TeamPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team</h1>
-          <p className="text-muted-foreground">
-            Manage team members and permissions
-          </p>
+          <h1 className='text-3xl font-bold tracking-tight'>Team</h1>
+          <p className='text-muted-foreground'>Manage team members and permissions</p>
         </div>
         <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
+          <UserPlus className='mr-2 h-4 w-4' />
           Invite Member
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className='grid gap-4 md:grid-cols-4'>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Size</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Team Size</CardTitle>
+            <Users className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{teamMembers.length}</div>
-            <p className="text-xs text-muted-foreground">members</p>
+            <div className='text-2xl font-bold'>{teamMembers.length}</div>
+            <p className='text-xs text-muted-foreground'>members</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admins</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Admins</CardTitle>
+            <Shield className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className='text-2xl font-bold'>
               {teamMembers.filter((m) => m.role === 'admin').length}
             </div>
-            <p className="text-xs text-muted-foreground">with full access</p>
+            <p className='text-xs text-muted-foreground'>with full access</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Today</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Active Today</CardTitle>
+            <Users className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">3</div>
-            <p className="text-xs text-muted-foreground">online now</p>
+            <div className='text-2xl font-bold text-green-600'>3</div>
+            <p className='text-xs text-muted-foreground'>online now</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Pending</CardTitle>
+            <Mail className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className='text-2xl font-bold text-yellow-600'>
               {teamMembers.filter((m) => m.status === 'pending').length}
             </div>
-            <p className="text-xs text-muted-foreground">invitations</p>
+            <p className='text-xs text-muted-foreground'>invitations</p>
           </CardContent>
         </Card>
       </div>
@@ -113,43 +111,39 @@ export default function TeamPage() {
       <Card>
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
-          <CardDescription>
-            Manage access and permissions for your team
-          </CardDescription>
+          <CardDescription>Manage access and permissions for your team</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                className='flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50'
               >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                <div className='flex items-center gap-4'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium'>
                     {member.name
                       .split(' ')
                       .map((n) => n[0])
                       .join('')}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{member.name}</span>
+                    <div className='flex items-center gap-2'>
+                      <span className='font-medium'>{member.name}</span>
                       {getRoleBadge(member.role)}
                       {member.status === 'pending' && (
-                        <Badge variant="outline" className="text-yellow-600">
+                        <Badge variant='outline' className='text-yellow-600'>
                           Pending
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{member.email}</p>
+                    <p className='text-sm text-muted-foreground'>{member.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">
-                    {member.lastActive}
-                  </span>
-                  <Button variant="ghost" size="icon">
-                    <Settings className="h-4 w-4" />
+                <div className='flex items-center gap-4'>
+                  <span className='text-sm text-muted-foreground'>{member.lastActive}</span>
+                  <Button variant='ghost' size='icon'>
+                    <Settings className='h-4 w-4' />
                   </Button>
                 </div>
               </div>
@@ -163,7 +157,7 @@ export default function TeamPage() {
           <CardTitle>Roles & Permissions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {[
               {
                 role: 'Admin',
@@ -178,11 +172,11 @@ export default function TeamPage() {
                 permissions: ['View reports', 'View dashboard'],
               },
             ].map((item) => (
-              <div key={item.role} className="rounded-lg border p-4">
-                <h4 className="font-medium">{item.role}</h4>
-                <div className="mt-2 flex flex-wrap gap-2">
+              <div key={item.role} className='rounded-lg border p-4'>
+                <h4 className='font-medium'>{item.role}</h4>
+                <div className='mt-2 flex flex-wrap gap-2'>
                   {item.permissions.map((perm) => (
-                    <Badge key={perm} variant="secondary">
+                    <Badge key={perm} variant='secondary'>
                       {perm}
                     </Badge>
                   ))}

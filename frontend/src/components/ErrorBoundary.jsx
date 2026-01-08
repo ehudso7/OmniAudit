@@ -62,7 +62,7 @@ class ErrorBoundary extends Component {
             </details>
           )}
           <button
-            type="button"
+            type='button'
             onClick={() => window.location.reload()}
             style={{
               marginTop: '1rem',

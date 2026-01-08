@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
-import * as ToastPrimitives from '@radix-ui/react-toast';
 import { cn } from '@/lib/utils';
+import * as ToastPrimitives from '@radix-ui/react-toast';
 import { X } from 'lucide-react';
+import * as React from 'react';
 
 const ToastProvider = ToastPrimitives.Provider;
 
@@ -49,10 +49,10 @@ const ToastClose = React.forwardRef<
       'absolute right-1 top-1 rounded-md p-1 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100',
       className,
     )}
-    toast-close=""
+    toast-close=''
     {...props}
   >
-    <X className="h-4 w-4" />
+    <X className='h-4 w-4' />
   </ToastPrimitives.Close>
 ));
 ToastClose.displayName = ToastPrimitives.Close.displayName;
@@ -89,12 +89,4 @@ function Toaster() {
   );
 }
 
-export {
-  Toaster,
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-};
+export { Toaster, ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose };

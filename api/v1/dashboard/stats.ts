@@ -59,7 +59,7 @@ function generateActivityData(): DayActivity[] {
     const dayName = days[date.getDay()];
     activity.push({
       day: dayName,
-      reviews: DEMO_REVIEW_COUNTS[6 - i]
+      reviews: DEMO_REVIEW_COUNTS[6 - i],
     });
   }
 
@@ -78,7 +78,7 @@ function generateRecentReviews(): RecentReview[] {
       title: 'Add user authentication flow',
       author: 'johndoe',
       action: 'REQUEST_CHANGES',
-      reviewed_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()
+      reviewed_at: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'rev-002',
@@ -87,7 +87,7 @@ function generateRecentReviews(): RecentReview[] {
       title: 'Optimize database queries',
       author: 'janedoe',
       action: 'APPROVE',
-      reviewed_at: new Date(now.getTime() - 5 * 60 * 60 * 1000).toISOString()
+      reviewed_at: new Date(now.getTime() - 5 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'rev-003',
@@ -96,7 +96,7 @@ function generateRecentReviews(): RecentReview[] {
       title: 'Update dependencies',
       author: 'bobsmith',
       action: 'REQUEST_CHANGES',
-      reviewed_at: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString()
+      reviewed_at: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'rev-004',
@@ -105,7 +105,7 @@ function generateRecentReviews(): RecentReview[] {
       title: 'Implement push notifications',
       author: 'alicew',
       action: 'COMMENT',
-      reviewed_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
+      reviewed_at: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(),
     },
     {
       id: 'rev-005',
@@ -114,8 +114,8 @@ function generateRecentReviews(): RecentReview[] {
       title: 'Add rate limiting middleware',
       author: 'techops',
       action: 'APPROVE',
-      reviewed_at: new Date(now.getTime() - 30 * 60 * 60 * 1000).toISOString()
-    }
+      reviewed_at: new Date(now.getTime() - 30 * 60 * 60 * 1000).toISOString(),
+    },
   ];
 }
 
@@ -141,22 +141,22 @@ function generateDashboardStats(): DashboardStats {
       this_month: 6,
       approval_rate: Math.round((approved / totalReviews) * 100 * 10) / 10,
       repos_connected: 4,
-      avg_issues_per_pr: Math.round((issuesFound / totalReviews) * 10) / 10
+      avg_issues_per_pr: Math.round((issuesFound / totalReviews) * 10) / 10,
     },
     activity: generateActivityData(),
     issues_breakdown: {
       security: securityIssues,
       performance: performanceIssues,
       quality: qualityIssues,
-      suggestions: suggestions
+      suggestions: suggestions,
     },
     top_repositories: [
       { name: 'acme/frontend', reviews: 3 },
       { name: 'acme/api-server', reviews: 1 },
       { name: 'acme/mobile-app', reviews: 1 },
-      { name: 'acme/backend', reviews: 1 }
+      { name: 'acme/backend', reviews: 1 },
     ],
-    recent_reviews: generateRecentReviews()
+    recent_reviews: generateRecentReviews(),
   };
 }
 
@@ -192,12 +192,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         this_month: 0,
         approval_rate: 0,
         repos_connected: 0,
-        avg_issues_per_pr: 0
+        avg_issues_per_pr: 0,
       },
       activity: [],
       issues_breakdown: { security: 0, performance: 0, quality: 0, suggestions: 0 },
       top_repositories: [],
-      recent_reviews: []
+      recent_reviews: [],
     });
   }
 }

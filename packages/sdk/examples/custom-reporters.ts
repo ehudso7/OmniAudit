@@ -22,7 +22,7 @@ const markdownReporter: Reporter = {
   generate(result: AuditResult): string {
     const lines: string[] = [];
 
-    lines.push(`# OmniAudit Report`);
+    lines.push('# OmniAudit Report');
     lines.push('');
     lines.push(`**Project:** ${result.project}`);
     lines.push(`**Date:** ${new Date(result.timestamp).toLocaleString()}`);
@@ -368,11 +368,9 @@ const slackReporter: Reporter = {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text:
-            '*🔴 Critical Issues*\n' +
-            criticalFindings
-              .map((f) => `• *${f.title}*\n  \`${f.file}:${f.line || 0}\``)
-              .join('\n'),
+          text: `*🔴 Critical Issues*\n${criticalFindings
+            .map((f) => `• *${f.title}*\n  \`${f.file}:${f.line || 0}\``)
+            .join('\n')}`,
         },
       });
     }
@@ -392,8 +390,8 @@ const githubCommentReporter: Reporter = {
 
     let comment = `## ${statusIcon} OmniAudit Results\n\n`;
 
-    comment += `| Metric | Value |\n`;
-    comment += `|--------|-------|\n`;
+    comment += '| Metric | Value |\n';
+    comment += '|--------|-------|\n';
     comment += `| Files Analyzed | ${result.total_files} |\n`;
     comment += `| Total Findings | ${result.total_findings} |\n`;
     comment += `| Critical | ${result.findings_by_severity.critical} |\n`;
@@ -416,17 +414,17 @@ const githubCommentReporter: Reporter = {
         if (f.recommendation) {
           comment += `💡 **Recommendation:** ${f.recommendation}\n\n`;
         }
-        comment += `---\n\n`;
+        comment += '---\n\n';
       }
 
       if (importantFindings.length > 10) {
         comment += `\n*...and ${importantFindings.length - 10} more critical/high findings*\n`;
       }
 
-      comment += `</details>\n`;
+      comment += '</details>\n';
     }
 
-    comment += `\n---\n*Powered by [OmniAudit](https://omniaudit.dev)*`;
+    comment += '\n---\n*Powered by [OmniAudit](https://omniaudit.dev)*';
 
     return comment;
   },

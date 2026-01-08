@@ -1,9 +1,9 @@
-import type { Metadata, Viewport } from 'next';
-import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { Sidebar } from '@/components/sidebar';
 import { Header } from '@/components/header';
+import { Sidebar } from '@/components/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
@@ -11,8 +11,7 @@ export const metadata: Metadata = {
     template: '%s | OmniAudit',
     default: 'OmniAudit - AI-Powered Code Audit Platform',
   },
-  description:
-    'Enterprise-grade code security, quality, and performance analysis powered by AI',
+  description: 'Enterprise-grade code security, quality, and performance analysis powered by AI',
   keywords: ['code audit', 'security', 'AI', 'code quality', 'vulnerability scanner'],
   authors: [{ name: 'OmniAudit Team' }],
   creator: 'OmniAudit',
@@ -50,15 +49,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang='en' suppressHydrationWarning>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-background text-foreground`}
       >
-        <div className="flex h-screen overflow-hidden">
+        <div className='flex h-screen overflow-hidden'>
           <Sidebar />
-          <div className="flex flex-1 flex-col overflow-hidden">
+          <div className='flex flex-1 flex-col overflow-hidden'>
             <Header />
-            <main className="flex-1 overflow-y-auto p-6">{children}</main>
+            <main className='flex-1 overflow-y-auto p-6'>{children}</main>
           </div>
         </div>
         <Toaster />

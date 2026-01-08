@@ -62,7 +62,7 @@ function ExportPanel({ apiUrl }) {
                 </div>
                 <p style={{ fontSize: '0.9rem', margin: '0.5rem 0' }}>{skill.description}</p>
                 <button
-                  type="button"
+                  type='button'
                   className='btn btn-secondary'
                   onClick={() => viewSkillDetails(skill.id)}
                   style={{ marginTop: '0.5rem' }}

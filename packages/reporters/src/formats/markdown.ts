@@ -52,20 +52,20 @@ export class MarkdownReporter implements Reporter {
   }
 
   async generate(result: AuditResult, options?: ReporterOptions): Promise<string> {
-    let md = `# OmniAudit Report\n\n`;
+    let md = '# OmniAudit Report\n\n';
     md += `**Project:** ${result.project}\n\n`;
     md += `**Generated:** ${new Date(result.timestamp).toLocaleString()}\n\n`;
     md += `**Duration:** ${(result.duration_ms / 1000).toFixed(2)}s\n\n`;
 
     // Summary
-    md += `## Summary\n\n`;
+    md += '## Summary\n\n';
     md += `- **Total Files Analyzed:** ${result.total_files}\n`;
     md += `- **Total Findings:** ${result.total_findings}\n\n`;
 
     // Findings by Severity
-    md += `### Findings by Severity\n\n`;
-    md += `| Severity | Count |\n`;
-    md += `|----------|-------|\n`;
+    md += '### Findings by Severity\n\n';
+    md += '| Severity | Count |\n';
+    md += '|----------|-------|\n';
     md += `| 🔴 Critical | ${result.findings_by_severity.critical} |\n`;
     md += `| 🟠 High | ${result.findings_by_severity.high} |\n`;
     md += `| 🟡 Medium | ${result.findings_by_severity.medium} |\n`;
@@ -74,7 +74,7 @@ export class MarkdownReporter implements Reporter {
 
     // Detailed Findings
     if (result.findings.length > 0) {
-      md += `## Detailed Findings\n\n`;
+      md += '## Detailed Findings\n\n';
 
       // Group by severity
       const bySeverity = {
@@ -95,11 +95,11 @@ export class MarkdownReporter implements Reporter {
         }
       }
     } else {
-      md += `## No Findings\n\n✅ Great job! No issues were found.\n\n`;
+      md += '## No Findings\n\n✅ Great job! No issues were found.\n\n';
     }
 
     if (options?.includeMetadata !== false && result.metadata) {
-      md += `## Metadata\n\n`;
+      md += '## Metadata\n\n';
       md += `- **Version:** ${result.metadata.version}\n`;
       md += `- **Rules:** ${result.metadata.rules_count}\n`;
       md += `- **Analyzers:** ${result.metadata.analyzers.join(', ')}\n`;

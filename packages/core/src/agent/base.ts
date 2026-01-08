@@ -260,7 +260,7 @@ export abstract class BaseAgent implements IAgent {
   protected calculateBackoff(attempt: number): number {
     const baseDelay = this.context.config.retryBackoffMs;
     const maxDelay = this.context.config.maxRetryBackoffMs;
-    const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+    const delay = Math.min(baseDelay * 2 ** attempt, maxDelay);
 
     // Add jitter (±10%)
     const jitter = delay * 0.1 * (Math.random() * 2 - 1);

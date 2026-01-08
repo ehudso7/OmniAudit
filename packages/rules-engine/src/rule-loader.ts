@@ -1,5 +1,7 @@
 import * as path from 'path';
 import { readFile, readdir, stat } from 'fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import * as path from 'node:path';
 import * as yaml from 'js-yaml';
 import micromatch from 'micromatch';
 import type { Rule } from './types';
@@ -107,6 +109,16 @@ export class RuleLoader {
    */
   getAllRules(): Rule[] {
     return Array.from(this.loadedRules.values());
+  }
+
+  /**
+   * Register rules programmatically (without loading from file)
+   */
+  registerRules(rules: Rule[]): void {
+    for (const rule of rules) {
+      this.loadedRules.set(rule.id, rule);
+      this.ruleFiles.set(rule.id, 'programmatic');
+    }
   }
 
   /**
