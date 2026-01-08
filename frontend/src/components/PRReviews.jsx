@@ -241,11 +241,10 @@ function PRReviews({ apiUrl }) {
           <h2>🔍 PR Reviews</h2>
           <p>Automated code reviews powered by AI</p>
         </div>
-        <button type='button' className='btn btn-secondary btn-small' onClick={demoMode ? loadDemoData : fetchData} disabled={loading}>
         <button
           type='button'
           className='btn btn-secondary btn-small'
-          onClick={fetchData}
+          onClick={demoMode ? loadDemoData : fetchData}
           disabled={loading}
         >
           {loading ? '⟳' : '↻'} Refresh

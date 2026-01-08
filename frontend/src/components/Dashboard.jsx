@@ -180,18 +180,15 @@ function Dashboard({ apiUrl, auditResults }) {
       )}
       <div className='dashboard-header'>
         <h2>📊 Dashboard</h2>
-        <button type='button' className='btn btn-secondary btn-small' onClick={demoMode ? loadDemoData : fetchData} disabled={loading}>
         <button
           type='button'
           className='btn btn-secondary btn-small'
-          onClick={fetchData}
+          onClick={demoMode ? loadDemoData : fetchData}
           disabled={loading}
         >
           {loading ? '⟳' : '↻'} Refresh
         </button>
       </div>
-
-      {error && <div className='error-message'>⚠️ {error}</div>}
 
       {/* Key Metrics */}
       <div className='stats-grid'>
