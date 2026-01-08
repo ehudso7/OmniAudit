@@ -21,7 +21,7 @@ function App() {
     fetch(`${API_URL}/api/health`)
       .then((res) => res.json())
       .then((data) => setApiStatus(data))
-      .catch((err) => console.error('API health check failed:', err));
+      .catch(() => setApiStatus({ status: 'unavailable' }));
   }, []);
 
   const handleSelectPlan = (planId) => {
@@ -39,7 +39,11 @@ function App() {
         </div>
         <div className='header-actions'>
           <div className='api-status' role='status' aria-live='polite'>
-            {apiStatus ? (
+            {apiStatus?.status === 'unavailable' ? (
+              <span className='status-badge status-offline' aria-label='API unavailable' title='Backend API not connected - Demo mode available'>
+                ○ Demo Mode
+              </span>
+            ) : apiStatus ? (
               <span className='status-badge status-healthy' aria-label='API status healthy'>
                 ✓ Connected
               </span>
