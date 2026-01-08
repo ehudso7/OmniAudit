@@ -1,3 +1,5 @@
+import * as path from 'path';
+import { readFile, readdir, stat } from 'fs/promises';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import * as path from 'node:path';
 import * as yaml from 'js-yaml';

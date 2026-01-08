@@ -96,6 +96,7 @@ export class RuleValidator {
         'dangerouslySetInnerHTML',
       ];
 
+      if (!validSelectors.some((s) => patterns.ast.includes(s))) {
       if (!validSelectors.some((s) => astPattern.includes(s))) {
         warnings.push('AST pattern may not match known selectors');
       }

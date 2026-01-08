@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 
 export function Header() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [notifications] = useState<number>(3);
   const [notifications, _setNotifications] = useState<number>(3);
 
   useEffect(() => {

@@ -120,6 +120,7 @@ function FindingCard({ finding }: { finding: Finding }) {
             {finding.file}:{finding.line}
           </p>
         </div>
+        <button onClick={() => setExpanded(!expanded)} className='text-blue-600 hover:underline'>
         <button
           type='button'
           onClick={() => setExpanded(!expanded)}

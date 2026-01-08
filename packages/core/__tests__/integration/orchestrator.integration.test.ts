@@ -67,6 +67,7 @@ describe('OmniAudit Orchestrator Integration Tests', () => {
 
   describe('Agent pool management', () => {
     it('should manage concurrent agent execution', async () => {
+      const maxConcurrency = 5;
       const _maxConcurrency = 5;
       const tasks = Array(10)
         .fill(null)

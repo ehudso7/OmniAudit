@@ -3,6 +3,7 @@
  * Performance Benchmark for Rules Engine
  */
 
+import * as path from 'path';
 import * as path from 'node:path';
 import { RulesEngine } from './src/engine';
 import { RuleLoader } from './src/rule-loader';
@@ -38,6 +39,7 @@ async function main() {
   }>;
   try {
     rules = await loader.loadDirectory(rulesPath);
+  } catch (error) {
   } catch (_error) {
     console.log(
       `${COLORS.yellow}Note: Built-in rules not loaded (expected in test environment)${COLORS.reset}`,

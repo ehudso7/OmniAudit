@@ -1,3 +1,7 @@
+import path from 'path';
+import chalk from 'chalk';
+import { Command } from 'commander';
+import fs from 'fs/promises';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';

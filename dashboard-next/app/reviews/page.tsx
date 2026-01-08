@@ -1,9 +1,24 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { GitPullRequest, Check, X, Clock, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Clock, GitPullRequest, MessageSquare, X } from 'lucide-react';
 import { Suspense } from 'react';
+
+interface PRReview {
+  id: string;
+  title: string;
+  repo: string;
+  author: string;
+  status: string;
+  issues: number;
+  comments: number;
+  created_at: string;
+}
 
 async function getPRReviews() {
   const apiUrl = process.env.API_URL || 'http://localhost:8000';
@@ -106,6 +121,8 @@ export default async function ReviewsPage() {
             <CardTitle className='text-sm font-medium'>Approved</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {displayReviews.filter((r: PRReview) => r.status === 'approved').length}
             <div className='text-2xl font-bold text-green-600'>
               {displayReviews.filter((r: any) => r.status === 'approved').length}
             </div>
@@ -116,6 +133,8 @@ export default async function ReviewsPage() {
             <CardTitle className='text-sm font-medium'>Pending</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {displayReviews.filter((r: PRReview) => r.status === 'pending').length}
             <div className='text-2xl font-bold text-yellow-600'>
               {displayReviews.filter((r: any) => r.status === 'pending').length}
             </div>
@@ -128,6 +147,8 @@ export default async function ReviewsPage() {
           <CardTitle>Recent Pull Requests</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="space-y-4">
+            {displayReviews.map((review: PRReview) => (
           <div className='space-y-4'>
             {displayReviews.map((review: any) => (
               <div

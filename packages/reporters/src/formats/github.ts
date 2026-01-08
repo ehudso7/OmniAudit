@@ -83,6 +83,13 @@ export class GitHubReporter implements Reporter {
       title: 'OmniAudit Code Analysis',
       summary: `Found ${result.total_findings} issues across ${result.total_files} files`,
       annotations,
+      text:
+        `## Summary\n\n` +
+        `- Critical: ${result.findings_by_severity.critical}\n` +
+        `- High: ${result.findings_by_severity.high}\n` +
+        `- Medium: ${result.findings_by_severity.medium}\n` +
+        `- Low: ${result.findings_by_severity.low}\n` +
+        `- Info: ${result.findings_by_severity.info}\n`,
       text: `## Summary\n\n- Critical: ${result.findings_by_severity.critical}\n- High: ${result.findings_by_severity.high}\n- Medium: ${result.findings_by_severity.medium}\n- Low: ${result.findings_by_severity.low}\n- Info: ${result.findings_by_severity.info}\n`,
     };
 
