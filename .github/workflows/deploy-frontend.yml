@@ -30,23 +30,18 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        working-directory: frontend
-        run: |
-          set -e
-          echo "Attempting clean install with npm ci..."
-          if npm ci --ignore-scripts 2>/dev/null; then
-            echo "npm ci succeeded"
-          else
-            echo "npm ci failed — falling back to npm install"
-            npm install --legacy-peer-deps --ignore-scripts --no-audit --no-fund
-          fi
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-      - name: Build
-        working-directory: frontend
-        run: npm run build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Build frontend
+        run: pnpm --filter omniaudit-dashboard build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.omniaudit.dev' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || '' }}
 
       - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25
