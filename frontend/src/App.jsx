@@ -8,7 +8,8 @@ import PRReviews from './components/PRReviews';
 import Pricing from './components/Pricing';
 
 // Use relative URLs in production, localhost only for development
-const API_URL = import.meta.env.VITE_API_URL || '';
+// Strip trailing slash to prevent double-slash URLs
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 function App() {
   const [activeTab, setActiveTab] = useState('reviews');
