@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import AuditRunner from './components/AuditRunner';
+import BrowserAuditRunner from './components/BrowserAuditRunner';
 import Dashboard from './components/Dashboard';
 import ExportPanel from './components/ExportPanel';
 import GitHubConnect from './components/GitHubConnect';
@@ -16,6 +17,7 @@ function App() {
   const [apiStatus, setApiStatus] = useState(null);
   const [auditResults, setAuditResults] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [auditMode, setAuditMode] = useState('code'); // 'code' or 'browser'
 
   useEffect(() => {
     // Check API health
@@ -27,30 +29,29 @@ function App() {
 
   const handleSelectPlan = (planId) => {
     console.log('Selected plan:', planId);
-    // Future: Implement Stripe checkout
-    alert(`Starting checkout for ${planId} plan...`);
+    // Billing integration pending - plans are informational for now
   };
 
   return (
     <div className='app'>
       <header className='app-header'>
         <div className='header-brand'>
-          <h1>🔍 OmniAudit</h1>
-          <span className='header-tagline'>AI-Powered Code Review</span>
+          <h1>OmniAudit</h1>
+          <span className='header-tagline'>AI-Powered Code & Browser Verification</span>
         </div>
         <div className='header-actions'>
           <div className='api-status' role='status' aria-live='polite'>
             {apiStatus?.status === 'unavailable' ? (
               <span className='status-badge status-offline' aria-label='API unavailable' title='Backend API not connected - Demo mode available'>
-                ○ Demo Mode
+                Demo Mode
               </span>
             ) : apiStatus ? (
               <span className='status-badge status-healthy' aria-label='API status healthy'>
-                ✓ Connected
+                Connected
               </span>
             ) : (
               <span className='status-badge status-unknown' aria-label='Checking API status'>
-                ⏳ Connecting...
+                Connecting...
               </span>
             )}
           </div>
@@ -67,7 +68,7 @@ function App() {
           onClick={() => setActiveTab('reviews')}
           aria-current={activeTab === 'reviews' ? 'page' : undefined}
         >
-          🔍 PR Reviews
+          PR Reviews
         </button>
         <button
           type='button'
@@ -75,7 +76,7 @@ function App() {
           onClick={() => setActiveTab('dashboard')}
           aria-current={activeTab === 'dashboard' ? 'page' : undefined}
         >
-          📊 Dashboard
+          Dashboard
         </button>
         <button
           type='button'
@@ -83,7 +84,7 @@ function App() {
           onClick={() => setActiveTab('audit')}
           aria-current={activeTab === 'audit' ? 'page' : undefined}
         >
-          🚀 Run Audit
+          Run Audit
         </button>
         <button
           type='button'
@@ -91,7 +92,7 @@ function App() {
           onClick={() => setActiveTab('connect')}
           aria-current={activeTab === 'connect' ? 'page' : undefined}
         >
-          {isConnected ? '✅ Connected' : '🔗 Connect'}
+          {isConnected ? 'Connected' : 'Connect'}
         </button>
         <button
           type='button'
@@ -99,7 +100,7 @@ function App() {
           onClick={() => setActiveTab('skills')}
           aria-current={activeTab === 'skills' ? 'page' : undefined}
         >
-          🎯 Skills
+          Skills
         </button>
         <button
           type='button'
@@ -107,14 +108,38 @@ function App() {
           onClick={() => setActiveTab('pricing')}
           aria-current={activeTab === 'pricing' ? 'page' : undefined}
         >
-          💎 Pricing
+          Pricing
         </button>
       </nav>
 
       <main className='app-main' aria-label='Main content'>
         {activeTab === 'reviews' && <PRReviews apiUrl={API_URL} />}
         {activeTab === 'dashboard' && <Dashboard apiUrl={API_URL} auditResults={auditResults} />}
-        {activeTab === 'audit' && <AuditRunner apiUrl={API_URL} onComplete={setAuditResults} />}
+        {activeTab === 'audit' && (
+          <div className='audit-container'>
+            <div className='audit-mode-tabs'>
+              <button
+                type='button'
+                className={`mode-tab ${auditMode === 'code' ? 'active' : ''}`}
+                onClick={() => setAuditMode('code')}
+              >
+                Code Analysis
+              </button>
+              <button
+                type='button'
+                className={`mode-tab ${auditMode === 'browser' ? 'active' : ''}`}
+                onClick={() => setAuditMode('browser')}
+              >
+                Browser Verification
+              </button>
+            </div>
+            {auditMode === 'code' ? (
+              <AuditRunner apiUrl={API_URL} onComplete={setAuditResults} />
+            ) : (
+              <BrowserAuditRunner apiUrl={API_URL} onComplete={setAuditResults} />
+            )}
+          </div>
+        )}
         {activeTab === 'connect' && (
           <GitHubConnect apiUrl={API_URL} onConnect={() => setIsConnected(true)} />
         )}
@@ -125,7 +150,7 @@ function App() {
       <footer className='app-footer' role='contentinfo'>
         <div className='footer-main'>
           <p>
-            <strong>OmniAudit</strong> - AI-Powered Code Review Platform
+            <strong>OmniAudit</strong> - AI-Powered Code & Browser Verification Platform
           </p>
           <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.8 }}>
             Catch bugs, security issues, and performance problems before they reach production.
@@ -140,7 +165,7 @@ function App() {
           <a href='#support'>Support</a>
         </div>
         <div className='footer-copyright'>
-          <p>© 2025 OmniAudit. All rights reserved.</p>
+          <p>&copy; 2026 OmniAudit. All rights reserved.</p>
         </div>
       </footer>
     </div>
