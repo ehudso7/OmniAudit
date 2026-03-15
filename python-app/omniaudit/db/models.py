@@ -2,12 +2,12 @@
 Database Models
 
 SQLAlchemy models for all OmniAudit entities including
-repositories, reviews, browser runs, and release policies.
+users, organizations, repositories, reviews, browser runs, and release policies.
 """
 
 from sqlalchemy import (
     Column, Integer, String, DateTime, Float, JSON,
-    ForeignKey, Boolean, Text, Index, Enum
+    ForeignKey, Boolean, Text, Index
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -17,6 +17,62 @@ import enum
 
 from .base import Base
 
+
+# --- User and organization models ---
+
+class User(Base):
+    """User account."""
+    __tablename__ = "users"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String(320), nullable=False, unique=True)
+    password_hash = Column(String(255), nullable=False)
+    display_name = Column(String(255), nullable=True)
+    role = Column(String(20), nullable=False, default="member")  # admin, member, viewer
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+    last_login_at = Column(DateTime, nullable=True)
+
+    # Billing
+    plan = Column(String(20), nullable=False, default="free")  # free, pro, team, enterprise
+    stripe_customer_id = Column(String(255), nullable=True)
+    subscription_status = Column(String(20), nullable=True)  # active, past_due, canceled
+
+    # Notification preferences
+    notify_run_complete = Column(Boolean, default=True)
+    notify_release_blocked = Column(Boolean, default=True)
+    notify_critical_issues = Column(Boolean, default=True)
+
+    api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index('ix_users_email', 'email'),
+    )
+
+
+class ApiKey(Base):
+    """API key for programmatic access."""
+    __tablename__ = "api_keys"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
+    key_hash = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, default="default")
+    prefix = Column(String(10), nullable=False)  # First chars for identification
+    is_active = Column(Boolean, default=True)
+    last_used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+
+    user = relationship("User", back_populates="api_keys")
+
+    __table_args__ = (
+        Index('ix_api_keys_user_id', 'user_id'),
+        Index('ix_api_keys_key_hash', 'key_hash'),
+    )
+
+
+# --- Existing models ---
 
 class Project(Base):
     """Software project being audited."""
@@ -111,29 +167,34 @@ class Alert(Base):
     )
 
 
-# --- New production models ---
+# --- Repository and review models ---
 
 class Repository(Base):
     """Connected GitHub repository."""
     __tablename__ = "repositories"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     owner = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)
     full_name = Column(String(512), nullable=False, unique=True)
     url = Column(String(512), nullable=False)
     installation_id = Column(String(100), nullable=True)
     status = Column(String(20), nullable=False, default="active")
+    default_target_url = Column(String(1024), nullable=True)
+    default_environment = Column(String(50), nullable=True, default="preview")
     connected_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
     reviews = relationship("Review", back_populates="repository", cascade="all, delete-orphan")
     browser_runs = relationship("BrowserRun", back_populates="repository", cascade="all, delete-orphan")
     release_policies = relationship("ReleasePolicy", back_populates="repository", cascade="all, delete-orphan")
+    audit_presets = relationship("AuditPreset", back_populates="repository", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index('ix_repositories_full_name', 'full_name'),
         Index('ix_repositories_owner', 'owner'),
+        Index('ix_repositories_user_id', 'user_id'),
     )
 
 
@@ -143,6 +204,7 @@ class Review(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     repository_id = Column(String(36), ForeignKey("repositories.id"), nullable=True)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     repo = Column(String(512), nullable=False)
     owner = Column(String(255), nullable=False)
     repo_name = Column(String(255), nullable=False)
@@ -167,16 +229,11 @@ class Review(Base):
         Index('ix_reviews_repo', 'repo'),
         Index('ix_reviews_reviewed_at', 'reviewed_at'),
         Index('ix_reviews_repository_id', 'repository_id'),
+        Index('ix_reviews_user_id', 'user_id'),
     )
 
 
-class BrowserRunStatus(str, enum.Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
-
+# --- Browser verification models ---
 
 class BrowserRun(Base):
     """Browser verification run."""
@@ -184,6 +241,7 @@ class BrowserRun(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     repository_id = Column(String(36), ForeignKey("repositories.id"), nullable=True)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     target_url = Column(String(1024), nullable=False)
     environment = Column(String(50), nullable=True, default="preview")
     branch = Column(String(255), nullable=True)
@@ -196,6 +254,7 @@ class BrowserRun(Base):
     journeys = Column(JSON, nullable=True)
     auth_config = Column(JSON, nullable=True)
     release_gate = Column(Boolean, default=False)
+    correlation_id = Column(String(36), nullable=True)
 
     # Results
     score = Column(Integer, nullable=True)
@@ -207,11 +266,15 @@ class BrowserRun(Base):
     console_errors = Column(Integer, default=0)
     network_failures = Column(Integer, default=0)
     blocking_verdict = Column(String(20), nullable=True)
+    blocking_reasons = Column(JSON, nullable=True)
 
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     duration_ms = Column(Integer, nullable=True)
+    timeout_ms = Column(Integer, default=60000)
+    retry_count = Column(Integer, default=0)
+    max_retries = Column(Integer, default=1)
 
     repository = relationship("Repository", back_populates="browser_runs")
     checks = relationship("BrowserCheck", back_populates="browser_run", cascade="all, delete-orphan")
@@ -221,6 +284,8 @@ class BrowserRun(Base):
         Index('ix_browser_runs_status', 'status'),
         Index('ix_browser_runs_repository_id', 'repository_id'),
         Index('ix_browser_runs_created_at', 'created_at'),
+        Index('ix_browser_runs_user_id', 'user_id'),
+        Index('ix_browser_runs_correlation_id', 'correlation_id'),
     )
 
 
@@ -231,11 +296,11 @@ class BrowserCheck(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     browser_run_id = Column(String(36), ForeignKey("browser_runs.id"), nullable=False)
     journey = Column(String(255), nullable=False)
-    check_type = Column(String(50), nullable=False)  # navigation, interaction, assertion, a11y, performance
+    check_type = Column(String(50), nullable=False)
     description = Column(Text, nullable=True)
     status = Column(String(20), nullable=False, default="pending")
-    severity = Column(String(20), nullable=True)  # critical, high, medium, low, info
-    category = Column(String(50), nullable=True)  # security, performance, accessibility, functional
+    severity = Column(String(20), nullable=True)
+    category = Column(String(50), nullable=True)
     message = Column(Text, nullable=True)
     details = Column(JSON, nullable=True)
     selector = Column(String(512), nullable=True)
@@ -253,14 +318,16 @@ class BrowserCheck(Base):
 
 
 class BrowserArtifact(Base):
-    """Artifact from a browser verification run (screenshot, trace, etc.)."""
+    """Artifact from a browser verification run."""
     __tablename__ = "browser_artifacts"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     browser_run_id = Column(String(36), ForeignKey("browser_runs.id"), nullable=False)
-    artifact_type = Column(String(50), nullable=False)  # screenshot, trace, video, har, console_log
+    artifact_type = Column(String(50), nullable=False)
     name = Column(String(255), nullable=False)
-    file_path = Column(String(1024), nullable=True)  # Local path or object storage key
+    storage_backend = Column(String(20), nullable=False, default="local")  # local, s3
+    file_path = Column(String(1024), nullable=True)
+    storage_key = Column(String(1024), nullable=True)  # S3 key or equivalent
     content_type = Column(String(100), nullable=True)
     size_bytes = Column(Integer, nullable=True)
     metadata = Column(JSON, nullable=True)
@@ -288,7 +355,10 @@ class ReleasePolicy(Base):
     block_on_performance = Column(Boolean, default=False)
     max_critical_findings = Column(Integer, default=0)
     max_high_findings = Column(Integer, default=3)
+    max_console_errors = Column(Integer, nullable=True)
+    max_network_failures = Column(Integer, nullable=True)
     require_browser_run = Column(Boolean, default=False)
+    required_journeys = Column(JSON, nullable=True)
     journeys_required = Column(JSON, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
@@ -297,4 +367,53 @@ class ReleasePolicy(Base):
 
     __table_args__ = (
         Index('ix_release_policies_repository_id', 'repository_id'),
+    )
+
+
+class AuditPreset(Base):
+    """Saved browser audit configuration preset."""
+    __tablename__ = "audit_presets"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    repository_id = Column(String(36), ForeignKey("repositories.id"), nullable=True)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    name = Column(String(255), nullable=False)
+    target_url = Column(String(1024), nullable=True)
+    environment = Column(String(50), nullable=True, default="preview")
+    viewport_width = Column(Integer, default=1280)
+    viewport_height = Column(Integer, default=720)
+    device = Column(String(100), nullable=True)
+    journeys = Column(JSON, nullable=True)
+    auth_config = Column(JSON, nullable=True)
+    release_gate = Column(Boolean, default=False)
+    is_default = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
+
+    repository = relationship("Repository", back_populates="audit_presets")
+
+    __table_args__ = (
+        Index('ix_audit_presets_repository_id', 'repository_id'),
+        Index('ix_audit_presets_user_id', 'user_id'),
+    )
+
+
+class Notification(Base):
+    """In-app notification record."""
+    __tablename__ = "notifications"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    event_type = Column(String(50), nullable=False)  # run_complete, release_blocked, critical_issue, repo_connected, pr_reviewed
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=True)
+    severity = Column(String(20), nullable=True)  # info, warning, critical
+    metadata = Column(JSON, nullable=True)  # link to related resource
+    read = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        Index('ix_notifications_user_id', 'user_id'),
+        Index('ix_notifications_read', 'read'),
+        Index('ix_notifications_created_at', 'created_at'),
     )

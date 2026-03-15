@@ -201,6 +201,26 @@ async def _execute_browser_run(run_id: str, request: BrowserRunCreateRequest):
         db.commit()
         logger.info(f"Browser run {run_id} completed with score {run.score}")
 
+        # Send notifications
+        try:
+            from ..services.notification_service import NotificationService
+            NotificationService.notify_run_complete(
+                db, run_id, request.target_url, run.score or 0, user_id=run.user_id
+            )
+            if run.blocking_verdict == "blocked":
+                reasons = run.blocking_reasons or ["Policy threshold not met"]
+                NotificationService.notify_release_blocked(
+                    db, run_id, request.target_url, reasons, user_id=run.user_id
+                )
+            if (run.security_findings or 0) > 0:
+                NotificationService.notify_critical_issue(
+                    db, request.target_url,
+                    f"{run.security_findings} security findings detected",
+                    user_id=run.user_id,
+                )
+        except Exception as notif_err:
+            logger.warning(f"Notification failed: {notif_err}")
+
     except Exception as e:
         logger.error(f"Browser run {run_id} execution failed: {e}")
         try:
@@ -217,14 +237,16 @@ async def _execute_browser_run(run_id: str, request: BrowserRunCreateRequest):
 
 
 def _evaluate_release_gate(db: Session, run: BrowserRun) -> str:
-    """Evaluate release gate policy for a browser run."""
+    """Evaluate release gate policy for a browser run. Sets blocking_reasons on the run."""
+    reasons = []
+
     if not run.repository_id:
-        # No repo associated, use defaults
-        if run.security_findings > 0:
-            return "blocked"
+        if (run.security_findings or 0) > 0:
+            reasons.append(f"Security findings: {run.security_findings}")
         if (run.score or 0) < 70:
-            return "blocked"
-        return "passed"
+            reasons.append(f"Score {run.score} below threshold 70")
+        run.blocking_reasons = reasons if reasons else None
+        return "blocked" if reasons else "passed"
 
     policies = db.query(ReleasePolicy).filter(
         ReleasePolicy.repository_id == run.repository_id,
@@ -232,25 +254,29 @@ def _evaluate_release_gate(db: Session, run: BrowserRun) -> str:
     ).all()
 
     if not policies:
-        # Default policy
-        if run.security_findings > 0:
-            return "blocked"
+        if (run.security_findings or 0) > 0:
+            reasons.append(f"Security findings: {run.security_findings}")
         if (run.score or 0) < 70:
-            return "blocked"
-        return "passed"
+            reasons.append(f"Score {run.score} below default threshold 70")
+        run.blocking_reasons = reasons if reasons else None
+        return "blocked" if reasons else "passed"
 
     for policy in policies:
         if policy.min_score and (run.score or 0) < policy.min_score:
-            return "blocked"
+            reasons.append(f"Score {run.score} below policy minimum {policy.min_score}")
         if policy.block_on_security and (run.security_findings or 0) > 0:
-            return "blocked"
+            reasons.append(f"Security findings: {run.security_findings} (policy: {policy.name})")
         if policy.block_on_accessibility and (run.accessibility_findings or 0) > 0:
-            return "blocked"
-        if policy.max_critical_findings is not None:
-            # Would need severity breakdown - use findings_count as proxy
-            pass
+            reasons.append(f"Accessibility findings: {run.accessibility_findings} (policy: {policy.name})")
+        if policy.block_on_performance and (run.performance_findings or 0) > 0:
+            reasons.append(f"Performance findings: {run.performance_findings} (policy: {policy.name})")
+        if policy.max_console_errors is not None and (run.console_errors or 0) > policy.max_console_errors:
+            reasons.append(f"Console errors: {run.console_errors} exceeds max {policy.max_console_errors}")
+        if policy.max_network_failures is not None and (run.network_failures or 0) > policy.max_network_failures:
+            reasons.append(f"Network failures: {run.network_failures} exceeds max {policy.max_network_failures}")
 
-    return "passed"
+    run.blocking_reasons = reasons if reasons else None
+    return "blocked" if reasons else "passed"
 
 
 @router.post("/browser-runs")
