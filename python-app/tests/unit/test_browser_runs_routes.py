@@ -3,15 +3,16 @@ Tests for Browser Verification Runs API routes.
 """
 
 import pytest
-from unittest.mock import patch, AsyncMock
-from fastapi.testclient import TestClient
-
-# Set up SQLite before importing app
 import os
-os.environ["DATABASE_URL"] = "sqlite:///test_browser_runs.db"
+import tempfile
 
+# Use a temp-file-based SQLite for tests (set before any imports)
+_test_db_path = os.path.join(tempfile.gettempdir(), "test_browser_runs.db")
+os.environ["DATABASE_URL"] = f"sqlite:///{_test_db_path}"
+
+from fastapi.testclient import TestClient
 from omniaudit.api.main import app
-from omniaudit.db.base import init_db, engine, Base
+from omniaudit.db.base import engine, Base
 
 
 @pytest.fixture(autouse=True)
@@ -20,16 +21,11 @@ def setup_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
-    # Clean up test db file
-    try:
-        os.remove("test_browser_runs.db")
-    except OSError:
-        pass
 
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    return TestClient(app, raise_server_exceptions=False)
 
 
 class TestBrowserRunsRoutes:
@@ -70,7 +66,6 @@ class TestBrowserRunsRoutes:
         assert response.status_code == 404
 
     def test_get_browser_run(self, client):
-        # Create a run first
         create_resp = client.post("/api/v1/browser-runs", json={
             "target_url": "https://example.com",
         })
@@ -119,7 +114,6 @@ class TestBrowserRunsRoutes:
         assert "avg_score" in data
 
     def test_list_with_filters(self, client):
-        # Create runs
         client.post("/api/v1/browser-runs", json={"target_url": "https://a.com"})
         client.post("/api/v1/browser-runs", json={"target_url": "https://b.com"})
 

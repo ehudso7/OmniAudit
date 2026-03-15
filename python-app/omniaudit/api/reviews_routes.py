@@ -14,7 +14,8 @@ from sqlalchemy import func as sql_func
 import uuid
 
 from ..db.base import get_db, init_db
-from ..db.models import Repository, Review
+from ..db.models import Repository, Review, User
+from .auth_routes import get_current_user
 
 router = APIRouter(prefix="/api/v1", tags=["reviews"])
 
@@ -214,7 +215,11 @@ async def get_repositories(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 
 @router.post("/repositories/connect")
-async def connect_repository(request: ConnectRepoRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def connect_repository(
+    request: ConnectRepoRequest,
+    db: Session = Depends(get_db),
+    user: Optional[User] = Depends(get_current_user),
+) -> Dict[str, Any]:
     """Connect a new repository."""
     full_name = f"{request.owner}/{request.repo}"
 
@@ -227,11 +232,19 @@ async def connect_repository(request: ConnectRepoRequest, db: Session = Depends(
         name=request.repo,
         full_name=full_name,
         url=f"https://github.com/{full_name}",
+        user_id=user.id if user else None,
         status="active",
     )
     db.add(new_repo)
     db.commit()
     db.refresh(new_repo)
+
+    # Send notification
+    try:
+        from ..services.notification_service import NotificationService
+        NotificationService.notify_repo_connected(db, full_name, user_id=user.id if user else None)
+    except Exception:
+        pass  # Don't fail the connect if notification fails
 
     return {"repository": _repo_to_dict(new_repo), "message": "Repository connected successfully"}
 

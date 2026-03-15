@@ -115,6 +115,7 @@ async def get_me(user: User = Depends(require_user)) -> Dict[str, Any]:
             "notify_run_complete": user.notify_run_complete,
             "notify_release_blocked": user.notify_release_blocked,
             "notify_critical_issues": user.notify_critical_issues,
+            "onboarding_completed": user.onboarding_completed,
         }
     }
 
@@ -126,7 +127,7 @@ async def update_me(
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Update current user profile."""
-    allowed = {"display_name", "notify_run_complete", "notify_release_blocked", "notify_critical_issues"}
+    allowed = {"display_name", "notify_run_complete", "notify_release_blocked", "notify_critical_issues", "onboarding_completed"}
     for key, value in updates.items():
         if key in allowed:
             setattr(user, key, value)
@@ -155,7 +156,7 @@ async def list_api_keys(
 ) -> Dict[str, Any]:
     """List user's API keys (without the actual key values)."""
     from ..db.models import ApiKey
-    keys = db.query(ApiKey).filter(ApiKey.user_id == user.id).all()
+    keys = db.query(ApiKey).filter(ApiKey.user_id == user.id, ApiKey.is_active == True).all()
     return {
         "api_keys": [
             {
@@ -169,3 +170,21 @@ async def list_api_keys(
             for k in keys
         ]
     }
+
+
+@router.delete("/api-keys/{key_id}")
+async def revoke_api_key(
+    key_id: str,
+    user: User = Depends(require_user),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Revoke (deactivate) an API key. Only the key owner can revoke."""
+    from ..db.models import ApiKey
+    api_key = db.query(ApiKey).filter(
+        ApiKey.id == key_id, ApiKey.user_id == user.id
+    ).first()
+    if not api_key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    api_key.is_active = False
+    db.commit()
+    return {"message": "API key revoked"}

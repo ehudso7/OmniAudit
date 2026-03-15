@@ -25,30 +25,47 @@ const STEPS = [
 
 function Onboarding({ apiUrl, authToken, onComplete, onNavigate }) {
   const [step, setStep] = useState(0);
-  const [repoUrl, setRepoUrl] = useState('');
+  const [repoOwner, setRepoOwner] = useState('');
+  const [repoName, setRepoName] = useState('');
   const [targetUrl, setTargetUrl] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [connectResult, setConnectResult] = useState(null);
 
   const current = STEPS[step];
 
+  const headers = authToken
+    ? { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };
+
+  const persistOnboardingComplete = () => {
+    // Persist to server if authenticated
+    if (authToken) {
+      fetch(`${apiUrl}/api/v1/auth/me`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ onboarding_completed: true }),
+      }).catch(() => {});
+    }
+    // Also store locally as fallback
+    localStorage.setItem('omniaudit_onboarded', 'true');
+    onComplete();
+  };
+
   const connectRepo = async () => {
-    if (!repoUrl.trim()) return;
+    if (!repoOwner.trim() || !repoName.trim()) return;
     setConnecting(true);
     setConnectResult(null);
-    const headers = authToken
-      ? { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }
-      : { 'Content-Type': 'application/json' };
     try {
-      const res = await fetch(`${apiUrl}/api/v1/reviews/repos`, {
+      const res = await fetch(`${apiUrl}/api/v1/repositories/connect`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ repo_url: repoUrl }),
+        body: JSON.stringify({ owner: repoOwner, repo: repoName }),
       });
       if (res.ok) {
         setConnectResult('success');
       } else {
-        setConnectResult('error');
+        const data = await res.json().catch(() => ({}));
+        setConnectResult(data.detail === 'Repository already connected' ? 'success' : 'error');
       }
     } catch {
       setConnectResult('error');
@@ -67,7 +84,6 @@ function Onboarding({ apiUrl, authToken, onComplete, onNavigate }) {
 
   return (
     <div className='onboarding'>
-      {/* Progress dots */}
       <div className='onboarding-progress'>
         {STEPS.map((s, i) => (
           <div key={s.id} className={`progress-dot ${i === step ? 'active' : ''} ${i < step ? 'completed' : ''}`} />
@@ -78,7 +94,6 @@ function Onboarding({ apiUrl, authToken, onComplete, onNavigate }) {
         <h2>{current.title}</h2>
         <p className='onboarding-description'>{current.description}</p>
 
-        {/* Step-specific content */}
         {current.id === 'welcome' && (
           <div className='onboarding-features'>
             <div className='onboarding-feature'>
@@ -99,11 +114,16 @@ function Onboarding({ apiUrl, authToken, onComplete, onNavigate }) {
         {current.id === 'connect' && (
           <div className='onboarding-form'>
             <div className='form-group'>
-              <label htmlFor='onboard-repo'>GitHub Repository URL</label>
-              <input id='onboard-repo' type='url' className='url-input' placeholder='https://github.com/owner/repo'
-                value={repoUrl} onChange={e => setRepoUrl(e.target.value)} />
+              <label htmlFor='onboard-owner'>Repository Owner</label>
+              <input id='onboard-owner' type='text' className='url-input' placeholder='e.g., acme'
+                value={repoOwner} onChange={e => setRepoOwner(e.target.value)} />
             </div>
-            <button type='button' className='btn btn-primary' onClick={connectRepo} disabled={connecting || !repoUrl.trim()}>
+            <div className='form-group'>
+              <label htmlFor='onboard-repo'>Repository Name</label>
+              <input id='onboard-repo' type='text' className='url-input' placeholder='e.g., frontend'
+                value={repoName} onChange={e => setRepoName(e.target.value)} />
+            </div>
+            <button type='button' className='btn btn-primary' onClick={connectRepo} disabled={connecting || !repoOwner.trim() || !repoName.trim()}>
               {connecting ? 'Connecting...' : 'Connect Repository'}
             </button>
             {connectResult === 'success' && <p className='onboarding-success'>Repository connected!</p>}
@@ -119,7 +139,7 @@ function Onboarding({ apiUrl, authToken, onComplete, onNavigate }) {
               <input id='onboard-url' type='url' className='url-input' placeholder='https://your-app.com'
                 value={targetUrl} onChange={e => setTargetUrl(e.target.value)} />
             </div>
-            <button type='button' className='btn btn-primary' onClick={() => { onNavigate('audit'); }}>
+            <button type='button' className='btn btn-primary' onClick={() => { persistOnboardingComplete(); onNavigate('audit'); }}>
               Go to Browser Audit
             </button>
             <button type='button' className='link-btn' onClick={next} style={{ marginTop: '0.5rem' }}>Skip for now</button>
@@ -128,17 +148,16 @@ function Onboarding({ apiUrl, authToken, onComplete, onNavigate }) {
 
         {current.id === 'done' && (
           <div className='onboarding-actions'>
-            <button type='button' className='btn btn-primary' onClick={() => onNavigate('dashboard')}>
+            <button type='button' className='btn btn-primary' onClick={() => { persistOnboardingComplete(); onNavigate('dashboard'); }}>
               Open Dashboard
             </button>
-            <button type='button' className='btn btn-outline' onClick={() => onNavigate('audit')}>
+            <button type='button' className='btn btn-outline' onClick={() => { persistOnboardingComplete(); onNavigate('audit'); }}>
               Run an Audit
             </button>
           </div>
         )}
       </div>
 
-      {/* Navigation */}
       <div className='onboarding-nav'>
         {step > 0 && current.id !== 'done' && (
           <button type='button' className='btn btn-small' onClick={back}>Back</button>
@@ -150,7 +169,7 @@ function Onboarding({ apiUrl, authToken, onComplete, onNavigate }) {
         {current.id === 'connect' && connectResult === 'success' && (
           <button type='button' className='btn btn-primary' onClick={next}>Next</button>
         )}
-        <button type='button' className='link-btn' onClick={onComplete} style={{ marginLeft: '1rem' }}>
+        <button type='button' className='link-btn' onClick={persistOnboardingComplete} style={{ marginLeft: '1rem' }}>
           Skip onboarding
         </button>
       </div>

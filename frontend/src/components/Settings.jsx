@@ -5,9 +5,9 @@ function Settings({ apiUrl, authToken, user }) {
   const [newKeyName, setNewKeyName] = useState('');
   const [createdKey, setCreatedKey] = useState(null);
   const [notifPrefs, setNotifPrefs] = useState({
-    email_on_critical: true,
-    email_on_run_complete: false,
-    in_app_notifications: true,
+    notify_run_complete: true,
+    notify_release_blocked: true,
+    notify_critical_issues: true,
   });
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
@@ -15,6 +15,17 @@ function Settings({ apiUrl, authToken, user }) {
   const headers = authToken
     ? { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }
     : { 'Content-Type': 'application/json' };
+
+  // Load current preferences from user data
+  useEffect(() => {
+    if (user) {
+      setNotifPrefs({
+        notify_run_complete: user.notify_run_complete ?? true,
+        notify_release_blocked: user.notify_release_blocked ?? true,
+        notify_critical_issues: user.notify_critical_issues ?? true,
+      });
+    }
+  }, [user]);
 
   const loadApiKeys = useCallback(() => {
     if (!authToken) return;
@@ -37,10 +48,22 @@ function Settings({ apiUrl, authToken, user }) {
       });
       const data = await res.json();
       if (res.ok) {
-        setCreatedKey(data.key);
+        setCreatedKey(data.api_key?.key || data.key);
         setNewKeyName('');
         loadApiKeys();
       }
+    } catch {
+      // ignore
+    }
+  };
+
+  const revokeApiKey = async (keyId) => {
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/auth/api-keys/${keyId}`, {
+        method: 'DELETE',
+        headers,
+      });
+      if (res.ok) loadApiKeys();
     } catch {
       // ignore
     }
@@ -54,7 +77,7 @@ function Settings({ apiUrl, authToken, user }) {
       const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
         method: 'PUT',
         headers,
-        body: JSON.stringify({ notification_preferences: notifPrefs }),
+        body: JSON.stringify(notifPrefs),
       });
       if (res.ok) setSaveMsg('Settings saved');
       else setSaveMsg('Failed to save');
@@ -105,19 +128,19 @@ function Settings({ apiUrl, authToken, user }) {
         <h3>Notification Preferences</h3>
         <div className='settings-card'>
           <label className='toggle-label'>
-            <input type='checkbox' checked={notifPrefs.in_app_notifications}
-              onChange={e => setNotifPrefs(p => ({ ...p, in_app_notifications: e.target.checked }))} />
-            In-app notifications
+            <input type='checkbox' checked={notifPrefs.notify_run_complete}
+              onChange={e => setNotifPrefs(p => ({ ...p, notify_run_complete: e.target.checked }))} />
+            Notify when browser runs complete
           </label>
           <label className='toggle-label'>
-            <input type='checkbox' checked={notifPrefs.email_on_critical}
-              onChange={e => setNotifPrefs(p => ({ ...p, email_on_critical: e.target.checked }))} />
-            Email on critical issues
+            <input type='checkbox' checked={notifPrefs.notify_release_blocked}
+              onChange={e => setNotifPrefs(p => ({ ...p, notify_release_blocked: e.target.checked }))} />
+            Notify when releases are blocked
           </label>
           <label className='toggle-label'>
-            <input type='checkbox' checked={notifPrefs.email_on_run_complete}
-              onChange={e => setNotifPrefs(p => ({ ...p, email_on_run_complete: e.target.checked }))} />
-            Email when browser runs complete
+            <input type='checkbox' checked={notifPrefs.notify_critical_issues}
+              onChange={e => setNotifPrefs(p => ({ ...p, notify_critical_issues: e.target.checked }))} />
+            Notify on critical security issues
           </label>
           <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <button type='button' className='btn btn-primary' onClick={saveProfile} disabled={saving}>
@@ -131,7 +154,7 @@ function Settings({ apiUrl, authToken, user }) {
       {/* API Keys */}
       <div className='settings-section'>
         <h3>API Keys</h3>
-        <p className='settings-hint'>Use API keys to authenticate with the OmniAudit API programmatically.</p>
+        <p className='settings-hint'>Use API keys to authenticate with the OmniAudit API programmatically. Pass via <code>X-API-Key</code> header.</p>
 
         {createdKey && (
           <div className='api-key-created'>
@@ -155,8 +178,9 @@ function Settings({ apiUrl, authToken, user }) {
             {apiKeys.map(k => (
               <div key={k.id} className='api-key-item'>
                 <span className='api-key-name'>{k.name}</span>
-                <span className='api-key-prefix'>{k.key_prefix}...</span>
+                <span className='api-key-prefix'>{k.prefix}...</span>
                 <span className='api-key-date'>{k.created_at ? new Date(k.created_at).toLocaleDateString() : ''}</span>
+                <button type='button' className='btn btn-small btn-danger' onClick={() => revokeApiKey(k.id)}>Revoke</button>
               </div>
             ))}
           </div>

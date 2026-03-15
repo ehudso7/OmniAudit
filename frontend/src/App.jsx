@@ -81,9 +81,9 @@ function App() {
     return () => clearInterval(interval);
   }, [loadNotifications]);
 
-  // Check if first-time user
+  // Check if first-time user (server-side flag takes precedence, fallback to localStorage)
   useEffect(() => {
-    if (user && !localStorage.getItem('omniaudit_onboarded')) {
+    if (user && !user.onboarding_completed && !localStorage.getItem('omniaudit_onboarded')) {
       setShowOnboarding(true);
     }
   }, [user]);

@@ -44,6 +44,9 @@ class User(Base):
     notify_release_blocked = Column(Boolean, default=True)
     notify_critical_issues = Column(Boolean, default=True)
 
+    # Onboarding
+    onboarding_completed = Column(Boolean, default=False)
+
     api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
 
     __table_args__ = (
@@ -330,7 +333,7 @@ class BrowserArtifact(Base):
     storage_key = Column(String(1024), nullable=True)  # S3 key or equivalent
     content_type = Column(String(100), nullable=True)
     size_bytes = Column(Integer, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    extra_metadata = Column("metadata", JSON, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
     browser_run = relationship("BrowserRun", back_populates="artifacts")
@@ -408,7 +411,7 @@ class Notification(Base):
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=True)
     severity = Column(String(20), nullable=True)  # info, warning, critical
-    metadata = Column(JSON, nullable=True)  # link to related resource
+    extra_metadata = Column("metadata", JSON, nullable=True)  # link to related resource
     read = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
 

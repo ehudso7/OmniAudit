@@ -13,9 +13,10 @@ from sqlalchemy.orm import Session
 import uuid
 
 from ..db.base import get_db
-from ..db.models import BrowserRun, BrowserCheck, BrowserArtifact, Repository, ReleasePolicy
+from ..db.models import BrowserRun, BrowserCheck, BrowserArtifact, Repository, ReleasePolicy, User
 from ..services.browser_runner_service import BrowserRunnerService
 from ..utils.logger import get_logger
+from .auth_routes import get_current_user
 
 logger = get_logger(__name__)
 
@@ -115,7 +116,7 @@ def _artifact_to_dict(artifact: BrowserArtifact) -> Dict[str, Any]:
         "file_path": artifact.file_path,
         "content_type": artifact.content_type,
         "size_bytes": artifact.size_bytes,
-        "metadata": artifact.metadata,
+        "metadata": artifact.extra_metadata,
         "created_at": artifact.created_at.isoformat() + "Z" if artifact.created_at else None,
     }
 
@@ -284,6 +285,7 @@ async def create_browser_run(
     request: BrowserRunCreateRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    user: Optional[User] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Create and start a new browser verification run."""
     # Validate repository if provided
@@ -295,6 +297,7 @@ async def create_browser_run(
     run = BrowserRun(
         target_url=request.target_url,
         repository_id=request.repository_id,
+        user_id=user.id if user else None,
         environment=request.environment,
         branch=request.branch,
         commit_sha=request.commit_sha,
@@ -327,9 +330,14 @@ async def list_browser_runs(
     limit: int = Query(50, le=100),
     offset: int = Query(0),
     db: Session = Depends(get_db),
+    user: Optional[User] = Depends(get_current_user),
 ) -> Dict[str, Any]:
-    """List browser verification runs."""
+    """List browser verification runs. Scoped to current user if authenticated."""
     query = db.query(BrowserRun)
+    if user:
+        query = query.filter(
+            (BrowserRun.user_id == user.id) | (BrowserRun.user_id.is_(None))
+        )
     if repository_id:
         query = query.filter(BrowserRun.repository_id == repository_id)
     if status:

@@ -34,7 +34,7 @@ class NotificationService:
             title=title,
             message=message,
             severity=severity,
-            metadata=metadata or {},
+            extra_metadata=metadata or {},
         )
         db.add(notification)
         db.commit()
