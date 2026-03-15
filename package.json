@@ -61,9 +61,9 @@
     "tsup": "^8.0.1",
     "vitest": "^1.2.2"
   },
+  "packageManager": "pnpm@10.29.3",
   "engines": {
-    "bun": ">=1.1.0",
-    "node": "20.x"
+    "node": ">=20"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": ["biome check --apply", "biome format --write"]
