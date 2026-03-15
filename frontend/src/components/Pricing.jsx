@@ -83,6 +83,9 @@ function Pricing({ onSelectPlan }) {
       <div className='pricing-header'>
         <h2>Simple, Transparent Pricing</h2>
         <p>Start free, scale as you grow. No hidden fees.</p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+          Paid plans are coming soon. Free tier is fully functional.
+        </p>
       </div>
 
       <div className='pricing-grid'>
@@ -124,7 +127,7 @@ function Pricing({ onSelectPlan }) {
               className={`btn ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => onSelectPlan?.(plan.id)}
             >
-              {plan.cta}
+              {plan.id === 'enterprise' ? 'Contact Sales' : plan.id === 'free' ? 'Get Started' : 'Coming Soon'}
             </button>
           </div>
         ))}

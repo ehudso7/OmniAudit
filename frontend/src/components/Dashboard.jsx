@@ -37,6 +37,12 @@ const DEMO_DASHBOARD_DATA = {
     { repo: 'acme/api-service', pr_number: 87, action: 'REQUEST_CHANGES' },
     { repo: 'acme/mobile-app', pr_number: 256, action: 'COMMENT' },
   ],
+  browser_summary: {
+    total: 0,
+    passed: 0,
+    failed: 0,
+    errors: 0,
+  },
 };
 
 const DEMO_SKILLS = [
@@ -193,7 +199,7 @@ function Dashboard({ apiUrl, auditResults }) {
       {/* Key Metrics */}
       <div className='stats-grid'>
         <div className='stat-card'>
-          <div className='stat-icon'>📝</div>
+          <div className='stat-icon'>PR</div>
           <div className='stat-content'>
             <h3>Total Reviews</h3>
             <p className='stat-value'>{stats.total_reviews || 0}</p>
@@ -201,7 +207,7 @@ function Dashboard({ apiUrl, auditResults }) {
         </div>
 
         <div className='stat-card'>
-          <div className='stat-icon'>🐛</div>
+          <div className='stat-icon'>!</div>
           <div className='stat-content'>
             <h3>Issues Found</h3>
             <p className='stat-value'>{stats.issues_found || 0}</p>
@@ -209,7 +215,7 @@ function Dashboard({ apiUrl, auditResults }) {
         </div>
 
         <div className='stat-card'>
-          <div className='stat-icon'>🔐</div>
+          <div className='stat-icon'>S</div>
           <div className='stat-content'>
             <h3>Security Blocked</h3>
             <p className='stat-value' style={{ color: '#ef4444' }}>
@@ -219,7 +225,7 @@ function Dashboard({ apiUrl, auditResults }) {
         </div>
 
         <div className='stat-card'>
-          <div className='stat-icon'>✅</div>
+          <div className='stat-icon'>OK</div>
           <div className='stat-content'>
             <h3>Approval Rate</h3>
             <p className='stat-value'>{stats.approval_rate || 0}%</p>
@@ -227,7 +233,23 @@ function Dashboard({ apiUrl, auditResults }) {
         </div>
 
         <div className='stat-card'>
-          <div className='stat-icon'>📅</div>
+          <div className='stat-icon'>BR</div>
+          <div className='stat-content'>
+            <h3>Browser Runs</h3>
+            <p className='stat-value'>{stats.browser_runs || 0}</p>
+          </div>
+        </div>
+
+        <div className='stat-card'>
+          <div className='stat-icon'>%</div>
+          <div className='stat-content'>
+            <h3>Browser Pass Rate</h3>
+            <p className='stat-value'>{stats.browser_pass_rate || 0}%</p>
+          </div>
+        </div>
+
+        <div className='stat-card'>
+          <div className='stat-icon'>W</div>
           <div className='stat-content'>
             <h3>This Week</h3>
             <p className='stat-value'>{stats.this_week || 0}</p>
@@ -235,13 +257,46 @@ function Dashboard({ apiUrl, auditResults }) {
         </div>
 
         <div className='stat-card'>
-          <div className='stat-icon'>📦</div>
+          <div className='stat-icon'>R</div>
           <div className='stat-content'>
             <h3>Repositories</h3>
             <p className='stat-value'>{stats.repos_connected || 0}</p>
           </div>
         </div>
       </div>
+
+      {/* Browser Verification Summary */}
+      {dashboardData?.browser_summary && dashboardData.browser_summary.total > 0 && (
+        <div className='section'>
+          <h3>Browser Verification Summary</h3>
+          <div className='stats-grid'>
+            <div className='stat-card'>
+              <div className='stat-content'>
+                <h3>Total Runs</h3>
+                <p className='stat-value'>{dashboardData.browser_summary.total}</p>
+              </div>
+            </div>
+            <div className='stat-card'>
+              <div className='stat-content'>
+                <h3>Passed</h3>
+                <p className='stat-value' style={{ color: '#22c55e' }}>{dashboardData.browser_summary.passed}</p>
+              </div>
+            </div>
+            <div className='stat-card'>
+              <div className='stat-content'>
+                <h3>Failed</h3>
+                <p className='stat-value' style={{ color: '#ef4444' }}>{dashboardData.browser_summary.failed}</p>
+              </div>
+            </div>
+            <div className='stat-card'>
+              <div className='stat-content'>
+                <h3>Errors</h3>
+                <p className='stat-value' style={{ color: '#f59e0b' }}>{dashboardData.browser_summary.errors}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Charts Section */}
       <div className='charts-grid'>

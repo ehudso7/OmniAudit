@@ -1,92 +1,216 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const GITHUB_APP_URL = 'https://github.com/apps/omniaudit/installations/new';
 
 function GitHubConnect({ apiUrl, onConnect }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [repositories, setRepositories] = useState([]);
+  const [webhookStatus, setWebhookStatus] = useState(null);
+  const [manualOwner, setManualOwner] = useState('');
+  const [manualRepo, setManualRepo] = useState('');
+  const [connectingManual, setConnectingManual] = useState(false);
 
-  const handleConnect = async () => {
+  useEffect(() => {
+    // Load connected repositories
+    fetch(`${apiUrl}/api/v1/repositories`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setRepositories(data.repositories || []); })
+      .catch(() => {});
+
+    // Check webhook status
+    fetch(`${apiUrl}/api/v1/webhooks/status`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setWebhookStatus(data); })
+      .catch(() => {});
+  }, [apiUrl]);
+
+  const handleInstallApp = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Check webhook status before redirecting
       const response = await fetch(`${apiUrl}/api/v1/webhooks/status`);
       if (response.ok) {
         onConnect?.();
       }
     } catch (_err) {
-      setError('Could not verify connection. Redirecting to GitHub...');
+      // Continue to redirect regardless
     }
 
-    // Redirect to GitHub App installation regardless
-    setTimeout(() => {
-      window.location.href = GITHUB_APP_URL;
-    }, 500);
+    window.location.href = GITHUB_APP_URL;
+  };
+
+  const handleManualConnect = async () => {
+    if (!manualOwner.trim() || !manualRepo.trim()) {
+      setError('Please enter both owner and repository name');
+      return;
+    }
+
+    setConnectingManual(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/repositories/connect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ owner: manualOwner.trim(), repo: manualRepo.trim() }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Failed to connect repository');
+      }
+
+      const data = await res.json();
+      setRepositories(prev => [...prev, data.repository]);
+      setManualOwner('');
+      setManualRepo('');
+      onConnect?.();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setConnectingManual(false);
+    }
+  };
+
+  const handleDisconnect = async (repoId) => {
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/repositories/${repoId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setRepositories(prev => prev.filter(r => r.id !== repoId));
+      }
+    } catch (_err) {
+      // Silently fail
+    }
   };
 
   return (
     <div className='github-connect'>
       <div className='connect-header'>
-        <svg viewBox='0 0 24 24' width='48' height='48' fill='currentColor'>
-          <path d='M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z' />
-        </svg>
-        <h2>Connect GitHub</h2>
+        <h2>Connect Repositories</h2>
+        <p className='connect-description'>
+          Connect your GitHub repositories for automated PR reviews, browser verification, and release gating.
+        </p>
       </div>
 
-      <p className='connect-description'>
-        Install the OmniAudit GitHub App to automatically review your pull requests with AI-powered
-        code analysis.
-      </p>
+      {/* Webhook Status */}
+      {webhookStatus && (
+        <div className='webhook-status-section' style={{ margin: '1rem 0', padding: '0.75rem 1rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-elevated)' }}>
+          <h4 style={{ marginBottom: '0.5rem' }}>Integration Status</h4>
+          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.85rem' }}>
+            <span>
+              GitHub Webhook: {webhookStatus.github_webhook_configured ?
+                <strong style={{ color: '#22c55e' }}>Configured</strong> :
+                <strong style={{ color: '#f59e0b' }}>Not configured</strong>
+              }
+            </span>
+            <span>
+              Slack: {webhookStatus.slack_webhook_configured ?
+                <strong style={{ color: '#22c55e' }}>Configured</strong> :
+                <strong style={{ color: '#6b7280' }}>Not configured</strong>
+              }
+            </span>
+          </div>
+        </div>
+      )}
 
-      <div className='features-list'>
-        <div className='feature'>
-          <span className='feature-icon'>🔍</span>
-          <div>
-            <strong>Automatic PR Reviews</strong>
-            <p>Get instant feedback on every pull request</p>
+      {/* GitHub App Install */}
+      <div className='connect-section' style={{ marginBottom: '1.5rem' }}>
+        <h3>GitHub App (Recommended)</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+          Install the OmniAudit GitHub App for automatic PR reviews and webhook-driven audits.
+        </p>
+        <button
+          type='button'
+          className='btn btn-primary'
+          onClick={handleInstallApp}
+          disabled={loading}
+        >
+          {loading ? 'Redirecting...' : 'Install GitHub App'}
+        </button>
+      </div>
+
+      {/* Manual Connect */}
+      <div className='connect-section' style={{ marginBottom: '1.5rem' }}>
+        <h3>Manual Repository Connection</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+          Connect a repository manually for tracking and browser verification runs.
+        </p>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+          <div className='form-group' style={{ flex: 1 }}>
+            <label htmlFor='owner'>Owner</label>
+            <input
+              id='owner'
+              type='text'
+              value={manualOwner}
+              onChange={e => setManualOwner(e.target.value)}
+              placeholder='e.g. acme'
+              style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
+            />
           </div>
-        </div>
-        <div className='feature'>
-          <span className='feature-icon'>🔴</span>
-          <div>
-            <strong>Security Scanning</strong>
-            <p>Detect vulnerabilities before they reach production</p>
+          <span style={{ padding: '0.5rem 0', fontSize: '1.2rem' }}>/</span>
+          <div className='form-group' style={{ flex: 1 }}>
+            <label htmlFor='repo'>Repository</label>
+            <input
+              id='repo'
+              type='text'
+              value={manualRepo}
+              onChange={e => setManualRepo(e.target.value)}
+              placeholder='e.g. web-app'
+              style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
+            />
           </div>
-        </div>
-        <div className='feature'>
-          <span className='feature-icon'>⚡</span>
-          <div>
-            <strong>Performance Analysis</strong>
-            <p>Identify bottlenecks and optimization opportunities</p>
-          </div>
-        </div>
-        <div className='feature'>
-          <span className='feature-icon'>💡</span>
-          <div>
-            <strong>Code Quality</strong>
-            <p>Suggestions for cleaner, more maintainable code</p>
-          </div>
+          <button
+            type='button'
+            className='btn btn-secondary'
+            onClick={handleManualConnect}
+            disabled={connectingManual}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            {connectingManual ? 'Connecting...' : 'Connect'}
+          </button>
         </div>
       </div>
 
-      <button
-        type='button'
-        className='btn btn-primary btn-large'
-        onClick={handleConnect}
-        disabled={loading}
-      >
-        {loading ? '⏳ Connecting...' : '🔗 Install GitHub App'}
-      </button>
+      {error && <div className='error-message' style={{ marginBottom: '1rem' }}>{error}</div>}
 
-      {error && <div className='error-message'>{error}</div>}
+      {/* Connected Repositories */}
+      <div className='connected-repos-section'>
+        <h3>Connected Repositories ({repositories.length})</h3>
+        {repositories.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
+            {repositories.map(repo => (
+              <div key={repo.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-elevated)' }}>
+                <div>
+                  <strong>{repo.full_name}</strong>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: '0.75rem' }}>
+                    {repo.status}
+                  </span>
+                </div>
+                <button
+                  type='button'
+                  className='btn btn-small'
+                  onClick={() => handleDisconnect(repo.id)}
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                >
+                  Disconnect
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+            No repositories connected yet. Install the GitHub App or connect manually above.
+          </p>
+        )}
+      </div>
 
-      <div className='connect-footer'>
+      <div className='connect-footer' style={{ marginTop: '2rem' }}>
         <p>
           <small>
-            OmniAudit only requests necessary permissions. We never store your code.
+            OmniAudit only requests necessary permissions. We never store your source code.
             <br />
             <a
               href='https://github.com/ehudso7/OmniAudit'

@@ -52,7 +52,7 @@ def verify_github_signature(payload_body: bytes, signature_header: str, secret: 
 
 
 async def process_pull_request(payload: Dict[str, Any]):
-    """Process pull request events - run OmniAudit analysis."""
+    """Process pull request events - run OmniAudit analysis and persist to DB."""
     action = payload.get("action")
 
     # Only analyze on open, synchronize (new commits), or reopened
@@ -67,12 +67,15 @@ async def process_pull_request(payload: Dict[str, Any]):
     repo_name = repo.get("name")
     pr_number = pr.get("number")
     head_sha = pr.get("head", {}).get("sha")
+    branch = pr.get("head", {}).get("ref")
+    title = pr.get("title", "")
+    author = pr.get("user", {}).get("login", "unknown")
 
     if not all([owner, repo_name, pr_number]):
         logger.error("Missing required PR information")
         return
 
-    logger.info(f"🔍 Analyzing PR {owner}/{repo_name}#{pr_number}")
+    logger.info(f"Analyzing PR {owner}/{repo_name}#{pr_number}")
 
     try:
         # Initialize services
@@ -97,7 +100,43 @@ async def process_pull_request(payload: Dict[str, Any]):
             except Exception as e:
                 logger.warning(f"Could not create check run: {e}")
 
-        logger.info(f"✅ Posted review on {owner}/{repo_name}#{pr_number}: {result.issues_found} issues")
+        # Persist review to database
+        try:
+            from ..db.base import SessionLocal
+            from ..db.models import Review, Repository
+            db = SessionLocal()
+            try:
+                full_name = f"{owner}/{repo_name}"
+                repo_record = db.query(Repository).filter(Repository.full_name == full_name).first()
+
+                review = Review(
+                    repository_id=repo_record.id if repo_record else None,
+                    repo=full_name,
+                    owner=owner,
+                    repo_name=repo_name,
+                    pr_number=pr_number,
+                    title=title,
+                    author=author,
+                    status="reviewed",
+                    issues_found=result.issues_found,
+                    security_issues=result.security_issues,
+                    performance_issues=result.performance_issues,
+                    quality_issues=0,
+                    suggestions=result.suggestions,
+                    action=result.action.value,
+                    commit_sha=head_sha,
+                    branch=branch,
+                    comments=[],
+                )
+                db.add(review)
+                db.commit()
+                logger.info(f"Persisted review for {full_name}#{pr_number}")
+            finally:
+                db.close()
+        except Exception as e:
+            logger.warning(f"Could not persist review to database: {e}")
+
+        logger.info(f"Posted review on {owner}/{repo_name}#{pr_number}: {result.issues_found} issues")
 
         await github.close()
 
@@ -121,12 +160,40 @@ async def process_github_webhook(event: str, payload: Dict[str, Any]):
             # Future: Trigger scheduled full-repo audits
 
         elif event == "installation":
-            # Handle GitHub App installation
+            # Handle GitHub App installation - persist repos
             action = payload.get("action")
             installation_id = payload.get("installation", {}).get("id")
             account = payload.get("installation", {}).get("account", {}).get("login")
             logger.info(f"GitHub App {action} for {account} (installation: {installation_id})")
-            # Future: Store installation, send welcome message
+
+            if action in ("created", "added"):
+                try:
+                    from ..db.base import SessionLocal
+                    from ..db.models import Repository
+                    db = SessionLocal()
+                    try:
+                        repos = payload.get("repositories", payload.get("repositories_added", []))
+                        for repo_data in repos:
+                            full_name = repo_data.get("full_name", "")
+                            if not full_name:
+                                continue
+                            existing = db.query(Repository).filter(Repository.full_name == full_name).first()
+                            if not existing:
+                                parts = full_name.split("/", 1)
+                                db.add(Repository(
+                                    owner=parts[0] if len(parts) > 1 else account,
+                                    name=parts[1] if len(parts) > 1 else full_name,
+                                    full_name=full_name,
+                                    url=f"https://github.com/{full_name}",
+                                    installation_id=str(installation_id) if installation_id else None,
+                                    status="active",
+                                ))
+                        db.commit()
+                        logger.info(f"Persisted {len(repos)} repositories from installation")
+                    finally:
+                        db.close()
+                except Exception as e:
+                    logger.warning(f"Could not persist installation repos: {e}")
 
         logger.info(f"Successfully processed {event} webhook")
 

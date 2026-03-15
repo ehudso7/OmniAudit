@@ -152,6 +152,8 @@ Thumbs.db
 # Project-specific
 git_analysis.json
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 
 # Node modules (for future frontend)
