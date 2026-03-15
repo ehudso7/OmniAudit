@@ -32,6 +32,9 @@ from .webhook_routes import router as webhook_router
 from .batch_routes import router as batch_router
 from .export_routes import router as export_router
 from .reviews_routes import router as reviews_router
+from .browser_runs_routes import router as browser_runs_router
+from .auth_routes import router as auth_router
+from .notification_routes import router as notification_router
 from ..core.plugin_manager import PluginManager
 from ..core.config_loader import ConfigLoader
 from ..collectors.git_collector import GitCollector
@@ -52,6 +55,21 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("OmniAudit API starting up...")
+
+    # Initialize database tables
+    from ..db.base import init_db
+    logger.info("Initializing database...")
+    init_db()
+    logger.info("Database initialized")
+
+    # Create default admin if no users exist
+    from ..db.base import SessionLocal
+    from ..services.auth_service import AuthService
+    db = SessionLocal()
+    try:
+        AuthService.ensure_default_admin(db)
+    finally:
+        db.close()
 
     # Warm up AI schemas to reduce first-request latency
     logger.info("Warming up AI schemas...")
@@ -110,7 +128,10 @@ app.include_router(ai_router)
 app.include_router(webhook_router)
 app.include_router(batch_router)
 app.include_router(export_router)
+app.include_router(auth_router)
 app.include_router(reviews_router)
+app.include_router(browser_runs_router)
+app.include_router(notification_router)
 
 # Initialize plugin manager
 plugin_manager = PluginManager()
@@ -152,6 +173,13 @@ async def root():
                 "markdown": "/api/v1/export/markdown",
                 "json": "/api/v1/export/json",
                 "formats": "/api/v1/export/formats"
+            },
+            "browser_runs": {
+                "create": "POST /api/v1/browser-runs",
+                "list": "GET /api/v1/browser-runs",
+                "detail": "GET /api/v1/browser-runs/{id}",
+                "rerun": "POST /api/v1/browser-runs/{id}/rerun",
+                "artifacts": "GET /api/v1/browser-runs/{id}/artifacts"
             }
         }
     }

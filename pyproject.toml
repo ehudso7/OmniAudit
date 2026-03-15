@@ -41,6 +41,8 @@ dependencies = [
     "anthropic>=0.39.0",  # For AI-enhanced features with Structured Outputs
     "python-multipart>=0.0.6",  # Required for FastAPI form parsing (Slack webhooks)
     "tomli>=2.0.0; python_version < '3.11'",  # TOML parsing for Python <3.11
+    "playwright>=1.40.0",  # Browser verification runs
+    "aiosqlite>=0.19.0",  # Async SQLite for lightweight persistence
 ]
 
 [project.optional-dependencies]
@@ -64,10 +66,10 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/omniaudit"
-Documentation = "https://github.com/yourusername/omniaudit/docs"
-Repository = "https://github.com/yourusername/omniaudit"
-Issues = "https://github.com/yourusername/omniaudit/issues"
+Homepage = "https://github.com/ehudso7/OmniAudit"
+Documentation = "https://github.com/ehudso7/OmniAudit/tree/main/docs"
+Repository = "https://github.com/ehudso7/OmniAudit"
+Issues = "https://github.com/ehudso7/OmniAudit/issues"
 
 [project.scripts]
 omniaudit = "omniaudit.cli:main"

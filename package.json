@@ -13,8 +13,8 @@
     "format": "biome format --write .",
     "type-check": "turbo run type-check",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
-    "backend:dev": "cd backend && uvicorn src.omniaudit.api.main:app --reload",
-    "backend:test": "cd backend && pytest tests/ -v",
+    "backend:dev": "cd python-app && uvicorn omniaudit.api.main:app --reload --host 0.0.0.0 --port 8000",
+    "backend:test": "pytest python-app/tests/ -v",
     "prepare": "husky install || true"
   },
   "keywords": [
@@ -67,5 +67,8 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": ["biome check --apply", "biome format --write"]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "@biomejs/biome"]
   }
 }
