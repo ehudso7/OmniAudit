@@ -51,8 +51,8 @@ importers:
         specifier: ^9.0.0
         version: 9.39.1
       hono:
-        specifier: ^4.0.0
-        version: 4.10.7
+        specifier: ^4.11.7
+        version: 4.12.8
       ora:
         specifier: ^8.0.1
         version: 8.2.0
@@ -100,8 +100,8 @@ importers:
   frontend:
     dependencies:
       axios:
-        specifier: ^1.6.2
-        version: 1.13.2
+        specifier: ^1.13.5
+        version: 1.13.6
       prop-types:
         specifier: ^15.8.1
         version: 15.8.1
@@ -367,8 +367,8 @@ importers:
   vscode-extension:
     dependencies:
       axios:
-        specifier: ^1.6.5
-        version: 1.13.2
+        specifier: ^1.13.5
+        version: 1.13.6
     devDependencies:
       '@types/node':
         specifier: ^20.11.16
@@ -1875,8 +1875,8 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  axios@1.13.2:
-    resolution: {integrity: sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==}
+  axios@1.13.6:
+    resolution: {integrity: sha512-ChTCHMouEe2kn713WHbQGcuYrr6fXTBiu460OTwWrWob16g1bXn4vtz07Ope7ewMozJAnEquLk5lWQWtBig9DQ==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -2811,8 +2811,8 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  hono@4.10.7:
-    resolution: {integrity: sha512-icXIITfw/07Q88nLSkB9aiUrd8rYzSweK681Kjo/TSggaGbOX4RRyxxm71v+3PC8C/j+4rlxGeoTRxQDkaJkUw==}
+  hono@4.12.8:
+    resolution: {integrity: sha512-VJCEvtrezO1IAR+kqEYnxUOoStaQPGrCmX3j4wDTNOcD1uRPFpGlwQUIW8niPuvHXaTUxeOUl5MMDGrl+tmO9A==}
     engines: {node: '>=16.9.0'}
 
   html-escaper@2.0.2:
@@ -5726,7 +5726,7 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
-  axios@1.13.2:
+  axios@1.13.6:
     dependencies:
       follow-redirects: 1.15.11
       form-data: 4.0.5
@@ -6845,7 +6845,7 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hono@4.10.7: {}
+  hono@4.12.8: {}
 
   html-escaper@2.0.2: {}
 
