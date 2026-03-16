@@ -105,8 +105,11 @@ else:
     # IMPORTANT: Do not use wildcards - CORS doesn't support pattern matching
     allowed_origins = [
         "http://localhost:3000",
+        "http://127.0.0.1:3000",
         "http://localhost:5173",  # Vite default port
-        "http://localhost:8000"
+        "http://127.0.0.1:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ]
     # Log warning if not configured
     logger.warning(
@@ -119,7 +122,7 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key"],
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 

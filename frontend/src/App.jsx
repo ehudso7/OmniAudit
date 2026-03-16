@@ -123,7 +123,8 @@ function App() {
   };
 
   const handleSelectPlan = (planId) => {
-    console.log('Selected plan:', planId);
+    // Plan selection is informational only — billing integration not yet connected
+    setActiveTab('settings');
   };
 
   const markNotificationRead = async (id) => {
@@ -293,9 +294,8 @@ function App() {
         </div>
         <div className='footer-links'>
           <a href='https://github.com/ehudso7/OmniAudit' target='_blank' rel='noopener noreferrer'>GitHub</a>
-          <a href='#docs'>Documentation</a>
-          <a href='#api'>API</a>
-          <a href='#support'>Support</a>
+          <a href='https://github.com/ehudso7/OmniAudit#readme' target='_blank' rel='noopener noreferrer'>Documentation</a>
+          <a href='https://github.com/ehudso7/OmniAudit/issues' target='_blank' rel='noopener noreferrer'>Support</a>
         </div>
         <div className='footer-copyright'>
           <p>&copy; 2026 OmniAudit. All rights reserved.</p>

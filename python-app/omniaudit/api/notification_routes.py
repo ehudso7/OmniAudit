@@ -4,7 +4,7 @@ Notification API Routes
 Endpoints for reading and managing user notifications.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 
@@ -74,10 +74,10 @@ async def mark_notification_read(
     """Mark a notification as read. Validates ownership."""
     notification = db.query(Notification).filter(Notification.id == notification_id).first()
     if not notification:
-        return {"status": "not_found"}
+        raise HTTPException(status_code=404, detail="Notification not found")
     # Ownership check: only allow marking your own or broadcast notifications
     if notification.user_id and user and notification.user_id != user.id:
-        return {"status": "forbidden"}
+        raise HTTPException(status_code=403, detail="Cannot mark another user's notification as read")
     notification.read = True
     db.commit()
     return {"status": "ok"}

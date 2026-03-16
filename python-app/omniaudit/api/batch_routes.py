@@ -7,7 +7,7 @@ Endpoints for batch processing multiple repositories or audits.
 import asyncio
 import os
 from pathlib import Path
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import uuid
@@ -17,6 +17,7 @@ from ..utils.logger import get_logger
 from ..analyzers import SecurityAnalyzer, DependencyAnalyzer
 from ..analyzers.ai_insights import AIInsightsAnalyzer
 from ..analyzers.code_quality import CodeQualityAnalyzer
+from .auth_routes import require_user
 
 logger = get_logger(__name__)
 
@@ -336,7 +337,8 @@ async def process_batch_audit(job_id: str, request: BatchAuditRequest):
 @router.post("/audit", response_model=Dict[str, str])
 async def create_batch_audit(
     request: BatchAuditRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    _user=Depends(require_user),
 ):
     """
     Create a batch audit job for multiple repositories.
@@ -439,7 +441,7 @@ async def list_batch_audits(
 
 
 @router.delete("/audit/{job_id}")
-async def delete_batch_audit(job_id: str):
+async def delete_batch_audit(job_id: str, _user=Depends(require_user)):
     """
     Delete a batch audit job and its results.
     """
