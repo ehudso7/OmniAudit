@@ -355,10 +355,17 @@ async def list_browser_runs(
 
 
 @router.get("/browser-runs/{run_id}")
-async def get_browser_run(run_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_browser_run(
+    run_id: str,
+    db: Session = Depends(get_db),
+    user: Optional[User] = Depends(get_current_user),
+) -> Dict[str, Any]:
     """Get a specific browser verification run with checks."""
     run = db.query(BrowserRun).filter(BrowserRun.id == run_id).first()
     if not run:
+        raise HTTPException(status_code=404, detail="Browser run not found")
+    # Ownership check: only owner or runs with no owner
+    if run.user_id and (not user or user.id != run.user_id):
         raise HTTPException(status_code=404, detail="Browser run not found")
 
     checks = db.query(BrowserCheck).filter(BrowserCheck.browser_run_id == run_id).all()
@@ -374,16 +381,20 @@ async def rerun_browser_run(
     run_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    user: Optional[User] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Re-run a browser verification run with the same configuration."""
     original = db.query(BrowserRun).filter(BrowserRun.id == run_id).first()
     if not original:
+        raise HTTPException(status_code=404, detail="Browser run not found")
+    if original.user_id and (not user or user.id != original.user_id):
         raise HTTPException(status_code=404, detail="Browser run not found")
 
     # Create new run with same config
     new_run = BrowserRun(
         target_url=original.target_url,
         repository_id=original.repository_id,
+        user_id=user.id if user else None,
         environment=original.environment,
         branch=original.branch,
         commit_sha=original.commit_sha,
@@ -425,10 +436,16 @@ async def rerun_browser_run(
 
 
 @router.get("/browser-runs/{run_id}/artifacts")
-async def get_browser_run_artifacts(run_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_browser_run_artifacts(
+    run_id: str,
+    db: Session = Depends(get_db),
+    user: Optional[User] = Depends(get_current_user),
+) -> Dict[str, Any]:
     """Get artifacts for a browser verification run."""
     run = db.query(BrowserRun).filter(BrowserRun.id == run_id).first()
     if not run:
+        raise HTTPException(status_code=404, detail="Browser run not found")
+    if run.user_id and (not user or user.id != run.user_id):
         raise HTTPException(status_code=404, detail="Browser run not found")
 
     artifacts = db.query(BrowserArtifact).filter(BrowserArtifact.browser_run_id == run_id).all()

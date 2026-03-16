@@ -11,6 +11,7 @@ function Settings({ apiUrl, authToken, user }) {
   });
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [keyError, setKeyError] = useState('');
 
   const headers = authToken
     ? { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }
@@ -39,6 +40,7 @@ function Settings({ apiUrl, authToken, user }) {
 
   const createApiKey = async (e) => {
     e.preventDefault();
+    setKeyError('');
     if (!newKeyName.trim()) return;
     try {
       const res = await fetch(`${apiUrl}/api/v1/auth/api-keys`, {
@@ -51,21 +53,28 @@ function Settings({ apiUrl, authToken, user }) {
         setCreatedKey(data.api_key?.key || data.key);
         setNewKeyName('');
         loadApiKeys();
+      } else {
+        setKeyError(data.detail || 'Failed to create API key');
       }
     } catch {
-      // ignore
+      setKeyError('Network error — could not create API key');
     }
   };
 
   const revokeApiKey = async (keyId) => {
+    setKeyError('');
     try {
       const res = await fetch(`${apiUrl}/api/v1/auth/api-keys/${keyId}`, {
         method: 'DELETE',
         headers,
       });
-      if (res.ok) loadApiKeys();
+      if (res.ok) {
+        loadApiKeys();
+      } else {
+        setKeyError('Failed to revoke API key');
+      }
     } catch {
-      // ignore
+      setKeyError('Network error — could not revoke API key');
     }
   };
 
@@ -127,18 +136,18 @@ function Settings({ apiUrl, authToken, user }) {
       <div className='settings-section'>
         <h3>Notification Preferences</h3>
         <div className='settings-card'>
-          <label className='toggle-label'>
-            <input type='checkbox' checked={notifPrefs.notify_run_complete}
+          <label className='toggle-label' htmlFor='pref-run-complete'>
+            <input id='pref-run-complete' type='checkbox' checked={notifPrefs.notify_run_complete}
               onChange={e => setNotifPrefs(p => ({ ...p, notify_run_complete: e.target.checked }))} />
             Notify when browser runs complete
           </label>
-          <label className='toggle-label'>
-            <input type='checkbox' checked={notifPrefs.notify_release_blocked}
+          <label className='toggle-label' htmlFor='pref-release-blocked'>
+            <input id='pref-release-blocked' type='checkbox' checked={notifPrefs.notify_release_blocked}
               onChange={e => setNotifPrefs(p => ({ ...p, notify_release_blocked: e.target.checked }))} />
             Notify when releases are blocked
           </label>
-          <label className='toggle-label'>
-            <input type='checkbox' checked={notifPrefs.notify_critical_issues}
+          <label className='toggle-label' htmlFor='pref-critical-issues'>
+            <input id='pref-critical-issues' type='checkbox' checked={notifPrefs.notify_critical_issues}
               onChange={e => setNotifPrefs(p => ({ ...p, notify_critical_issues: e.target.checked }))} />
             Notify on critical security issues
           </label>
@@ -167,8 +176,11 @@ function Settings({ apiUrl, authToken, user }) {
           </div>
         )}
 
+        {keyError && <div className='error-message'><p>{keyError}</p></div>}
+
         <form className='api-key-form' onSubmit={createApiKey}>
-          <input type='text' placeholder='Key name (e.g., CI/CD)' value={newKeyName}
+          <label htmlFor='api-key-name' className='sr-only'>API key name</label>
+          <input id='api-key-name' type='text' placeholder='Key name (e.g., CI/CD)' value={newKeyName}
             onChange={e => setNewKeyName(e.target.value)} required />
           <button type='submit' className='btn btn-primary btn-small'>Create Key</button>
         </form>

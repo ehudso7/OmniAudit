@@ -362,7 +362,6 @@ class ReleasePolicy(Base):
     max_network_failures = Column(Integer, nullable=True)
     require_browser_run = Column(Boolean, default=False)
     required_journeys = Column(JSON, nullable=True)
-    journeys_required = Column(JSON, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
